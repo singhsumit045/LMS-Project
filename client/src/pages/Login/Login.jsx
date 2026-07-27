@@ -19,24 +19,46 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 
+import { validateLogin } from "../../utils/validation";
+
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const [formData, setFormData] = useState({
+        email: "",
+        password: "",
+    });
+
+    const [errors, setErrors] = useState({});
+
+    const handleChange = (e) => {
+
+        const { name, value } = e.target;
+
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+
+        setErrors((prev) => ({
+            ...prev,
+            [name]: "",
+        }));
+    };
 
     const handleLogin = (e) => {
+
         e.preventDefault();
 
-        if (!email || !password) {
-            alert("Please fill all fields");
+        const validationErrors = validateLogin(formData);
+
+        setErrors(validationErrors);
+
+        if (Object.keys(validationErrors).length > 0) {
             return;
         }
 
-        console.log({
-            email,
-            password,
-        });
+        console.log(formData);
     };
 
     return (
@@ -44,6 +66,7 @@ const Login = () => {
             maxWidth="sm"
             sx={{
                 mt: 8,
+
             }}
         >
             <Paper
@@ -104,23 +127,31 @@ const Login = () => {
                     </Box>
 
                     <TextField
-                        label="Email"
-                        type="email"
-                        value={email}
-                        autoComplete="email"
-                        onChange={(e) => setEmail(e.target.value)}
                         fullWidth
+                        required
                         margin="normal"
+                        label="Email"
+                        name="email"
+                        type="email"
+                        autoComplete="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        error={!!errors.email}
+                        helperText={errors.email || " "}
                     />
 
                     <TextField
-                        label="Password"
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        autoComplete="current-password"
-                        onChange={(e) => setPassword(e.target.value)}
                         fullWidth
+                        required
                         margin="normal"
+                        label="Password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="current-password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        error={!!errors.password}
+                        helperText={errors.password || " "}
                         slotProps={{
                             input: {
                                 endAdornment: (
@@ -151,7 +182,11 @@ const Login = () => {
                             mb: 2,
                         }}
                     >
-                        <Link href="#" underline="hover">
+                        <Link
+                            component={RouterLink}
+                            to="/forgot-password"
+                            underline="hover"
+                        >
                             Forgot Password?
                         </Link>
                     </Box>

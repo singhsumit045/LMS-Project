@@ -37,7 +37,6 @@ export const validateRegister = (formData) => {
     return errors;
 };
 
-
 export const validateLogin = (formData) => {
     const errors = {};
 
