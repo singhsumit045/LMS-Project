@@ -1,11 +1,17 @@
+import {
+    Container,
+    Paper,
+    Box,
+    Typography,
+    TextField,
+    Button,
+    Link,
+} from "@mui/material";
 
-import { Container, Paper, Box, Typography, TextField, Button, Link } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import { useState } from "react";
 
-import logo from "../../assets/LearnHub.jpeg";
-
-import SchoolIcon from "@mui/icons-material/School";
+import logo from "../../assets/LearnHub.png";
 
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -29,19 +35,24 @@ const Login = () => {
 
         console.log({
             email,
-            password
+            password,
         });
     };
+
     return (
-        <Container maxWidth="sm"
+        <Container
+            maxWidth="sm"
             sx={{
                 mt: 8,
-            }}>
-            <Paper elevation={3}
+            }}
+        >
+            <Paper
+                elevation={8}
                 sx={{
                     p: 4,
                     borderRadius: 3,
-                }}>
+                }}
+            >
                 <Box
                     component="form"
                     onSubmit={handleLogin}
@@ -50,71 +61,88 @@ const Login = () => {
                         flexDirection: "column",
                     }}
                 >
-                    <Box
-                        sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            mb: 2
-                        }}
-                    >
+                    <Box textAlign="center" mb={3}>
                         <Box
-                            component="img"
-                            src={logo}
-                            alt="LearnHub Logo"
                             sx={{
-                                width: 220,
-                                height: "auto",
-                                objectFit: "contain"
+                                width: 180,
+                                height: 40,
+                                overflow: "hidden",
+                                mx: "auto",
+                                mb: 2,
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
                             }}
-                        />
+                        >
+                            <Box
+                                component="img"
+                                src={logo}
+                                alt="LearnHub Logo"
+                                sx={{
+                                    width: 250,
+                                    height: "auto",
+                                    objectFit: "contain",
+                                    ml: "-65px",
+                                }}
+                            />
+                        </Box>
+
+                        <Typography
+                            variant="h4"
+                            fontWeight="bold"
+                            mb={1}
+                        >
+                            Welcome Back 👋
+                        </Typography>
+
+                        <Typography
+                            variant="body1"
+                            color="text.secondary"
+                        >
+                            Sign in to continue learning
+                        </Typography>
                     </Box>
-                    <Typography variant="h4"
-                        sx={{
-                            textAlign: "center",
-                            fontWeight: "bold",
-                            mb: 1,
-                        }}>
-                        Welcome Back 👋
-                    </Typography>
-                    <Typography variant="body1"
-                        color="text.secondary"
-                        sx={{
-                            textAlign: "center",
-                            mb: 3,
-                        }}>
-                        Sign in to continue learning
-                    </Typography>
+
                     <TextField
                         label="Email"
                         type="email"
                         value={email}
+                        autoComplete="email"
                         onChange={(e) => setEmail(e.target.value)}
                         fullWidth
                         margin="normal"
                     />
+
                     <TextField
                         label="Password"
                         type={showPassword ? "text" : "password"}
                         value={password}
+                        autoComplete="current-password"
                         onChange={(e) => setPassword(e.target.value)}
                         fullWidth
                         margin="normal"
-
                         slotProps={{
                             input: {
                                 endAdornment: (
                                     <InputAdornment position="end">
                                         <IconButton
-                                            onClick={() => setShowPassword(!showPassword)}
+                                            onClick={() =>
+                                                setShowPassword(!showPassword)
+                                            }
                                             edge="end"
                                         >
-                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                            {showPassword ? (
+                                                <VisibilityOff />
+                                            ) : (
+                                                <Visibility />
+                                            )}
                                         </IconButton>
                                     </InputAdornment>
                                 ),
                             },
                         }}
                     />
+
                     <Box
                         sx={{
                             display: "flex",
@@ -126,20 +154,22 @@ const Login = () => {
                         <Link href="#" underline="hover">
                             Forgot Password?
                         </Link>
-                    </Box >
+                    </Box>
+
                     <Button
                         variant="contained"
                         type="submit"
-                        onClick={handleLogin}
                         fullWidth
                         size="large"
                         sx={{
-                            mt: 1,
                             py: 1.3,
+                            textTransform: "none",
+                            borderRadius: 2,
                         }}
                     >
                         Login
                     </Button>
+
                     <Box
                         sx={{
                             mt: 2,
@@ -160,7 +190,7 @@ const Login = () => {
                 </Box>
             </Paper>
         </Container>
-    )
-}
+    );
+};
 
-export default Login
+export default Login;
