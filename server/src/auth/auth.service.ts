@@ -27,7 +27,6 @@ export class AuthService {
     return await this.usersService.create(registerDto);
   }
 
-
   async login(loginDto: LoginDto) {
 
     // Find user by email
@@ -39,25 +38,23 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-
     // Compare password
     const isPasswordMatch = await bcrypt.compare(
       loginDto.password,
       user.password,
     );
 
-
     if (!isPasswordMatch) {
       throw new UnauthorizedException('Invalid email or password');
     }
-
 
     // Generate JWT Token
     const payload = {
       sub: user.id,
       email: user.email,
+      role: user.role,
+      name: user.name,
     };
-
 
     return {
       access_token: this.jwtService.sign(payload),

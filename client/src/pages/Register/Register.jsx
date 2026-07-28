@@ -94,16 +94,19 @@ function Register() {
 
 
     return (
-        <Container maxWidth="sm">
+        <Container maxWidth="sm"
+        sx={{
+        mt: 4,
+        mb: 4,
+       }}>
 
             <Paper elevation={8}
-                sx={{
-                    padding: 4,
-                    marginTop: 8
-                }}
+       sx={{
+        p: 3,
+        borderRadius: 3,
+    }}
             >
                 <Box textAlign="center" mb={3}>
-
                     <Box
                         sx={{
                             width: 180,
@@ -142,11 +145,10 @@ function Register() {
                         mt={1}
                     >
                         Join LearnHub and start your learning journey
-                    </Typography>
-
+                    </Typography> 
                 </Box>
 
-
+        
                 <Box component="form" onSubmit={handleSubmit}>
 
                     <TextField
