@@ -7,17 +7,49 @@ import Dashboard from "../pages/Dashboard/Dashboard";
 import Profile from "../pages/Profile/Profile";
 import NotFound from "../pages/NotFound/NotFound";
 
+import ProtectedRoute from "../components/ProtectedRoute";
+
+
 const AppRoutes = () => {
+  
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="*" element={<NotFound />} />
+      <Route 
+        path="/" 
+        element={<Home />} 
+      />
+      <Route 
+        path="/login" 
+        element={<Login />} 
+      />
+
+      <Route 
+        path="/register" 
+        element={<Register />} 
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route 
+        path="*" 
+        element={<NotFound />} 
+      />
     </Routes>
   );
 };
+
 
 export default AppRoutes;
