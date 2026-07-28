@@ -11,6 +11,7 @@ import {
 
 import { Link as RouterLink } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -20,9 +21,11 @@ import IconButton from "@mui/material/IconButton";
 import logo from "../../assets/LearnHub.png";
 
 import { validateRegister } from "../../utils/validation";
+import { registerUser } from "../../services/authService";
 
 function Register() {
 
+    const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -52,19 +55,42 @@ function Register() {
     };
 
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+   const handleSubmit = async (e) => {
 
-        const validationErrors = validateRegister(formData);
+    e.preventDefault();
 
-        setErrors(validationErrors);
+    const validationErrors = validateRegister(formData);
 
-        if (Object.keys(validationErrors).length > 0) {
-            return;
-        }
+    setErrors(validationErrors);
 
-        console.log(formData);
-    };
+    if (Object.keys(validationErrors).length > 0) {
+        return;
+    }
+    try {
+
+        const response = await registerUser({
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            role: formData.role,
+        });
+
+
+        console.log(response.data);
+
+        alert("Registration Successful");
+        navigate("/login");
+
+    } catch (error) {
+        console.log(error.response?.data);
+
+        alert(
+            error.response?.data?.message ||
+            "Registration failed"
+        );
+
+    }
+};
 
 
     return (

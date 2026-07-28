@@ -10,6 +10,7 @@ import {
 
 import { Link as RouterLink } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import logo from "../../assets/LearnHub.png";
 
@@ -20,15 +21,17 @@ import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 
 import { validateLogin } from "../../utils/validation";
+import { loginUser } from "../../services/authService";
+
 
 const Login = () => {
-    const [showPassword, setShowPassword] = useState(false);
 
+     const navigate = useNavigate();
+    const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         email: "",
         password: "",
     });
-
     const [errors, setErrors] = useState({});
 
     const handleChange = (e) => {
@@ -46,19 +49,37 @@ const Login = () => {
         }));
     };
 
-    const handleLogin = (e) => {
 
+    const handleLogin = async (e) => {
         e.preventDefault();
-
         const validationErrors = validateLogin(formData);
-
         setErrors(validationErrors);
 
         if (Object.keys(validationErrors).length > 0) {
             return;
         }
 
-        console.log(formData);
+        try {
+            const response = await loginUser(formData);
+
+            console.log(response.data);
+
+            localStorage.setItem(
+                "token",
+                response.data.access_token
+            );
+            alert("Login Successful");
+            navigate("/dashboard");
+
+        } catch (error) {
+
+            console.log(error.response?.data);
+
+            alert(
+                error.response?.data?.message ||
+                "Invalid email or password"
+            );
+        }
     };
 
     return (
@@ -66,9 +87,9 @@ const Login = () => {
             maxWidth="sm"
             sx={{
                 mt: 8,
-
             }}
         >
+
             <Paper
                 elevation={8}
                 sx={{
@@ -76,6 +97,7 @@ const Login = () => {
                     borderRadius: 3,
                 }}
             >
+
                 <Box
                     component="form"
                     onSubmit={handleLogin}
@@ -84,7 +106,11 @@ const Login = () => {
                         flexDirection: "column",
                     }}
                 >
-                    <Box textAlign="center" mb={3}>
+                    <Box sx={{
+                        textAlign: "center",
+                        mt: 2,
+                    }}>
+
                         <Box
                             sx={{
                                 width: 180,
@@ -109,7 +135,6 @@ const Login = () => {
                                 }}
                             />
                         </Box>
-
                         <Typography
                             variant="h4"
                             fontWeight="bold"
@@ -118,13 +143,17 @@ const Login = () => {
                             Welcome Back 👋
                         </Typography>
 
+
                         <Typography
                             variant="body1"
                             color="text.secondary"
                         >
                             Sign in to continue learning
                         </Typography>
+
                     </Box>
+
+
 
                     <TextField
                         fullWidth
@@ -140,6 +169,8 @@ const Login = () => {
                         helperText={errors.email || " "}
                     />
 
+
+
                     <TextField
                         fullWidth
                         required
@@ -152,27 +183,34 @@ const Login = () => {
                         onChange={handleChange}
                         error={!!errors.password}
                         helperText={errors.password || " "}
+
                         slotProps={{
                             input: {
                                 endAdornment: (
                                     <InputAdornment position="end">
+
                                         <IconButton
                                             onClick={() =>
                                                 setShowPassword(!showPassword)
                                             }
                                             edge="end"
                                         >
-                                            {showPassword ? (
-                                                <VisibilityOff />
-                                            ) : (
-                                                <Visibility />
-                                            )}
+
+                                            {
+                                                showPassword
+                                                    ? <VisibilityOff />
+                                                    : <Visibility />
+                                            }
+
                                         </IconButton>
+
                                     </InputAdornment>
                                 ),
                             },
                         }}
                     />
+
+
 
                     <Box
                         sx={{
@@ -182,6 +220,7 @@ const Login = () => {
                             mb: 2,
                         }}
                     >
+
                         <Link
                             component={RouterLink}
                             to="/forgot-password"
@@ -189,7 +228,10 @@ const Login = () => {
                         >
                             Forgot Password?
                         </Link>
+
                     </Box>
+
+
 
                     <Button
                         variant="contained"
@@ -205,14 +247,19 @@ const Login = () => {
                         Login
                     </Button>
 
+
+
                     <Box
                         sx={{
                             mt: 2,
                             textAlign: "center",
                         }}
                     >
+
                         <Typography variant="body2">
+
                             Don't have an account?{" "}
+
                             <Link
                                 component={RouterLink}
                                 to="/register"
@@ -227,5 +274,6 @@ const Login = () => {
         </Container>
     );
 };
+
 
 export default Login;
