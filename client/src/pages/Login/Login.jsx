@@ -210,8 +210,6 @@ const Login = () => {
                         }}
                     />
 
-
-
                     <Box
                         sx={{
                             display: "flex",
@@ -220,7 +218,6 @@ const Login = () => {
                             mb: 2,
                         }}
                     >
-
                         <Link
                             component={RouterLink}
                             to="/forgot-password"
@@ -230,8 +227,6 @@ const Login = () => {
                         </Link>
 
                     </Box>
-
-
 
                     <Button
                         variant="contained"
@@ -247,17 +242,13 @@ const Login = () => {
                         Login
                     </Button>
 
-
-
                     <Box
                         sx={{
                             mt: 2,
                             textAlign: "center",
                         }}
                     >
-
                         <Typography variant="body2">
-
                             Don't have an account?{" "}
 
                             <Link
@@ -267,6 +258,7 @@ const Login = () => {
                             >
                                 Register
                             </Link>
+
                         </Typography>
                     </Box>
                 </Box>

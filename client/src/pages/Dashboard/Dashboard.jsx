@@ -9,8 +9,6 @@ const Dashboard = () => {
         localStorage.removeItem("token");
         navigate("/login");
     };
-
-
     return (
         <Container sx={{ mt: 8 }}>
 
@@ -21,7 +19,6 @@ const Dashboard = () => {
                     textAlign: "center",
                 }}
             >
-
                 <Typography variant="h4">
                     Welcome to LearnHub Dashboard 🚀
                 </Typography>
@@ -29,8 +26,6 @@ const Dashboard = () => {
                 <Typography mt={2}>
                     You are logged in successfully.
                 </Typography>
-
-
                 <Button
                     variant="contained"
                     sx={{ mt: 3 }}
@@ -38,9 +33,7 @@ const Dashboard = () => {
                 >
                     Logout
                 </Button>
-
             </Paper>
-
         </Container>
     );
 };

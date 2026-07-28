@@ -247,9 +247,6 @@ const CourseDetails = () => {
         </Grid>
 
 
-
-
-
         {/* RIGHT SIDE */}
 
 
@@ -270,7 +267,6 @@ const CourseDetails = () => {
             }}
           >
 
-
             <Box
               sx={{
                 height:180,
@@ -281,17 +277,13 @@ const CourseDetails = () => {
                 justifyContent:"center"
               }}
             >
-
               <PlayCircle
                 sx={{
                   fontSize:60,
                   color:"primary.main"
                 }}
               />
-
             </Box>
-
-
 
             <Typography
               variant="h4"
@@ -301,8 +293,6 @@ const CourseDetails = () => {
             >
               ₹{course.price}
             </Typography>
-
-
 
             <Button
               fullWidth
@@ -315,9 +305,6 @@ const CourseDetails = () => {
             >
               Enroll Now
             </Button>
-
-
-
 
             {/* ADMIN + TEACHER */}
 
@@ -341,11 +328,7 @@ const CourseDetails = () => {
               </Button>
 
             )}
-
-
-
             <Divider sx={{my:3}} />
-
 
             <Typography>
               ✔ Lifetime Access
@@ -358,13 +341,8 @@ const CourseDetails = () => {
             <Typography>
               ✔ Project Based Learning
             </Typography>
-
-
           </Paper>
-
-
         </Grid>
-
 
       </Grid>
 
