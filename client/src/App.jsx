@@ -2,16 +2,26 @@ import AppRoutes from "./routes/AppRoutes";
 import Navbar from "./components/Navbar";
 import { useLocation } from "react-router-dom";
 
-function App() {
+function App({ darkMode, toggleTheme }) {
   const location = useLocation();
+
   const hideNavbarRoutes = [
     "/login",
-    "/register"
+    "/register",
   ];
-  const showNavbar = !hideNavbarRoutes.includes(location.pathname);
+
+  const showNavbar = !hideNavbarRoutes.includes(
+    location.pathname
+  );
+
   return (
     <>
-      {showNavbar && <Navbar />}
+      {showNavbar && (
+        <Navbar
+          darkMode={darkMode}
+          toggleTheme={toggleTheme}
+        />
+      )}
 
       <AppRoutes />
     </>
