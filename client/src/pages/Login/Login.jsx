@@ -23,19 +23,19 @@ import IconButton from "@mui/material/IconButton";
 import { validateLogin } from "../../utils/validation";
 import { loginUser } from "../../services/authService";
 
-
 const Login = () => {
+    const navigate = useNavigate();
 
-     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
+
     const [formData, setFormData] = useState({
         email: "",
         password: "",
     });
+
     const [errors, setErrors] = useState({});
 
     const handleChange = (e) => {
-
         const { name, value } = e.target;
 
         setFormData((prev) => ({
@@ -49,10 +49,11 @@ const Login = () => {
         }));
     };
 
-
     const handleLogin = async (e) => {
         e.preventDefault();
+
         const validationErrors = validateLogin(formData);
+
         setErrors(validationErrors);
 
         if (Object.keys(validationErrors).length > 0) {
@@ -60,26 +61,23 @@ const Login = () => {
         }
 
         try {
-            const response = await loginUser(formData);
+    const response = await loginUser(formData);
 
-            console.log(response.data);
+    console.log("LOGIN SUCCESS:", response.data);
 
-            localStorage.setItem(
-                "token",
-                response.data.access_token
-            );
-            alert("Login Successful");
-            navigate("/dashboard");
+    alert("Login Successful");
 
-        } catch (error) {
+    navigate("/dashboard");
 
-            console.log(error.response?.data);
+} catch (error) {
+    console.log("LOGIN ERROR:", error);
+    console.log("RESPONSE:", error.response?.data);
 
-            alert(
-                error.response?.data?.message ||
-                "Invalid email or password"
-            );
-        }
+    alert(
+        error.response?.data?.message ||
+        "Invalid email or password"
+    );
+}
     };
 
     return (
@@ -89,7 +87,6 @@ const Login = () => {
                 mt: 8,
             }}
         >
-
             <Paper
                 elevation={8}
                 sx={{
@@ -97,7 +94,6 @@ const Login = () => {
                     borderRadius: 3,
                 }}
             >
-
                 <Box
                     component="form"
                     onSubmit={handleLogin}
@@ -106,11 +102,12 @@ const Login = () => {
                         flexDirection: "column",
                     }}
                 >
-                    <Box sx={{
-                        textAlign: "center",
-                        mt: 2,
-                    }}>
-
+                    <Box
+                        sx={{
+                            textAlign: "center",
+                            mt: 2,
+                        }}
+                    >
                         <Box
                             sx={{
                                 width: 180,
@@ -135,6 +132,7 @@ const Login = () => {
                                 }}
                             />
                         </Box>
+
                         <Typography
                             variant="h4"
                             fontWeight="bold"
@@ -143,17 +141,13 @@ const Login = () => {
                             Welcome Back 👋
                         </Typography>
 
-
                         <Typography
                             variant="body1"
                             color="text.secondary"
                         >
                             Sign in to continue learning
                         </Typography>
-
                     </Box>
-
-
 
                     <TextField
                         fullWidth
@@ -169,8 +163,6 @@ const Login = () => {
                         helperText={errors.email || " "}
                     />
 
-
-
                     <TextField
                         fullWidth
                         required
@@ -183,27 +175,22 @@ const Login = () => {
                         onChange={handleChange}
                         error={!!errors.password}
                         helperText={errors.password || " "}
-
                         slotProps={{
                             input: {
                                 endAdornment: (
                                     <InputAdornment position="end">
-
                                         <IconButton
                                             onClick={() =>
                                                 setShowPassword(!showPassword)
                                             }
                                             edge="end"
                                         >
-
-                                            {
-                                                showPassword
-                                                    ? <VisibilityOff />
-                                                    : <Visibility />
-                                            }
-
+                                            {showPassword ? (
+                                                <VisibilityOff />
+                                            ) : (
+                                                <Visibility />
+                                            )}
                                         </IconButton>
-
                                     </InputAdornment>
                                 ),
                             },
@@ -225,7 +212,6 @@ const Login = () => {
                         >
                             Forgot Password?
                         </Link>
-
                     </Box>
 
                     <Button
@@ -258,7 +244,6 @@ const Login = () => {
                             >
                                 Register
                             </Link>
-
                         </Typography>
                     </Box>
                 </Box>
@@ -266,6 +251,5 @@ const Login = () => {
         </Container>
     );
 };
-
 
 export default Login;

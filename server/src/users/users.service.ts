@@ -13,6 +13,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  // Create new user
   async create(registerDto: RegisterDto) {
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
@@ -24,33 +25,52 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
+  // Get all users
   async findAll() {
     return await this.userRepository.find();
   }
 
+  // Get user by ID
   async findOne(id: number) {
     return await this.userRepository.findOne({
       where: { id },
     });
   }
 
+  // Get user by email
   async findByEmail(email: string) {
     return await this.userRepository.findOne({
       where: { email },
     });
   }
 
+  // Update user
   async update(id: number, updateUserDto: UpdateUserDto) {
     await this.userRepository.update(id, updateUserDto);
 
     return await this.findOne(id);
   }
 
+  // Delete user
   async remove(id: number) {
     await this.userRepository.delete(id);
 
     return {
       message: 'User deleted successfully',
     };
+  }
+
+  // Save hashed refresh token
+  async updateRefreshToken(id: number, refreshToken: string) {
+    await this.userRepository.update(id, {
+      refreshToken,
+    });
+  }
+
+  // Remove refresh token during logout
+  async removeRefreshToken(id: number) {
+    await this.userRepository.update(id, {
+      refreshToken: null,
+    });
   }
 }

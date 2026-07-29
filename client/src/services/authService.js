@@ -1,7 +1,29 @@
 import api from "./api";
 
-export const loginUser = (data) => {
-  return api.post("/auth/login", data);
+export const loginUser = async (data) => {
+  const response = await api.post("/auth/login", data);
+
+  // Save access token
+  localStorage.setItem(
+    "access_token",
+    response.data.access_token
+  );
+
+  // Save refresh token
+  localStorage.setItem(
+    "refresh_token",
+    response.data.refresh_token
+  );
+
+  // Save user information
+  if (response.data.user) {
+    localStorage.setItem(
+      "user",
+      JSON.stringify(response.data.user)
+    );
+  }
+
+  return response;
 };
 
 export const registerUser = (data) => {
@@ -10,4 +32,25 @@ export const registerUser = (data) => {
 
 export const getProfile = () => {
   return api.get("/auth/profile");
+};
+
+// Refresh access token
+export const refreshToken = () => {
+  const refresh_token = localStorage.getItem("refresh_token");
+
+  return api.post("/auth/refresh", {
+    refresh_token,
+  });
+};
+
+// Logout
+export const logoutUser = () => {
+  return api.post("/auth/logout");
+};
+
+// Clear authentication data
+export const clearAuth = () => {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("user");
 };

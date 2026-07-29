@@ -16,4 +16,7 @@ export class User {
 
   @Column({ default: 'student' })
   role!: string;
+
+@Column({ type: 'varchar', length: 500, nullable: true })
+refreshToken!: string | null; 
 }
