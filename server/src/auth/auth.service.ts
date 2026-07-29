@@ -6,8 +6,11 @@ import {
 } from '@nestjs/common';
 
 import { UsersService } from '../users/users.service';
+
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+
 import { UpdateUserDto } from '../users/dto/update-user.dto';
 
 import { JwtService } from '@nestjs/jwt';
@@ -28,25 +31,31 @@ export class AuthService {
   // =========================
 
   async register(registerDto: RegisterDto) {
-    const existingUser = await this.usersService.findByEmail(
-      registerDto.email,
-    );
+    const existingUser =
+      await this.usersService.findByEmail(
+        registerDto.email,
+      );
 
     if (existingUser) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException(
+        'Email already exists',
+      );
     }
 
-    return await this.usersService.create(registerDto);
+    return await this.usersService.create(
+      registerDto,
+    );
   }
-
+  
   // =========================
   // LOGIN
   // =========================
 
   async login(loginDto: LoginDto) {
-    const user = await this.usersService.findByEmail(
-      loginDto.email,
-    );
+    const user =
+      await this.usersService.findByEmail(
+        loginDto.email,
+      );
 
     if (!user) {
       throw new UnauthorizedException(
@@ -54,10 +63,11 @@ export class AuthService {
       );
     }
 
-    const isPasswordMatch = await bcrypt.compare(
-      loginDto.password,
-      user.password,
-    );
+    const isPasswordMatch =
+      await bcrypt.compare(
+        loginDto.password,
+        user.password,
+      );
 
     if (!isPasswordMatch) {
       throw new UnauthorizedException(
@@ -72,23 +82,33 @@ export class AuthService {
       name: user.name,
     };
 
-    // Access Token
-    const accessToken = this.jwtService.sign(payload);
+    // =========================
+    // ACCESS TOKEN
+    // =========================
 
-    // Refresh Token
-    const refreshToken = this.jwtService.sign(payload, {
-      secret:
-        this.configService.get<string>('JWT_REFRESH_SECRET') ||
-        'lms-refresh-secret',
+    const accessToken =
+      this.jwtService.sign(payload);
 
-      expiresIn: '7d',
-    });
+    // =========================
+    // REFRESH TOKEN
+    // =========================
+
+    const refreshToken =
+      this.jwtService.sign(payload, {
+        secret:
+          this.configService.get<string>(
+            'JWT_REFRESH_SECRET',
+          ) || 'lms-refresh-secret',
+
+        expiresIn: '7d',
+      });
 
     // Hash refresh token before storing
-    const hashedRefreshToken = await bcrypt.hash(
-      refreshToken,
-      10,
-    );
+    const hashedRefreshToken =
+      await bcrypt.hash(
+        refreshToken,
+        10,
+      );
 
     await this.usersService.updateRefreshToken(
       user.id,
@@ -116,7 +136,8 @@ export class AuthService {
     userId: number,
     updateUserDto: UpdateUserDto,
   ) {
-    const user = await this.usersService.findOne(userId);
+    const user =
+      await this.usersService.findOne(userId);
 
     if (!user) {
       throw new UnauthorizedException(
@@ -124,13 +145,13 @@ export class AuthService {
       );
     }
 
-    // Only name is allowed to be updated
-    const updatedUser = await this.usersService.update(
-      userId,
-      {
-        name: updateUserDto.name,
-      },
-    );
+    const updatedUser =
+      await this.usersService.update(
+        userId,
+        {
+          name: updateUserDto.name,
+        },
+      );
 
     if (!updatedUser) {
       throw new UnauthorizedException(
@@ -139,7 +160,8 @@ export class AuthService {
     }
 
     return {
-      message: 'Profile updated successfully',
+      message:
+        'Profile updated successfully',
 
       user: {
         id: updatedUser.id,
@@ -151,10 +173,94 @@ export class AuthService {
   }
 
   // =========================
+  // CHANGE PASSWORD
+  // =========================
+
+  async changePassword(
+    userId: number,
+    changePasswordDto: ChangePasswordDto,
+  ) {
+    const user =
+      await this.usersService.findOne(userId);
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'User not found',
+      );
+    }
+
+    // =========================
+    // VERIFY CURRENT PASSWORD
+    // =========================
+
+    const isCurrentPasswordValid =
+      await bcrypt.compare(
+        changePasswordDto.currentPassword,
+        user.password,
+      );
+
+    if (!isCurrentPasswordValid) {
+      throw new UnauthorizedException(
+        'Current password is incorrect',
+      );
+    }
+
+    // =========================
+    // CHECK SAME PASSWORD
+    // =========================
+
+    const isSamePassword =
+      await bcrypt.compare(
+        changePasswordDto.newPassword,
+        user.password,
+      );
+
+    if (isSamePassword) {
+      throw new UnauthorizedException(
+        'New password must be different from current password',
+      );
+    }
+
+    // =========================
+    // HASH NEW PASSWORD
+    // =========================
+
+    const hashedNewPassword =
+      await bcrypt.hash(
+        changePasswordDto.newPassword,
+        10,
+      );
+
+    // =========================
+    // UPDATE PASSWORD
+    // =========================
+
+    await this.usersService.updatePassword(
+      userId,
+      hashedNewPassword,
+    );
+
+    // =========================
+    // INVALIDATE REFRESH TOKEN
+    // =========================
+
+    await this.usersService.removeRefreshToken(
+      userId,
+    );
+
+    return {
+      message:
+        'Password changed successfully',
+    };
+  }
+
+  // =========================
   // REFRESH TOKEN
   // =========================
 
-  async refreshToken(refreshToken: string) {
+  async refreshToken(
+    refreshToken: string,
+  ) {
     if (!refreshToken) {
       throw new UnauthorizedException(
         'Refresh token is required',
@@ -162,29 +268,49 @@ export class AuthService {
     }
 
     try {
-      // Verify refresh token
-      const payload = this.jwtService.verify(refreshToken, {
-        secret:
-          this.configService.get<string>('JWT_REFRESH_SECRET') ||
-          'lms-refresh-secret',
-      });
+      // =========================
+      // VERIFY REFRESH TOKEN
+      // =========================
 
-      // Find user
-      const user = await this.usersService.findOne(
-        payload.sub,
-      );
+      const payload =
+        this.jwtService.verify(
+          refreshToken,
+          {
+            secret:
+              this.configService.get<string>(
+                'JWT_REFRESH_SECRET',
+              ) ||
+              'lms-refresh-secret',
+          },
+        );
 
-      if (!user || !user.refreshToken) {
+      // =========================
+      // FIND USER
+      // =========================
+
+      const user =
+        await this.usersService.findOne(
+          payload.sub,
+        );
+
+      if (
+        !user ||
+        !user.refreshToken
+      ) {
         throw new UnauthorizedException(
           'Invalid refresh token',
         );
       }
 
-      // Compare provided token with hashed token in DB
-      const isRefreshTokenValid = await bcrypt.compare(
-        refreshToken,
-        user.refreshToken,
-      );
+      // =========================
+      // COMPARE REFRESH TOKEN
+      // =========================
+
+      const isRefreshTokenValid =
+        await bcrypt.compare(
+          refreshToken,
+          user.refreshToken,
+        );
 
       if (!isRefreshTokenValid) {
         throw new UnauthorizedException(
@@ -192,7 +318,10 @@ export class AuthService {
         );
       }
 
-      // New payload
+      // =========================
+      // NEW PAYLOAD
+      // =========================
+
       const newPayload = {
         sub: user.id,
         email: user.email,
@@ -200,34 +329,58 @@ export class AuthService {
         name: user.name,
       };
 
-      // Generate new access token
+      // =========================
+      // NEW ACCESS TOKEN
+      // =========================
+
       const newAccessToken =
-        this.jwtService.sign(newPayload);
+        this.jwtService.sign(
+          newPayload,
+        );
 
-      // Generate new refresh token
+      // =========================
+      // NEW REFRESH TOKEN
+      // =========================
+
       const newRefreshToken =
-        this.jwtService.sign(newPayload, {
-          secret:
-            this.configService.get<string>(
-              'JWT_REFRESH_SECRET',
-            ) || 'lms-refresh-secret',
+        this.jwtService.sign(
+          newPayload,
+          {
+            secret:
+              this.configService.get<string>(
+                'JWT_REFRESH_SECRET',
+              ) ||
+              'lms-refresh-secret',
 
-          expiresIn: '7d',
-        });
+            expiresIn: '7d',
+          },
+        );
 
-      // Hash new refresh token
+      // =========================
+      // HASH NEW REFRESH TOKEN
+      // =========================
+
       const hashedNewRefreshToken =
-        await bcrypt.hash(newRefreshToken, 10);
+        await bcrypt.hash(
+          newRefreshToken,
+          10,
+        );
 
-      // Replace old refresh token
+      // =========================
+      // REPLACE OLD TOKEN
+      // =========================
+
       await this.usersService.updateRefreshToken(
         user.id,
         hashedNewRefreshToken,
       );
 
       return {
-        access_token: newAccessToken,
-        refresh_token: newRefreshToken,
+        access_token:
+          newAccessToken,
+
+        refresh_token:
+          newRefreshToken,
       };
     } catch (error) {
       throw new UnauthorizedException(
@@ -241,7 +394,9 @@ export class AuthService {
   // =========================
 
   async logout(userId: number) {
-    await this.usersService.removeRefreshToken(userId);
+    await this.usersService.removeRefreshToken(
+      userId,
+    );
 
     return {
       message: 'Logout successful',

@@ -10,23 +10,32 @@ import {
 } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
+
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+
 import { UpdateUserDto } from '../users/dto/update-user.dto';
 
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+  ) {}
 
   // =========================
   // REGISTER
   // =========================
 
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
-    return await this.authService.register(registerDto);
+  async register(
+    @Body() registerDto: RegisterDto,
+  ) {
+    return await this.authService.register(
+      registerDto,
+    );
   }
 
   // =========================
@@ -34,8 +43,12 @@ export class AuthController {
   // =========================
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto) {
-    return await this.authService.login(loginDto);
+  async login(
+    @Body() loginDto: LoginDto,
+  ) {
+    return await this.authService.login(
+      loginDto,
+    );
   }
 
   // =========================
@@ -59,8 +72,24 @@ export class AuthController {
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return await this.authService.updateProfile(
-      req.user.sub,
+      req.user.id,
       updateUserDto,
+    );
+  }
+
+  // =========================
+  // CHANGE PASSWORD
+  // =========================
+
+  @UseGuards(JwtAuthGuard)
+  @Put('change-password')
+  async changePassword(
+    @Req() req: any,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return await this.authService.changePassword(
+      req.user.id,
+      changePasswordDto,
     );
   }
 
@@ -69,8 +98,12 @@ export class AuthController {
   // =========================
 
   @Post('refresh')
-  async refresh(@Body('refresh_token') refreshToken: string) {
-    return await this.authService.refreshToken(refreshToken);
+  async refresh(
+    @Body('refresh_token') refreshToken: string,
+  ) {
+    return await this.authService.refreshToken(
+      refreshToken,
+    );
   }
 
   // =========================
@@ -80,7 +113,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Req() req: any) {
-    return await this.authService.logout(req.user.sub);
+    return await this.authService.logout(
+      req.user.id,
+    );
   }
 }
 

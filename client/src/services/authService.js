@@ -1,6 +1,10 @@
 
 import api from "./api";
 
+// =========================
+// LOGIN
+// =========================
+
 export const loginUser = async (data) => {
   const response = await api.post("/auth/login", data);
 
@@ -27,6 +31,10 @@ export const loginUser = async (data) => {
   return response;
 };
 
+// =========================
+// REGISTER
+// =========================
+
 export const registerUser = (data) => {
   return api.post("/auth/register", data);
 };
@@ -48,11 +56,20 @@ export const updateProfile = (data) => {
 };
 
 // =========================
+// CHANGE PASSWORD
+// =========================
+
+export const changePassword = (data) => {
+  return api.put("/auth/change-password", data);
+};
+
+// =========================
 // REFRESH ACCESS TOKEN
 // =========================
 
 export const refreshToken = () => {
-  const refresh_token = localStorage.getItem("refresh_token");
+  const refresh_token =
+    localStorage.getItem("refresh_token");
 
   return api.post("/auth/refresh", {
     refresh_token,

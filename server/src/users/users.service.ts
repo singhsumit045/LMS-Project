@@ -13,9 +13,15 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  // Create new user
+  // =========================
+  // CREATE USER
+  // =========================
+
   async create(registerDto: RegisterDto) {
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+    const hashedPassword = await bcrypt.hash(
+      registerDto.password,
+      10,
+    );
 
     const user = this.userRepository.create({
       ...registerDto,
@@ -25,33 +31,69 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
-  // Get all users
+  // =========================
+  // GET ALL USERS
+  // =========================
+
   async findAll() {
     return await this.userRepository.find();
   }
 
-  // Get user by ID
+  // =========================
+  // GET USER BY ID
+  // =========================
+
   async findOne(id: number) {
     return await this.userRepository.findOne({
       where: { id },
     });
   }
 
-  // Get user by email
+  // =========================
+  // GET USER BY EMAIL
+  // =========================
+
   async findByEmail(email: string) {
     return await this.userRepository.findOne({
       where: { email },
     });
   }
 
-  // Update user
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    await this.userRepository.update(id, updateUserDto);
+  // =========================
+  // UPDATE USER PROFILE
+  // =========================
+
+  async update(
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ) {
+    await this.userRepository.update(
+      id,
+      updateUserDto,
+    );
 
     return await this.findOne(id);
   }
 
-  // Delete user
+  // =========================
+  // UPDATE PASSWORD
+  // =========================
+
+  async updatePassword(
+    id: number,
+    hashedPassword: string,
+  ) {
+    await this.userRepository.update(id, {
+      password: hashedPassword,
+    });
+
+    return await this.findOne(id);
+  }
+
+  // =========================
+  // DELETE USER
+  // =========================
+
   async remove(id: number) {
     await this.userRepository.delete(id);
 
@@ -60,14 +102,23 @@ export class UsersService {
     };
   }
 
-  // Save hashed refresh token
-  async updateRefreshToken(id: number, refreshToken: string) {
+  // =========================
+  // SAVE HASHED REFRESH TOKEN
+  // =========================
+
+  async updateRefreshToken(
+    id: number,
+    refreshToken: string,
+  ) {
     await this.userRepository.update(id, {
       refreshToken,
     });
   }
 
-  // Remove refresh token during logout
+  // =========================
+  // REMOVE REFRESH TOKEN
+  // =========================
+
   async removeRefreshToken(id: number) {
     await this.userRepository.update(id, {
       refreshToken: null,

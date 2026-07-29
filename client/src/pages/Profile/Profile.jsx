@@ -1,8 +1,9 @@
-
 import { useEffect, useState } from "react";
+
 import {
   getProfile,
   updateProfile,
+  changePassword,
 } from "../../services/authService";
 
 import {
@@ -19,6 +20,7 @@ import {
   IconButton,
   TextField,
   Button,
+  InputAdornment,
 } from "@mui/material";
 
 import {
@@ -29,6 +31,10 @@ import {
   Edit,
   Check,
   Close,
+  Lock,
+  Visibility,
+  VisibilityOff,
+  Security,
 } from "@mui/icons-material";
 
 function Profile() {
@@ -36,19 +42,48 @@ function Profile() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  // =========================
+  // PROFILE EDIT
+  // =========================
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState("");
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  // =========================
+  // CHANGE PASSWORD
+  // =========================
+
+  const [showChangePassword, setShowChangePassword] =
+    useState(false);
+
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  const [changingPassword, setChangingPassword] =
+    useState(false);
+
+  const [showCurrentPassword, setShowCurrentPassword] =
+    useState(false);
+
+  const [showNewPassword, setShowNewPassword] =
+    useState(false);
+
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
 
   // =========================
   // LOAD PROFILE
   // =========================
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
 
   const loadProfile = async () => {
     try {
@@ -65,7 +100,7 @@ function Profile() {
   };
 
   // =========================
-  // START EDITING
+  // START EDIT
   // =========================
 
   const handleEdit = () => {
@@ -76,7 +111,7 @@ function Profile() {
   };
 
   // =========================
-  // CANCEL EDITING
+  // CANCEL EDIT
   // =========================
 
   const handleCancel = () => {
@@ -98,7 +133,9 @@ function Profile() {
     }
 
     if (trimmedName.length < 2) {
-      setError("Name must contain at least 2 characters.");
+      setError(
+        "Name must contain at least 2 characters."
+      );
       return;
     }
 
@@ -114,17 +151,161 @@ function Profile() {
       setUser(response.data.user);
       setName(response.data.user.name);
 
+      // Update stored user
+      localStorage.setItem(
+        "user",
+        JSON.stringify(response.data.user)
+      );
+
       setEditing(false);
       setSuccess("Profile updated successfully.");
     } catch (error) {
       console.log(error);
 
+      const message = error.response?.data?.message;
+
       setError(
-        error.response?.data?.message ||
-          "Unable to update profile."
+        Array.isArray(message)
+          ? message.join(", ")
+          : message || "Unable to update profile."
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  // =========================
+  // OPEN CHANGE PASSWORD
+  // =========================
+
+  const handleOpenChangePassword = () => {
+    setShowChangePassword(true);
+    setError("");
+    setSuccess("");
+  };
+
+  // =========================
+  // CLOSE CHANGE PASSWORD
+  // =========================
+
+  const handleCancelChangePassword = () => {
+    setShowChangePassword(false);
+
+    setPasswordData({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+
+    setError("");
+  };
+
+  // =========================
+  // PASSWORD INPUT CHANGE
+  // =========================
+
+  const handlePasswordChange = (event) => {
+    const { name, value } = event.target;
+
+    setPasswordData((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+
+    setError("");
+    setSuccess("");
+  };
+
+  // =========================
+  // CHANGE PASSWORD
+  // =========================
+
+  const handleChangePassword = async () => {
+    setError("");
+    setSuccess("");
+
+    const {
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    } = passwordData;
+
+    if (!currentPassword.trim()) {
+      setError("Please enter your current password.");
+      return;
+    }
+
+    if (!newPassword.trim()) {
+      setError("Please enter a new password.");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError(
+        "New password must contain at least 6 characters."
+      );
+      return;
+    }
+
+    if (!confirmPassword.trim()) {
+      setError("Please confirm your new password.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError(
+        "New password and confirm password do not match."
+      );
+      return;
+    }
+
+    if (currentPassword === newPassword) {
+      setError(
+        "New password must be different from your current password."
+      );
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+
+      await changePassword({
+        currentPassword,
+        newPassword,
+      });
+
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+
+      setShowCurrentPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
+
+      setSuccess("Password changed successfully.");
+
+      // Keep form open so user can see success message
+      // and close it manually.
+    } catch (error) {
+      console.log(error);
+
+      const message = error.response?.data?.message;
+
+      if (Array.isArray(message)) {
+        setError(message.join(", "));
+      } else {
+        setError(
+          message || "Unable to change password."
+        );
+      }
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -211,12 +392,13 @@ function Profile() {
             color="text.secondary"
             sx={{ mt: 0.5 }}
           >
-            Manage and view your LearnHub account information.
+            Manage your LearnHub account and security
+            settings.
           </Typography>
         </Box>
 
         {/* =========================
-            SUCCESS / ERROR
+            SUCCESS MESSAGE
         ========================= */}
 
         {success && (
@@ -231,6 +413,10 @@ function Profile() {
           </Alert>
         )}
 
+        {/* =========================
+            ERROR MESSAGE
+        ========================= */}
+
         {error && user && (
           <Alert
             severity="error"
@@ -239,7 +425,9 @@ function Profile() {
               borderRadius: 2,
             }}
           >
-            {error}
+            {Array.isArray(error)
+              ? error.join(", ")
+              : error}
           </Alert>
         )}
 
@@ -260,7 +448,10 @@ function Profile() {
 
           <Box
             sx={{
-              height: 120,
+              height: {
+                xs: 100,
+                sm: 120,
+              },
               background:
                 "linear-gradient(135deg, #1976d2, #42a5f5)",
             }}
@@ -273,12 +464,13 @@ function Profile() {
               position: "relative",
               px: {
                 xs: 3,
+                sm: 4,
                 md: 5,
               },
               pb: 4,
             }}
           >
-            {/* EDIT ICON */}
+            {/* EDIT BUTTON */}
 
             {!editing && (
               <IconButton
@@ -288,7 +480,8 @@ function Profile() {
                   position: "absolute",
                   top: 20,
                   right: {
-                    xs: 20,
+                    xs: 16,
+                    sm: 24,
                     md: 32,
                   },
                   backgroundColor: "background.paper",
@@ -308,13 +501,25 @@ function Profile() {
 
             <Avatar
               sx={{
-                width: 100,
-                height: 100,
-                mt: -6,
+                width: {
+                  xs: 82,
+                  sm: 100,
+                },
+                height: {
+                  xs: 82,
+                  sm: 100,
+                },
+                mt: {
+                  xs: -5,
+                  sm: -6,
+                },
                 mb: 2,
                 border: "5px solid white",
                 backgroundColor: "primary.main",
-                fontSize: "2.5rem",
+                fontSize: {
+                  xs: "2rem",
+                  sm: "2.5rem",
+                },
                 fontWeight: 700,
               }}
             >
@@ -341,13 +546,12 @@ function Profile() {
                   size="small"
                 />
 
-                {/* SAVE / CANCEL */}
-
                 <Box
                   sx={{
                     display: "flex",
                     gap: 1,
                     mt: 2,
+                    flexWrap: "wrap",
                   }}
                 >
                   <Button
@@ -375,6 +579,16 @@ function Profile() {
               <Typography
                 variant="h5"
                 fontWeight={700}
+                sx={{
+                  fontSize: {
+                    xs: "1.3rem",
+                    sm: "1.5rem",
+                  },
+                  pr: {
+                    xs: 5,
+                    sm: 0,
+                  },
+                }}
               >
                 {user.name}
               </Typography>
@@ -386,6 +600,7 @@ function Profile() {
               color="text.secondary"
               sx={{
                 mt: 0.8,
+                wordBreak: "break-word",
               }}
             >
               {user.email}
@@ -405,7 +620,6 @@ function Profile() {
               sx={{
                 mt: 2,
                 fontWeight: 600,
-                textTransform: "capitalize",
               }}
             />
           </Box>
@@ -424,6 +638,7 @@ function Profile() {
             borderColor: "divider",
             p: {
               xs: 3,
+              sm: 4,
               md: 5,
             },
           }}
@@ -460,7 +675,8 @@ function Profile() {
                 }}
               >
                 <Person color="primary" />
-                <Box>
+
+                <Box sx={{ minWidth: 0 }}>
                   <Typography
                     variant="body2"
                     color="text.secondary"
@@ -490,7 +706,7 @@ function Profile() {
               >
                 <Email color="primary" />
 
-                <Box>
+                <Box sx={{ minWidth: 0 }}>
                   <Typography
                     variant="body2"
                     color="text.secondary"
@@ -545,10 +761,350 @@ function Profile() {
             </Grid>
           </Grid>
         </Paper>
+
+        {/* =========================
+            SECURITY
+        ========================= */}
+
+        <Paper
+          elevation={0}
+          sx={{
+            mt: 3,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            p: {
+              xs: 3,
+              sm: 4,
+              md: 5,
+            },
+          }}
+        >
+          {/* SECURITY HEADER */}
+
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              mb: 1,
+            }}
+          >
+            <Security color="primary" />
+
+            <Typography
+              variant="h6"
+              fontWeight={700}
+            >
+              Security
+            </Typography>
+          </Box>
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mb: 3 }}
+          >
+            Keep your account secure by using a strong
+            password.
+          </Typography>
+
+          <Divider sx={{ mb: 3 }} />
+
+          {/* =========================
+              FORM HIDDEN
+          ========================= */}
+
+          {!showChangePassword && (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: {
+                  xs: "column",
+                  sm: "row",
+                },
+                alignItems: {
+                  xs: "stretch",
+                  sm: "center",
+                },
+                justifyContent: "space-between",
+                gap: 2,
+              }}
+            >
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={700}
+                >
+                  Password
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                >
+                  Update your password to keep your
+                  account secure.
+                </Typography>
+              </Box>
+
+              <Button
+                variant="contained"
+                startIcon={<Lock />}
+                onClick={handleOpenChangePassword}
+                sx={{
+                  alignSelf: {
+                    xs: "stretch",
+                    sm: "auto",
+                  },
+                  minWidth: {
+                    sm: 170,
+                  },
+                }}
+              >
+                Change Password
+              </Button>
+            </Box>
+          )}
+
+          {/* =========================
+              CHANGE PASSWORD FORM
+          ========================= */}
+
+          {showChangePassword && (
+            <Box>
+              <Typography
+                variant="subtitle1"
+                fontWeight={700}
+                sx={{ mb: 0.5 }}
+              >
+                Change Password
+              </Typography>
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: 3 }}
+              >
+                Enter your current password and choose a
+                new password.
+              </Typography>
+
+              <Grid container spacing={2.5}>
+                {/* CURRENT PASSWORD */}
+
+                <Grid size={{ xs: 12 }}>
+                  <TextField
+                    fullWidth
+                    label="Current Password"
+                    name="currentPassword"
+                    type={
+                      showCurrentPassword
+                        ? "text"
+                        : "password"
+                    }
+                    value={
+                      passwordData.currentPassword
+                    }
+                    onChange={handlePasswordChange}
+                    autoComplete="current-password"
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Lock fontSize="small" />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() =>
+                                setShowCurrentPassword(
+                                  (previous) =>
+                                    !previous
+                                )
+                              }
+                              edge="end"
+                              aria-label={
+                                showCurrentPassword
+                                  ? "Hide password"
+                                  : "Show password"
+                              }
+                            >
+                              {showCurrentPassword ? (
+                                <VisibilityOff />
+                              ) : (
+                                <Visibility />
+                              )}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      },
+                    }}
+                  />
+                </Grid>
+
+                {/* NEW PASSWORD */}
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth
+                    label="New Password"
+                    name="newPassword"
+                    type={
+                      showNewPassword
+                        ? "text"
+                        : "password"
+                    }
+                    value={passwordData.newPassword}
+                    onChange={handlePasswordChange}
+                    autoComplete="new-password"
+                    helperText="Minimum 6 characters"
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Lock fontSize="small" />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() =>
+                                setShowNewPassword(
+                                  (previous) =>
+                                    !previous
+                                )
+                              }
+                              edge="end"
+                              aria-label={
+                                showNewPassword
+                                  ? "Hide password"
+                                  : "Show password"
+                              }
+                            >
+                              {showNewPassword ? (
+                                <VisibilityOff />
+                              ) : (
+                                <Visibility />
+                              )}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      },
+                    }}
+                  />
+                </Grid>
+
+                {/* CONFIRM PASSWORD */}
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth
+                    label="Confirm New Password"
+                    name="confirmPassword"
+                    type={
+                      showConfirmPassword
+                        ? "text"
+                        : "password"
+                    }
+                    value={
+                      passwordData.confirmPassword
+                    }
+                    onChange={handlePasswordChange}
+                    autoComplete="new-password"
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Lock fontSize="small" />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() =>
+                                setShowConfirmPassword(
+                                  (previous) =>
+                                    !previous
+                                )
+                              }
+                              edge="end"
+                              aria-label={
+                                showConfirmPassword
+                                  ? "Hide password"
+                                  : "Show password"
+                              }
+                            >
+                              {showConfirmPassword ? (
+                                <VisibilityOff />
+                              ) : (
+                                <Visibility />
+                              )}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      },
+                    }}
+                  />
+                </Grid>
+              </Grid>
+
+              {/* BUTTONS */}
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: {
+                    xs: "stretch",
+                    sm: "flex-end",
+                  },
+                  flexDirection: {
+                    xs: "column-reverse",
+                    sm: "row",
+                  },
+                  gap: 1.5,
+                  mt: 3,
+                }}
+              >
+                <Button
+                  variant="outlined"
+                  startIcon={<Close />}
+                  onClick={handleCancelChangePassword}
+                  disabled={changingPassword}
+                  sx={{
+                    width: {
+                      xs: "100%",
+                      sm: "auto",
+                    },
+                  }}
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  variant="contained"
+                  startIcon={<Lock />}
+                  onClick={handleChangePassword}
+                  disabled={changingPassword}
+                  sx={{
+                    width: {
+                      xs: "100%",
+                      sm: "auto",
+                    },
+                  }}
+                >
+                  {changingPassword
+                    ? "Changing Password..."
+                    : "Change Password"}
+                </Button>
+              </Box>
+            </Box>
+          )}
+        </Paper>
       </Container>
     </Box>
   );
 }
 
 export default Profile;
-
