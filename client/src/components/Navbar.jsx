@@ -1,33 +1,34 @@
+
 import {
-    AppBar,
-    Toolbar,
-    Typography,
-    Button,
-    Box,
-    IconButton,
-    Avatar,
-    Tooltip,
-    Divider,
-    Menu,
-    MenuItem,
-    ListItemIcon,
-    ListItemText,
-    Drawer,
-    List,
-    ListItem,
-    ListItemButton,
-    useMediaQuery,
+  AppBar,
+  Toolbar,
+  Button,
+  Box,
+  IconButton,
+  Avatar,
+  Tooltip,
+  Divider,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  useMediaQuery,
 } from "@mui/material";
 
 import {
-    DarkMode,
-    LightMode,
-    Menu as MenuIcon,
-    Dashboard as DashboardIcon,
-    School as SchoolIcon,
-    Add as AddIcon,
-    Person,
-    Logout as LogoutIcon,
+  DarkMode,
+  LightMode,
+  Menu as MenuIcon,
+  Dashboard as DashboardIcon,
+  School as SchoolIcon,
+  LibraryBooks,
+  Add as AddIcon,
+  Person,
+  Logout as LogoutIcon,
 } from "@mui/icons-material";
 
 import { useEffect, useState } from "react";
@@ -38,708 +39,709 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useTheme } from "@mui/material/styles";
 
+// LearnHub Logo
+import logo from "../assets/LearnHub.png";
+
 
 const Navbar = ({ darkMode, toggleTheme }) => {
 
-    const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null);
 
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] =
+    useState(false);
 
-    const [profileAnchor, setProfileAnchor] = useState(null);
+  const [profileAnchor, setProfileAnchor] =
+    useState(null);
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const theme = useTheme();
+  const theme = useTheme();
 
-    const isMobile = useMediaQuery(
-        theme.breakpoints.down("md")
-    );
-
-
-    // =========================
-    // FETCH USER PROFILE
-    // =========================
-
-    useEffect(() => {
-
-        const fetchProfile = async () => {
-
-            try {
-
-                const response = await getProfile();
-
-                setUser(response.data);
-
-                localStorage.setItem(
-                    "user",
-                    JSON.stringify(response.data)
-                );
-
-            } catch (error) {
-
-                console.log(
-                    "Profile fetch error:",
-                    error.response?.data || error.message
-                );
-
-            }
-
-        };
+  const isMobile = useMediaQuery(
+    theme.breakpoints.down("md")
+  );
 
 
-        const accessToken =
-            localStorage.getItem("access_token");
+  // =========================
+  // FETCH USER PROFILE
+  // =========================
 
-        if (accessToken) {
+  useEffect(() => {
 
-            fetchProfile();
+    const fetchProfile = async () => {
 
-        }
+      try {
 
-    }, []);
+        const response = await getProfile();
 
+        setUser(response.data);
 
-    // =========================
-    // LOGOUT
-    // =========================
+        localStorage.setItem(
+          "user",
+          JSON.stringify(response.data)
+        );
 
-    const handleLogout = () => {
+      } catch (error) {
 
-        setMobileMenuOpen(false);
+        console.log(
+          "Profile fetch error:",
+          error.response?.data ||
+          error.message
+        );
 
-        setProfileAnchor(null);
-
-        localStorage.removeItem("access_token");
-
-        localStorage.removeItem("refresh_token");
-
-        localStorage.removeItem("user");
-
-        navigate("/login");
+      }
 
     };
 
 
-    // =========================
-    // USER INITIAL
-    // =========================
-
-    const getUserInitial = () => {
-
-        if (!user?.name) {
-
-            return "U";
-
-        }
-
-        return user.name
-            .charAt(0)
-            .toUpperCase();
-
-    };
+    const accessToken =
+      localStorage.getItem("access_token");
 
 
-    // =========================
-    // CLOSE MOBILE MENU
-    // =========================
+    if (accessToken) {
 
-    const closeMobileMenu = () => {
+      fetchProfile();
 
-        setMobileMenuOpen(false);
+    }
 
-    };
+  }, []);
 
 
-    // =========================
-    // PROFILE MENU
-    // =========================
+  // =========================
+  // LOGOUT
+  // =========================
 
-    const handleProfileMenuOpen = (event) => {
+  const handleLogout = () => {
 
-        setProfileAnchor(event.currentTarget);
+    setMobileMenuOpen(false);
 
-    };
+    setProfileAnchor(null);
+
+    localStorage.removeItem("access_token");
+
+    localStorage.removeItem("refresh_token");
+
+    localStorage.removeItem("user");
+
+    navigate("/login");
+
+  };
 
 
-    const handleProfileMenuClose = () => {
+  // =========================
+  // USER INITIAL
+  // =========================
 
-        setProfileAnchor(null);
+  const getUserInitial = () => {
 
-    };
+    if (!user?.name) {
+
+      return "U";
+
+    }
+
+    return user.name
+      .charAt(0)
+      .toUpperCase();
+
+  };
 
 
-    return (
+  // =========================
+  // CLOSE MOBILE MENU
+  // =========================
 
-        <AppBar
-            position="static"
-            color="primary"
-            elevation={0}
+  const closeMobileMenu = () => {
+
+    setMobileMenuOpen(false);
+
+  };
+
+
+  // =========================
+  // PROFILE MENU
+  // =========================
+
+  const handleProfileMenuOpen = (event) => {
+
+    setProfileAnchor(event.currentTarget);
+
+  };
+
+
+  const handleProfileMenuClose = () => {
+
+    setProfileAnchor(null);
+
+  };
+
+
+  return (
+
+    <AppBar
+      position="static"
+      color="primary"
+      elevation={0}
+    >
+
+      <Toolbar
+        sx={{
+          minHeight: {
+            xs: "64px",
+            md: "70px",
+          },
+
+          px: {
+            xs: 2,
+            sm: 3,
+            md: 4,
+          },
+        }}
+      >
+
+        {/* =========================
+            LOGO
+        ========================= */}
+
+        <Box
+          component={Link}
+          to="/dashboard"
+          onClick={closeMobileMenu}
+          sx={{
+            flexGrow: 1,
+
+            display: "flex",
+
+            alignItems: "center",
+
+            textDecoration: "none",
+
+            width: "fit-content",
+
+            minWidth: 0,
+          }}
         >
 
-            <Toolbar
+          <Box
+            component="img"
+            src={logo}
+            alt="LearnHub"
+            sx={{
+              width: {
+                xs: 120,
+                sm: 140,
+                md: 155,
+              },
+
+              height: {
+                xs: 42,
+                sm: 46,
+                md: 50,
+              },
+
+              objectFit: "contain",
+
+              objectPosition: "left center",
+
+              display: "block",
+
+              borderRadius: 1,
+
+              transition: "transform 0.2s ease",
+
+              "&:hover": {
+                transform: "scale(1.03)",
+              },
+            }}
+          />
+
+        </Box>
+
+
+        {/* =================================================
+            DESKTOP NAVIGATION
+        ================================================= */}
+
+        {!isMobile && (
+
+          <Box
+            sx={{
+              display: "flex",
+
+              alignItems: "center",
+
+              gap: 0.5,
+            }}
+          >
+
+            {/* Dashboard */}
+
+            <Button
+              color="inherit"
+              component={Link}
+              to="/dashboard"
+              startIcon={<DashboardIcon />}
+            >
+              Dashboard
+            </Button>
+
+
+            {/* Courses */}
+
+            <Button
+              color="inherit"
+              component={Link}
+              to="/courses"
+              startIcon={<SchoolIcon />}
+            >
+              Courses
+            </Button>
+
+
+            {/* My Courses */}
+
+            <Button
+              color="inherit"
+              component={Link}
+              to="/my-courses"
+              startIcon={<LibraryBooks />}
+            >
+              My Courses
+            </Button>
+
+
+            {/* Create Course */}
+
+            {(user?.role === "teacher" ||
+              user?.role === "admin") && (
+
+              <Button
+                color="inherit"
+                component={Link}
+                to="/courses/create"
+                startIcon={<AddIcon />}
+              >
+                Create Course
+              </Button>
+
+            )}
+
+
+            {/* Profile */}
+
+            <Button
+              color="inherit"
+              component={Link}
+              to="/profile"
+              startIcon={<Person />}
+            >
+              Profile
+            </Button>
+
+
+            {/* Theme Toggle */}
+
+            <Tooltip
+              title={
+                darkMode
+                  ? "Light Mode"
+                  : "Dark Mode"
+              }
+            >
+
+              <IconButton
+                color="inherit"
+                onClick={toggleTheme}
+              >
+
+                {darkMode ? (
+                  <LightMode />
+                ) : (
+                  <DarkMode />
+                )}
+
+              </IconButton>
+
+            </Tooltip>
+
+
+            {/* Profile Avatar */}
+
+            <Tooltip title="Account">
+
+              <IconButton
+                onClick={
+                  handleProfileMenuOpen
+                }
+                color="inherit"
+              >
+
+                <Avatar
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    bgcolor:
+                      "secondary.main",
+                  }}
+                >
+                  {getUserInitial()}
+                </Avatar>
+
+              </IconButton>
+
+            </Tooltip>
+
+          </Box>
+
+        )}
+
+
+        {/* =========================
+            MOBILE MENU BUTTON
+        ========================= */}
+
+        {isMobile && (
+
+          <IconButton
+            color="inherit"
+            onClick={() =>
+              setMobileMenuOpen(true)
+            }
+          >
+
+            <MenuIcon />
+
+          </IconButton>
+
+        )}
+
+      </Toolbar>
+
+
+      {/* =========================
+          PROFILE MENU
+      ========================= */}
+
+      <Menu
+        anchorEl={profileAnchor}
+        open={Boolean(profileAnchor)}
+        onClose={handleProfileMenuClose}
+      >
+
+        <MenuItem
+          component={Link}
+          to="/profile"
+          onClick={
+            handleProfileMenuClose
+          }
+        >
+
+          <ListItemIcon>
+            <Person fontSize="small" />
+          </ListItemIcon>
+
+          Profile
+
+        </MenuItem>
+
+
+        <Divider />
+
+
+        <MenuItem
+          onClick={handleLogout}
+        >
+
+          <ListItemIcon>
+            <LogoutIcon fontSize="small" />
+          </ListItemIcon>
+
+          Logout
+
+        </MenuItem>
+
+      </Menu>
+
+
+      {/* =========================
+          MOBILE DRAWER
+      ========================= */}
+
+      <Drawer
+        anchor="right"
+        open={mobileMenuOpen}
+        onClose={closeMobileMenu}
+      >
+
+        <Box
+          sx={{
+            width: 280,
+          }}
+          role="presentation"
+        >
+
+          {/* USER INFO */}
+
+          <Box
+            sx={{
+              p: 2.5,
+
+              display: "flex",
+
+              alignItems: "center",
+
+              gap: 1.5,
+
+              backgroundColor:
+                "primary.main",
+
+              color:
+                "primary.contrastText",
+            }}
+          >
+
+            <Avatar
+              sx={{
+                bgcolor:
+                  "secondary.main",
+
+                fontWeight: 600,
+              }}
+            >
+              {getUserInitial()}
+            </Avatar>
+
+
+            <Box>
+
+              <Box
                 sx={{
-                    minHeight: {
-                        xs: "64px",
-                        md: "70px",
-                    },
-
-                    px: {
-                        xs: 2,
-                        sm: 3,
-                        md: 4,
-                    },
+                  fontWeight: 600,
+                  fontSize: "1rem",
                 }}
-            >
+              >
+                {user?.name || "User"}
+              </Box>
 
-                {/* =========================
-                    LOGO
-                ========================= */}
 
-                <Typography
-                    variant="h5"
-                    component={Link}
-                    to="/dashboard"
-                    onClick={closeMobileMenu}
-                    sx={{
-                        flexGrow: 1,
-
-                        fontWeight: 700,
-
-                        color: "inherit",
-
-                        textDecoration: "none",
-
-                        letterSpacing: "-0.5px",
-
-                        fontSize: {
-                            xs: "1.35rem",
-                            sm: "1.5rem",
-                        },
-                    }}
-                >
-                    LearnHub
-                </Typography>
+              <Box
+                sx={{
+                  fontSize: "0.75rem",
+                  opacity: 0.8,
+                  textTransform: "capitalize",
+                }}
+              >
+                {user?.role || "Student"}
+              </Box>
 
+            </Box>
 
-                {/* =================================================
-                    DESKTOP NAVIGATION
-                ================================================= */}
-
-                {!isMobile && (
-
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                        }}
-                    >
-
-                        {/* Dashboard */}
+          </Box>
 
-                        <Button
-                            color="inherit"
-                            component={Link}
-                            to="/dashboard"
-                            startIcon={<DashboardIcon />}
-                        >
-                            Dashboard
-                        </Button>
-
-
-                        {/* Courses */}
-
-                        <Button
-                            color="inherit"
-                            component={Link}
-                            to="/courses"
-                            startIcon={<SchoolIcon />}
-                        >
-                            Courses
-                        </Button>
-
-
-                        {/* Create Course */}
-
-                        {(user?.role === "teacher" ||
-                            user?.role === "admin") && (
-
-                            <Button
-                                color="inherit"
-                                component={Link}
-                                to="/courses/create"
-                                startIcon={<AddIcon />}
-                            >
-                                Create Course
-                            </Button>
 
-                        )}
+          {/* MOBILE NAVIGATION */}
 
+          <List>
 
-                        {/* Profile */}
+            {/* Dashboard */}
 
-                        <Button
-                            color="inherit"
-                            component={Link}
-                            to="/profile"
-                            startIcon={<Person />}
-                        >
-                            Profile
-                        </Button>
+            <ListItem disablePadding>
 
+              <ListItemButton
+                component={Link}
+                to="/dashboard"
+                onClick={
+                  closeMobileMenu
+                }
+              >
 
-                        {/* =========================
-                            THEME TOGGLE
-                        ========================= */}
+                <ListItemIcon>
+                  <DashboardIcon />
+                </ListItemIcon>
 
-                        <Tooltip
-                            title={
-                                darkMode
-                                    ? "Switch to light mode"
-                                    : "Switch to dark mode"
-                            }
-                        >
+                <ListItemText>
+                  Dashboard
+                </ListItemText>
 
-                            <IconButton
-                                color="inherit"
-                                onClick={toggleTheme}
-                                sx={{
-                                    ml: 0.5,
-                                }}
-                            >
+              </ListItemButton>
 
-                                {darkMode ? (
-                                    <LightMode />
-                                ) : (
-                                    <DarkMode />
-                                )}
+            </ListItem>
 
-                            </IconButton>
 
-                        </Tooltip>
+            {/* Courses */}
 
+            <ListItem disablePadding>
 
-                        <Divider
-                            orientation="vertical"
-                            flexItem
-                            sx={{
-                                mx: 1,
+              <ListItemButton
+                component={Link}
+                to="/courses"
+                onClick={
+                  closeMobileMenu
+                }
+              >
 
-                                borderColor:
-                                    "rgba(255,255,255,0.3)",
-                            }}
-                        />
+                <ListItemIcon>
+                  <SchoolIcon />
+                </ListItemIcon>
 
+                <ListItemText>
+                  Courses
+                </ListItemText>
 
-                        {/* =========================
-                            USER AVATAR
-                        ========================= */}
+              </ListItemButton>
 
-                        <Tooltip
-                            title={
-                                user?.name
-                                    ? `${user.name} (${user.role})`
-                                    : "Profile"
-                            }
-                        >
+            </ListItem>
 
-                            <IconButton
-                                onClick={handleProfileMenuOpen}
-                                sx={{
-                                    ml: 0.5,
-                                }}
-                            >
 
-                                <Avatar
-                                    sx={{
-                                        width: 36,
+            {/* My Courses */}
 
-                                        height: 36,
+            <ListItem disablePadding>
 
-                                        bgcolor:
-                                            "secondary.main",
+              <ListItemButton
+                component={Link}
+                to="/my-courses"
+                onClick={
+                  closeMobileMenu
+                }
+              >
 
-                                        fontSize: 15,
+                <ListItemIcon>
+                  <LibraryBooks />
+                </ListItemIcon>
 
-                                        fontWeight: 600,
-                                    }}
-                                >
-                                    {getUserInitial()}
-                                </Avatar>
+                <ListItemText>
+                  My Courses
+                </ListItemText>
 
-                            </IconButton>
+              </ListItemButton>
 
-                        </Tooltip>
+            </ListItem>
 
 
-                        {/* =========================
-                            PROFILE DROPDOWN
-                        ========================= */}
+            {/* Create Course */}
 
-                        <Menu
-                            anchorEl={profileAnchor}
+            {(user?.role === "teacher" ||
+              user?.role === "admin") && (
 
-                            open={Boolean(profileAnchor)}
+              <ListItem disablePadding>
 
-                            onClose={handleProfileMenuClose}
-
-                            anchorOrigin={{
-                                vertical: "bottom",
-                                horizontal: "right",
-                            }}
-
-                            transformOrigin={{
-                                vertical: "top",
-                                horizontal: "right",
-                            }}
-                        >
-
-                            <MenuItem
-                                onClick={() => {
-
-                                    handleProfileMenuClose();
-
-                                    navigate("/profile");
-
-                                }}
-                            >
-
-                                <ListItemIcon>
-
-                                    <Person fontSize="small" />
-
-                                </ListItemIcon>
-
-                                <ListItemText>
-                                    Profile
-                                </ListItemText>
-
-                            </MenuItem>
-
-
-                            <MenuItem
-                                onClick={handleLogout}
-                            >
-
-                                <ListItemIcon>
-
-                                    <LogoutIcon fontSize="small" />
-
-                                </ListItemIcon>
-
-                                <ListItemText>
-                                    Logout
-                                </ListItemText>
-
-                            </MenuItem>
-
-                        </Menu>
-
-                    </Box>
-
-                )}
-
-
-                {/* =================================================
-                    MOBILE MENU BUTTON
-                ================================================= */}
-
-                {isMobile && (
-
-                    <IconButton
-                        color="inherit"
-
-                        onClick={() =>
-                            setMobileMenuOpen(true)
-                        }
-
-                        aria-label="open navigation menu"
-                    >
-
-                        <MenuIcon />
-
-                    </IconButton>
-
-                )}
-
-            </Toolbar>
-
-
-            {/* =================================================
-                MOBILE DRAWER
-            ================================================= */}
-
-            <Drawer
-                anchor="right"
-
-                open={mobileMenuOpen}
-
-                onClose={closeMobileMenu}
-            >
-
-                <Box
-                    sx={{
-                        width: 280,
-                    }}
-
-                    role="presentation"
+                <ListItemButton
+                  component={Link}
+                  to="/courses/create"
+                  onClick={
+                    closeMobileMenu
+                  }
                 >
 
-                    {/* =========================
-                        MOBILE USER HEADER
-                    ========================= */}
+                  <ListItemIcon>
+                    <AddIcon />
+                  </ListItemIcon>
 
-                    <Box
-                        sx={{
-                            p: 2.5,
+                  <ListItemText>
+                    Create Course
+                  </ListItemText>
 
-                            display: "flex",
+                </ListItemButton>
 
-                            alignItems: "center",
+              </ListItem>
 
-                            gap: 1.5,
+            )}
 
-                            backgroundColor:
-                                "primary.main",
 
-                            color:
-                                "primary.contrastText",
-                        }}
-                    >
+            {/* Profile */}
 
-                        <Avatar
-                            sx={{
-                                bgcolor:
-                                    "secondary.main",
+            <ListItem disablePadding>
 
-                                fontWeight: 600,
-                            }}
-                        >
-                            {getUserInitial()}
-                        </Avatar>
+              <ListItemButton
+                component={Link}
+                to="/profile"
+                onClick={
+                  closeMobileMenu
+                }
+              >
 
+                <ListItemIcon>
+                  <Person />
+                </ListItemIcon>
 
-                        <Box>
+                <ListItemText>
+                  Profile
+                </ListItemText>
 
-                            <Typography
-                                variant="subtitle1"
-                                fontWeight={600}
-                            >
-                                {user?.name || "User"}
-                            </Typography>
+              </ListItemButton>
 
-                            <Typography
-                                variant="caption"
-                                sx={{
-                                    opacity: 0.8,
+            </ListItem>
 
-                                    textTransform:
-                                        "capitalize",
-                                }}
-                            >
-                                {user?.role || "Student"}
-                            </Typography>
 
-                        </Box>
+            <Divider
+              sx={{
+                my: 1,
+              }}
+            />
 
-                    </Box>
 
+            {/* Theme */}
 
-                    {/* =========================
-                        MOBILE NAVIGATION
-                    ========================= */}
+            <ListItem disablePadding>
 
-                    <List>
+              <ListItemButton
+                onClick={toggleTheme}
+              >
 
+                <ListItemIcon>
 
-                        {/* Dashboard */}
+                  {darkMode ? (
+                    <LightMode />
+                  ) : (
+                    <DarkMode />
+                  )}
 
-                        <ListItem disablePadding>
+                </ListItemIcon>
 
-                            <ListItemButton
-                                component={Link}
 
-                                to="/dashboard"
+                <ListItemText>
+                  {darkMode
+                    ? "Light Mode"
+                    : "Dark Mode"}
+                </ListItemText>
 
-                                onClick={closeMobileMenu}
-                            >
+              </ListItemButton>
 
-                                <ListItemIcon>
+            </ListItem>
 
-                                    <DashboardIcon />
 
-                                </ListItemIcon>
+            {/* Logout */}
 
-                                <ListItemText>
-                                    Dashboard
-                                </ListItemText>
+            <ListItem disablePadding>
 
-                            </ListItemButton>
+              <ListItemButton
+                onClick={handleLogout}
+              >
 
-                        </ListItem>
+                <ListItemIcon>
+                  <LogoutIcon />
+                </ListItemIcon>
 
+                <ListItemText>
+                  Logout
+                </ListItemText>
 
-                        {/* Courses */}
+              </ListItemButton>
 
-                        <ListItem disablePadding>
+            </ListItem>
 
-                            <ListItemButton
-                                component={Link}
+          </List>
 
-                                to="/courses"
+        </Box>
 
-                                onClick={closeMobileMenu}
-                            >
+      </Drawer>
 
-                                <ListItemIcon>
+    </AppBar>
 
-                                    <SchoolIcon />
-
-                                </ListItemIcon>
-
-                                <ListItemText>
-                                    Courses
-                                </ListItemText>
-
-                            </ListItemButton>
-
-                        </ListItem>
-
-
-                        {/* Create Course */}
-
-                        {(user?.role === "teacher" ||
-                            user?.role === "admin") && (
-
-                            <ListItem disablePadding>
-
-                                <ListItemButton
-                                    component={Link}
-
-                                    to="/courses/create"
-
-                                    onClick={closeMobileMenu}
-                                >
-
-                                    <ListItemIcon>
-
-                                        <AddIcon />
-
-                                    </ListItemIcon>
-
-                                    <ListItemText>
-                                        Create Course
-                                    </ListItemText>
-
-                                </ListItemButton>
-
-                            </ListItem>
-
-                        )}
-
-
-                        {/* Profile */}
-
-                        <ListItem disablePadding>
-
-                            <ListItemButton
-                                component={Link}
-
-                                to="/profile"
-
-                                onClick={closeMobileMenu}
-                            >
-
-                                <ListItemIcon>
-
-                                    <Person />
-
-                                </ListItemIcon>
-
-                                <ListItemText>
-                                    Profile
-                                </ListItemText>
-
-                            </ListItemButton>
-
-                        </ListItem>
-
-
-                        <Divider
-                            sx={{
-                                my: 1,
-                            }}
-                        />
-
-
-                        {/* =========================
-                            THEME
-                        ========================= */}
-
-                        <ListItem disablePadding>
-
-                            <ListItemButton
-                                onClick={toggleTheme}
-                            >
-
-                                <ListItemIcon>
-
-                                    {darkMode ? (
-                                        <LightMode />
-                                    ) : (
-                                        <DarkMode />
-                                    )}
-
-                                </ListItemIcon>
-
-                                <ListItemText>
-
-                                    {darkMode
-                                        ? "Light Mode"
-                                        : "Dark Mode"}
-
-                                </ListItemText>
-
-                            </ListItemButton>
-
-                        </ListItem>
-
-
-                        {/* =========================
-                            LOGOUT
-                        ========================= */}
-
-                        <ListItem disablePadding>
-
-                            <ListItemButton
-                                onClick={handleLogout}
-                            >
-
-                                <ListItemIcon>
-
-                                    <LogoutIcon />
-
-                                </ListItemIcon>
-
-                                <ListItemText>
-                                    Logout
-                                </ListItemText>
-
-                            </ListItemButton>
-
-                        </ListItem>
-
-                    </List>
-
-                </Box>
-
-            </Drawer>
-
-        </AppBar>
-
-    );
+  );
 
 };
 
 
 export default Navbar;
+

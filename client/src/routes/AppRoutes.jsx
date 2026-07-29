@@ -12,6 +12,8 @@ import CreateCourse from "../pages/Courses/CreateCourse";
 import EditCourse from "../pages/Courses/EditCourse";
 import CourseDetails from "../pages/Courses/CourseDetails";
 
+import MyCourse from "../pages/MyCourses/MyCourse";
+
 import ProtectedRoute from "../components/ProtectedRoute";
 
 const AppRoutes = () => {
@@ -76,6 +78,14 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+<Route
+  path="/my-courses"
+  element={
+    <ProtectedRoute>
+      <MyCourse />
+    </ProtectedRoute>
+  }
+/>
 
       <Route path="*" element={<NotFound />} />
     </Routes>

@@ -1,3 +1,4 @@
+
 import {
   Controller,
   Post,
@@ -5,11 +6,13 @@ import {
   Get,
   Req,
   UseGuards,
+  Put,
 } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateUserDto } from '../users/dto/update-user.dto';
 
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
@@ -19,7 +22,8 @@ export class AuthController {
 
   // =========================
   // REGISTER
- 
+  // =========================
+
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
     return await this.authService.register(registerDto);
@@ -27,14 +31,16 @@ export class AuthController {
 
   // =========================
   // LOGIN
-  
+  // =========================
+
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     return await this.authService.login(loginDto);
   }
 
-
+  // =========================
   // PROFILE
+  // =========================
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
@@ -43,8 +49,25 @@ export class AuthController {
   }
 
   // =========================
+  // UPDATE PROFILE
+  // =========================
+
+  @UseGuards(JwtAuthGuard)
+  @Put('profile')
+  async updateProfile(
+    @Req() req: any,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return await this.authService.updateProfile(
+      req.user.sub,
+      updateUserDto,
+    );
+  }
+
+  // =========================
   // REFRESH TOKEN
   // =========================
+
   @Post('refresh')
   async refresh(@Body('refresh_token') refreshToken: string) {
     return await this.authService.refreshToken(refreshToken);
@@ -53,9 +76,11 @@ export class AuthController {
   // =========================
   // LOGOUT
   // =========================
+
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Req() req: any) {
     return await this.authService.logout(req.user.sub);
   }
 }
+

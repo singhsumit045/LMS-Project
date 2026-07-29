@@ -1,3 +1,4 @@
+
 import {
   Injectable,
   ConflictException,
@@ -7,6 +8,7 @@ import {
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateUserDto } from '../users/dto/update-user.dto';
 
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -24,6 +26,7 @@ export class AuthService {
   // =========================
   // REGISTER
   // =========================
+
   async register(registerDto: RegisterDto) {
     const existingUser = await this.usersService.findByEmail(
       registerDto.email,
@@ -39,6 +42,7 @@ export class AuthService {
   // =========================
   // LOGIN
   // =========================
+
   async login(loginDto: LoginDto) {
     const user = await this.usersService.findByEmail(
       loginDto.email,
@@ -105,8 +109,51 @@ export class AuthService {
   }
 
   // =========================
+  // UPDATE PROFILE
+  // =========================
+
+  async updateProfile(
+    userId: number,
+    updateUserDto: UpdateUserDto,
+  ) {
+    const user = await this.usersService.findOne(userId);
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'User not found',
+      );
+    }
+
+    // Only name is allowed to be updated
+    const updatedUser = await this.usersService.update(
+      userId,
+      {
+        name: updateUserDto.name,
+      },
+    );
+
+    if (!updatedUser) {
+      throw new UnauthorizedException(
+        'Unable to update profile',
+      );
+    }
+
+    return {
+      message: 'Profile updated successfully',
+
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+      },
+    };
+  }
+
+  // =========================
   // REFRESH TOKEN
   // =========================
+
   async refreshToken(refreshToken: string) {
     if (!refreshToken) {
       throw new UnauthorizedException(
@@ -123,7 +170,9 @@ export class AuthService {
       });
 
       // Find user
-      const user = await this.usersService.findOne(payload.sub);
+      const user = await this.usersService.findOne(
+        payload.sub,
+      );
 
       if (!user || !user.refreshToken) {
         throw new UnauthorizedException(
@@ -167,10 +216,8 @@ export class AuthService {
         });
 
       // Hash new refresh token
-      const hashedNewRefreshToken = await bcrypt.hash(
-        newRefreshToken,
-        10,
-      );
+      const hashedNewRefreshToken =
+        await bcrypt.hash(newRefreshToken, 10);
 
       // Replace old refresh token
       await this.usersService.updateRefreshToken(
@@ -192,6 +239,7 @@ export class AuthService {
   // =========================
   // LOGOUT
   // =========================
+
   async logout(userId: number) {
     await this.usersService.removeRefreshToken(userId);
 
@@ -200,3 +248,4 @@ export class AuthService {
     };
   }
 }
+

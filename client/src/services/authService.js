@@ -1,3 +1,4 @@
+
 import api from "./api";
 
 export const loginUser = async (data) => {
@@ -30,11 +31,26 @@ export const registerUser = (data) => {
   return api.post("/auth/register", data);
 };
 
+// =========================
+// GET PROFILE
+// =========================
+
 export const getProfile = () => {
   return api.get("/auth/profile");
 };
 
-// Refresh access token
+// =========================
+// UPDATE PROFILE
+// =========================
+
+export const updateProfile = (data) => {
+  return api.put("/auth/profile", data);
+};
+
+// =========================
+// REFRESH ACCESS TOKEN
+// =========================
+
 export const refreshToken = () => {
   const refresh_token = localStorage.getItem("refresh_token");
 
@@ -43,14 +59,21 @@ export const refreshToken = () => {
   });
 };
 
-// Logout
+// =========================
+// LOGOUT
+// =========================
+
 export const logoutUser = () => {
   return api.post("/auth/logout");
 };
 
-// Clear authentication data
+// =========================
+// CLEAR AUTH DATA
+// =========================
+
 export const clearAuth = () => {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
   localStorage.removeItem("user");
 };
+
