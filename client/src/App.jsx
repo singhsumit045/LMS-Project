@@ -1,22 +1,23 @@
 import AppRoutes from "./routes/AppRoutes";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import { useLocation } from "react-router-dom";
 
 function App({ darkMode, toggleTheme }) {
   const location = useLocation();
 
-  const hideNavbarRoutes = [
+  const hideLayoutRoutes = [
     "/login",
     "/register",
   ];
 
-  const showNavbar = !hideNavbarRoutes.includes(
+  const showLayout = !hideLayoutRoutes.includes(
     location.pathname
   );
 
   return (
     <>
-      {showNavbar && (
+      {showLayout && (
         <Navbar
           darkMode={darkMode}
           toggleTheme={toggleTheme}
@@ -24,6 +25,8 @@ function App({ darkMode, toggleTheme }) {
       )}
 
       <AppRoutes />
+
+      {showLayout && <Footer />}
     </>
   );
 }

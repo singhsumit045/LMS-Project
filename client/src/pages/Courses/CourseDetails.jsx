@@ -2,23 +2,28 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import {
-  Container,
-  Grid,
-  Paper,
-  Typography,
-  Box,
-  Chip,
-  CircularProgress,
-  Button,
-  Divider,
-  Avatar,
+    Container,
+    Grid,
+    Paper,
+    Typography,
+    Box,
+    Chip,
+    CircularProgress,
+    Button,
+    Divider,
+    Avatar,
+    Alert,
+    Stack,
 } from "@mui/material";
 
 import {
-  AccessTime,
-  Star,
-  School,
-  PlayCircle,
+    AccessTime,
+    Star,
+    School,
+    PlayCircle,
+    CheckCircle,
+    ArrowBack,
+    Edit,
 } from "@mui/icons-material";
 
 import { getCourseById } from "../../services/courseService";
@@ -26,330 +31,940 @@ import { getCourseById } from "../../services/courseService";
 
 const CourseDetails = () => {
 
-  const { id } = useParams();
-  const navigate = useNavigate();
+    const { id } = useParams();
+    const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-
-  useEffect(() => {
-    fetchCourse();
-  }, [id]);
+    const [course, setCourse] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
 
-  const fetchCourse = async () => {
+    // =========================
+    // GET USER
+    // =========================
+
+    const storedUser = localStorage.getItem("user");
+
+    let user = null;
+
     try {
 
-      const response = await getCourseById(id);
-      setCourse(response.data);
+        user = storedUser
+            ? JSON.parse(storedUser)
+            : null;
 
     } catch (error) {
 
-      console.log(error);
-
-    } finally {
-
-      setLoading(false);
+        console.log("User data error:", error);
 
     }
-  };
 
 
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display:"flex",
-          justifyContent:"center",
-          mt:10
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
+    const isTeacherOrAdmin =
+        user?.role === "teacher" ||
+        user?.role === "admin";
 
 
-  if (!course) {
-    return (
-      <Typography align="center" mt={5}>
-        Course not found
-      </Typography>
-    );
-  }
+    // =========================
+    // FETCH COURSE
+    // =========================
+
+    useEffect(() => {
+
+        fetchCourse();
+
+    }, [id]);
 
 
+    const fetchCourse = async () => {
 
-  return (
+        try {
 
-    <Container
-      maxWidth="lg"
-      sx={{
-        mt:5,
-        mb:5
-      }}
-    >
+            setLoading(true);
+            setError("");
 
-      <Grid
-        container
-        spacing={4}
-      >
+            const response =
+                await getCourseById(id);
 
+            setCourse(response.data);
 
-        {/* LEFT SIDE */}
+        } catch (error) {
 
-        <Grid
-          size={{
-            xs:12,
-            md:8
-          }}
-        >
+            console.log(
+                "Course details error:",
+                error
+            );
 
-          <Paper
-            elevation={4}
-            sx={{
-              p:4,
-              borderRadius:4
-            }}
-          >
+            setError(
+                error.response?.data?.message ||
+                "Unable to load course details."
+            );
 
-            <Typography
-              variant="h3"
-              fontWeight="bold"
-              gutterBottom
-            >
-              {course.title}
-            </Typography>
+        } finally {
+
+            setLoading(false);
+
+        }
+
+    };
 
 
-            <Typography
-              color="text.secondary"
-              fontSize={18}
-              mb={3}
-            >
-              {course.description}
-            </Typography>
+    // =========================
+    // LOADING
+    // =========================
 
+    if (loading) {
 
+        return (
 
             <Box
-              sx={{
-                display:"flex",
-                gap:1,
-                flexWrap:"wrap"
-              }}
-            >
-
-              <Chip
-                label={course.category}
-                color="primary"
-              />
-
-
-              <Chip
-                icon={<School />}
-                label={course.level || "Beginner"}
-              />
-
-
-              <Chip
-                icon={<AccessTime />}
-                label={course.duration || "10 Hours"}
-              />
-
-
-              <Chip
-                icon={<Star />}
-                label={course.rating || "4.8"}
-                color="warning"
-              />
-
-            </Box>
-
-
-
-            <Divider sx={{my:4}} />
-
-
-            <Typography
-              variant="h5"
-              fontWeight="bold"
-              mb={2}
-            >
-              What you'll learn
-            </Typography>
-
-
-            <Typography>
-              ✓ Build real-world applications
-            </Typography>
-
-            <Typography>
-              ✓ Learn industry best practices
-            </Typography>
-
-            <Typography>
-              ✓ Work with modern technologies
-            </Typography>
-
-            <Typography>
-              ✓ Create practical projects
-            </Typography>
-
-
-
-            <Divider sx={{my:4}} />
-
-
-
-            <Typography
-              variant="h5"
-              fontWeight="bold"
-            >
-              Instructor
-            </Typography>
-
-
-            <Box
-              sx={{
-                display:"flex",
-                alignItems:"center",
-                gap:2,
-                mt:2
-              }}
-            >
-
-              <Avatar>
-                S
-              </Avatar>
-
-
-              <Box>
-
-                <Typography fontWeight="bold">
-                  Sumit Singh
-                </Typography>
-
-                <Typography color="text.secondary">
-                  Full Stack Developer
-                </Typography>
-
-              </Box>
-
-            </Box>
-
-
-          </Paper>
-
-        </Grid>
-
-
-        {/* RIGHT SIDE */}
-
-
-        <Grid
-          size={{
-            xs:12,
-            md:4
-          }}
-        >
-
-          <Paper
-            elevation={5}
-            sx={{
-              p:3,
-              borderRadius:4,
-              position:"sticky",
-              top:20
-            }}
-          >
-
-            <Box
-              sx={{
-                height:180,
-                bgcolor:"grey.200",
-                borderRadius:3,
-                display:"flex",
-                alignItems:"center",
-                justifyContent:"center"
-              }}
-            >
-              <PlayCircle
                 sx={{
-                  fontSize:60,
-                  color:"primary.main"
+                    minHeight: "70vh",
+
+                    display: "flex",
+
+                    justifyContent: "center",
+
+                    alignItems: "center",
                 }}
-              />
+            >
+
+                <CircularProgress />
+
             </Box>
 
-            <Typography
-              variant="h4"
-              fontWeight="bold"
-              mt={3}
-              color="success.main"
+        );
+
+    }
+
+
+    // =========================
+    // ERROR / NOT FOUND
+    // =========================
+
+    if (error || !course) {
+
+        return (
+
+            <Container
+                maxWidth="md"
+                sx={{
+                    py: 8,
+                }}
             >
-              ₹{course.price}
-            </Typography>
+
+                <Alert
+                    severity="error"
+                    sx={{
+                        mb: 3,
+                    }}
+                >
+                    {error || "Course not found."}
+                </Alert>
+
+
+                <Button
+                    startIcon={<ArrowBack />}
+                    onClick={() =>
+                        navigate("/courses")
+                    }
+                >
+                    Back to Courses
+                </Button>
+
+            </Container>
+
+        );
+
+    }
+
+
+    // =========================
+    // COURSE DATA
+    // =========================
+
+    const instructorName =
+        course.instructor?.name ||
+        course.teacher?.name ||
+        "LearnHub Instructor";
+
+
+    const instructorRole =
+        course.instructor?.role ||
+        "Full Stack Developer";
+
+
+    const instructorInitial =
+        instructorName
+            .charAt(0)
+            .toUpperCase();
+
+
+    return (
+
+        <Container
+            maxWidth="xl"
+            sx={{
+                py: {
+                    xs: 3,
+                    md: 5,
+                },
+            }}
+        >
+
+            {/* =========================
+                BACK BUTTON
+            ========================= */}
 
             <Button
-              fullWidth
-              variant="contained"
-              size="large"
-              sx={{
-                mt:3,
-                borderRadius:3
-              }}
+                startIcon={<ArrowBack />}
+                onClick={() =>
+                    navigate("/courses")
+                }
+                sx={{
+                    mb: 3,
+                }}
             >
-              Enroll Now
+                Back to Courses
             </Button>
 
-            {/* ADMIN + TEACHER */}
 
-            {(user?.role === "admin" ||
-              user?.role === "teacher") && (
+            {/* =========================
+                COURSE HERO
+            ========================= */}
 
-              <Button
-                fullWidth
-                variant="outlined"
-                size="large"
+            <Paper
+                elevation={0}
                 sx={{
-                  mt:2,
-                  borderRadius:3
+                    p: {
+                        xs: 3,
+                        md: 5,
+                    },
+
+                    mb: 4,
+
+                    borderRadius: 4,
+
+                    background:
+                        "linear-gradient(135deg, #1976d2 0%, #7b1fa2 100%)",
+
+                    color: "white",
+
+                    overflow: "hidden",
                 }}
+            >
 
-                onClick={() =>
-                  navigate(`/courses/edit/${course.id}`)
-                }
-              >
-                Edit Course
-              </Button>
+                <Grid
+                    container
+                    spacing={4}
+                    alignItems="center"
+                >
 
-            )}
-            <Divider sx={{my:3}} />
+                    <Grid
+                        size={{
+                            xs: 12,
+                            md: 8,
+                        }}
+                    >
 
-            <Typography>
-              ✔ Lifetime Access
-            </Typography>
+                        <Stack
+                            direction="row"
+                            spacing={1}
+                            flexWrap="wrap"
+                            useFlexGap
+                            sx={{
+                                mb: 2,
+                            }}
+                        >
 
-            <Typography>
-              ✔ Certificate Included
-            </Typography>
+                            {course.category && (
 
-            <Typography>
-              ✔ Project Based Learning
-            </Typography>
-          </Paper>
-        </Grid>
+                                <Chip
+                                    label={
+                                        course.category
+                                    }
+                                    sx={{
+                                        color: "white",
 
-      </Grid>
+                                        borderColor:
+                                            "rgba(255,255,255,0.5)",
+
+                                        backgroundColor:
+                                            "rgba(255,255,255,0.12)",
+                                    }}
+                                    variant="outlined"
+                                />
+
+                            )}
 
 
-    </Container>
+                            <Chip
+                                label={
+                                    course.level ||
+                                    "Beginner"
+                                }
+                                sx={{
+                                    color: "white",
 
-  );
+                                    borderColor:
+                                        "rgba(255,255,255,0.5)",
+
+                                    backgroundColor:
+                                        "rgba(255,255,255,0.12)",
+                                }}
+                                variant="outlined"
+                            />
+
+                        </Stack>
+
+
+                        <Typography
+                            variant="h2"
+                            fontWeight={700}
+                            sx={{
+                                fontSize: {
+                                    xs: "2rem",
+                                    sm: "2.5rem",
+                                    md: "3.2rem",
+                                },
+
+                                lineHeight: 1.15,
+                            }}
+                        >
+                            {course.title}
+                        </Typography>
+
+
+                        <Typography
+                            sx={{
+                                mt: 2,
+
+                                opacity: 0.9,
+
+                                fontSize: {
+                                    xs: "1rem",
+                                    md: "1.15rem",
+                                },
+
+                                maxWidth: 750,
+                            }}
+                        >
+                            {course.description}
+                        </Typography>
+
+
+                        {/* COURSE META */}
+
+                        <Stack
+                            direction="row"
+                            spacing={2}
+                            flexWrap="wrap"
+                            useFlexGap
+                            sx={{
+                                mt: 3,
+                            }}
+                        >
+
+                            <Box
+                                sx={{
+                                    display: "flex",
+
+                                    alignItems: "center",
+
+                                    gap: 0.7,
+                                }}
+                            >
+
+                                <AccessTime />
+
+                                <Typography>
+                                    {course.duration ||
+                                        "10 Hours"}
+                                </Typography>
+
+                            </Box>
+
+
+                            <Box
+                                sx={{
+                                    display: "flex",
+
+                                    alignItems: "center",
+
+                                    gap: 0.7,
+                                }}
+                            >
+
+                                <Star />
+
+                                <Typography>
+                                    {course.rating ||
+                                        "4.8"}{" "}
+                                    Rating
+                                </Typography>
+
+                            </Box>
+
+
+                            <Box
+                                sx={{
+                                    display: "flex",
+
+                                    alignItems: "center",
+
+                                    gap: 0.7,
+                                }}
+                            >
+
+                                <School />
+
+                                <Typography>
+                                    Beginner Friendly
+                                </Typography>
+
+                            </Box>
+
+                        </Stack>
+
+                    </Grid>
+
+
+                    {/* HERO ICON */}
+
+                    <Grid
+                        size={{
+                            xs: 12,
+                            md: 4,
+                        }}
+                    >
+
+                        <Box
+                            sx={{
+                                minHeight: {
+                                    xs: 180,
+                                    md: 240,
+                                },
+
+                                display: "flex",
+
+                                alignItems: "center",
+
+                                justifyContent: "center",
+
+                                borderRadius: 4,
+
+                                backgroundColor:
+                                    "rgba(255,255,255,0.12)",
+
+                                border:
+                                    "1px solid rgba(255,255,255,0.2)",
+                            }}
+                        >
+
+                            <PlayCircle
+                                sx={{
+                                    fontSize: {
+                                        xs: 80,
+                                        md: 110,
+                                    },
+                                }}
+                            />
+
+                        </Box>
+
+                    </Grid>
+
+                </Grid>
+
+            </Paper>
+
+
+            {/* =========================
+                MAIN CONTENT
+            ========================= */}
+
+            <Grid
+                container
+                spacing={4}
+                alignItems="flex-start"
+            >
+
+                {/* =========================
+                    LEFT CONTENT
+                ========================= */}
+
+                <Grid
+                    size={{
+                        xs: 12,
+                        md: 8,
+                    }}
+                >
+
+                    {/* WHAT YOU WILL LEARN */}
+
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: {
+                                xs: 3,
+                                md: 4,
+                            },
+
+                            borderRadius: 3,
+
+                            border:
+                                "1px solid",
+
+                            borderColor:
+                                "divider",
+
+                            mb: 4,
+                        }}
+                    >
+
+                        <Typography
+                            variant="h5"
+                            fontWeight={700}
+                            sx={{
+                                mb: 3,
+                            }}
+                        >
+                            What you'll learn
+                        </Typography>
+
+
+                        <Grid
+                            container
+                            spacing={2}
+                        >
+
+                            {[
+                                "Build real-world applications",
+                                "Learn industry best practices",
+                                "Work with modern technologies",
+                                "Create practical projects",
+                            ].map((item) => (
+
+                                <Grid
+                                    key={item}
+                                    size={{
+                                        xs: 12,
+                                        sm: 6,
+                                    }}
+                                >
+
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+
+                                            alignItems:
+                                                "flex-start",
+
+                                            gap: 1.5,
+                                        }}
+                                    >
+
+                                        <CheckCircle
+                                            color="success"
+                                            sx={{
+                                                mt: 0.2,
+                                            }}
+                                        />
+
+
+                                        <Typography>
+                                            {item}
+                                        </Typography>
+
+                                    </Box>
+
+                                </Grid>
+
+                            ))}
+
+                        </Grid>
+
+                    </Paper>
+
+
+                    {/* COURSE DESCRIPTION */}
+
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: {
+                                xs: 3,
+                                md: 4,
+                            },
+
+                            borderRadius: 3,
+
+                            border:
+                                "1px solid",
+
+                            borderColor:
+                                "divider",
+
+                            mb: 4,
+                        }}
+                    >
+
+                        <Typography
+                            variant="h5"
+                            fontWeight={700}
+                            sx={{
+                                mb: 2,
+                            }}
+                        >
+                            About this course
+                        </Typography>
+
+
+                        <Typography
+                            color="text.secondary"
+                            sx={{
+                                lineHeight: 1.8,
+                            }}
+                        >
+                            {course.description ||
+                                "This course is designed to help you develop practical skills and build real-world projects."}
+                        </Typography>
+
+                    </Paper>
+
+
+                    {/* INSTRUCTOR */}
+
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: {
+                                xs: 3,
+                                md: 4,
+                            },
+
+                            borderRadius: 3,
+
+                            border:
+                                "1px solid",
+
+                            borderColor:
+                                "divider",
+                        }}
+                    >
+
+                        <Typography
+                            variant="h5"
+                            fontWeight={700}
+                            sx={{
+                                mb: 3,
+                            }}
+                        >
+                            Instructor
+                        </Typography>
+
+
+                        <Box
+                            sx={{
+                                display: "flex",
+
+                                alignItems: "center",
+
+                                gap: 2,
+                            }}
+                        >
+
+                            <Avatar
+                                sx={{
+                                    width: 58,
+
+                                    height: 58,
+
+                                    bgcolor:
+                                        "primary.main",
+
+                                    fontSize: 22,
+
+                                    fontWeight: 600,
+                                }}
+                            >
+                                {instructorInitial}
+                            </Avatar>
+
+
+                            <Box>
+
+                                <Typography
+                                    fontWeight={700}
+                                    variant="h6"
+                                >
+                                    {instructorName}
+                                </Typography>
+
+
+                                <Typography
+                                    color="text.secondary"
+                                >
+                                    {instructorRole}
+                                </Typography>
+
+                            </Box>
+
+                        </Box>
+
+                    </Paper>
+
+                </Grid>
+
+
+                {/* =========================
+                    RIGHT SIDEBAR
+                ========================= */}
+
+                <Grid
+                    size={{
+                        xs: 12,
+                        md: 4,
+                    }}
+                >
+
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 3,
+
+                            borderRadius: 3,
+
+                            border:
+                                "1px solid",
+
+                            borderColor:
+                                "divider",
+
+                            position: {
+                                xs: "static",
+                                md: "sticky",
+                            },
+
+                            top: {
+                                md: 20,
+                            },
+                        }}
+                    >
+
+                        {/* COURSE PREVIEW */}
+
+                        <Box
+                            sx={{
+                                height: 190,
+
+                                borderRadius: 3,
+
+                                display: "flex",
+
+                                alignItems: "center",
+
+                                justifyContent:
+                                    "center",
+
+                                background:
+                                    "linear-gradient(135deg, #1976d2, #7b1fa2)",
+
+                                color: "white",
+                            }}
+                        >
+
+                            <PlayCircle
+                                sx={{
+                                    fontSize: 70,
+                                }}
+                            />
+
+                        </Box>
+
+
+                        {/* PRICE */}
+
+                        <Typography
+                            variant="h4"
+                            fontWeight={700}
+                            color="success.main"
+                            sx={{
+                                mt: 3,
+                            }}
+                        >
+                            ₹{course.price ?? 0}
+                        </Typography>
+
+
+                        {/* ENROLL */}
+
+                        {!isTeacherOrAdmin && (
+
+                            <Button
+                                fullWidth
+                                variant="contained"
+                                size="large"
+                                sx={{
+                                    mt: 3,
+
+                                    py: 1.3,
+
+                                    borderRadius: 2,
+                                }}
+                                onClick={() => {
+                                    // Enrollment API
+                                    // will be connected here
+                                    console.log(
+                                        "Enroll:",
+                                        course.id
+                                    );
+                                }}
+                            >
+                                Enroll Now
+                            </Button>
+
+                        )}
+
+
+                        {/* EDIT */}
+
+                        {isTeacherOrAdmin && (
+
+                            <Button
+                                fullWidth
+                                variant="outlined"
+                                size="large"
+                                startIcon={<Edit />}
+                                sx={{
+                                    mt: 3,
+
+                                    py: 1.3,
+
+                                    borderRadius: 2,
+                                }}
+
+                                onClick={() =>
+                                    navigate(
+                                        `/courses/edit/${course.id}`
+                                    )
+                                }
+                            >
+                                Edit Course
+                            </Button>
+
+                        )}
+
+
+                        <Divider
+                            sx={{
+                                my: 3,
+                            }}
+                        />
+
+
+                        {/* FEATURES */}
+
+                        <Stack spacing={2}>
+
+                            <Box
+                                sx={{
+                                    display: "flex",
+
+                                    gap: 1.5,
+
+                                    alignItems:
+                                        "center",
+                                }}
+                            >
+
+                                <CheckCircle
+                                    color="success"
+                                />
+
+                                <Typography>
+                                    Lifetime Access
+                                </Typography>
+
+                            </Box>
+
+
+                            <Box
+                                sx={{
+                                    display: "flex",
+
+                                    gap: 1.5,
+
+                                    alignItems:
+                                        "center",
+                                }}
+                            >
+
+                                <CheckCircle
+                                    color="success"
+                                />
+
+                                <Typography>
+                                    Certificate Included
+                                </Typography>
+
+                            </Box>
+
+
+                            <Box
+                                sx={{
+                                    display: "flex",
+
+                                    gap: 1.5,
+
+                                    alignItems:
+                                        "center",
+                                }}
+                            >
+
+                                <CheckCircle
+                                    color="success"
+                                />
+
+                                <Typography>
+                                    Project Based Learning
+                                </Typography>
+
+                            </Box>
+
+
+                            <Box
+                                sx={{
+                                    display: "flex",
+
+                                    gap: 1.5,
+
+                                    alignItems:
+                                        "center",
+                                }}
+                            >
+
+                                <CheckCircle
+                                    color="success"
+                                />
+
+                                <Typography>
+                                    Learn at Your Own Pace
+                                </Typography>
+
+                            </Box>
+
+                        </Stack>
+
+                    </Paper>
+
+                </Grid>
+
+            </Grid>
+
+        </Container>
+
+    );
 
 };
 
