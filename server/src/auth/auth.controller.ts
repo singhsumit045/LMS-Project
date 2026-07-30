@@ -54,12 +54,12 @@ export class AuthController {
   // =========================
   // PROFILE
   // =========================
-
-  @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  async profile(@Req() req: any) {
-    return req.user;
-  }
+  
+@UseGuards(JwtAuthGuard)
+@Get('profile')
+async profile(@Req() req: any) {
+  return await this.authService.getProfile(req.user.id);
+}
 
   // =========================
   // UPDATE PROFILE

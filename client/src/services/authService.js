@@ -1,4 +1,3 @@
-
 import api from "./api";
 
 // =========================
@@ -64,6 +63,21 @@ export const changePassword = (data) => {
 };
 
 // =========================
+// UPLOAD PROFILE PICTURE
+// =========================
+
+export const uploadProfilePicture = (file) => {
+  const formData = new FormData();
+
+  formData.append("file", file);
+
+  return api.post(
+    "/users/profile-picture",
+    formData
+  );
+};
+
+// =========================
 // REFRESH ACCESS TOKEN
 // =========================
 
@@ -93,4 +107,3 @@ export const clearAuth = () => {
   localStorage.removeItem("refresh_token");
   localStorage.removeItem("user");
 };
-

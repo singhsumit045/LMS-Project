@@ -17,6 +17,9 @@ export class User {
   @Column({ default: 'student' })
   role!: string;
 
-@Column({ type: 'varchar', length: 500, nullable: true })
-refreshToken!: string | null; 
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  refreshToken!: string | null;
+
+  @Column({ type: 'varchar', length: 1000, nullable: true })
+  profileImageUrl!: string | null;
 }

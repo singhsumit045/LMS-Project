@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   getProfile,
   updateProfile,
   changePassword,
+  uploadProfilePicture,
 } from "../../services/authService";
 
 import {
@@ -21,6 +22,7 @@ import {
   TextField,
   Button,
   InputAdornment,
+  Tooltip,
 } from "@mui/material";
 
 import {
@@ -35,6 +37,7 @@ import {
   Visibility,
   VisibilityOff,
   Security,
+  PhotoCamera,
 } from "@mui/icons-material";
 
 function Profile() {
@@ -51,6 +54,15 @@ function Profile() {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // =========================
+  // PROFILE PICTURE
+  // =========================
+
+  const [uploadingImage, setUploadingImage] =
+    useState(false);
+
+  const fileInputRef = useRef(null);
 
   // =========================
   // CHANGE PASSWORD
@@ -89,13 +101,143 @@ function Profile() {
     try {
       const response = await getProfile();
 
-      setUser(response.data);
-      setName(response.data.name || "");
+      const profileUser = response.data;
+
+      setUser(profileUser);
+      setName(profileUser.name || "");
+
+      // Keep localStorage synchronized
+      localStorage.setItem(
+        "user",
+        JSON.stringify(profileUser)
+      );
     } catch (error) {
       console.log(error);
+
       setError("Unable to load profile.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // =========================
+  // PROFILE PICTURE CLICK
+  // =========================
+
+  const handleProfilePictureClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // =========================
+  // PROFILE PICTURE CHANGE
+  // =========================
+
+  const handleProfilePictureChange = async (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    // =========================
+    // FILE TYPE VALIDATION
+    // =========================
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setError(
+        "Please select a valid image file. JPG, PNG or WEBP only."
+      );
+
+      setSuccess("");
+
+      event.target.value = "";
+      return;
+    }
+
+    // =========================
+    // FILE SIZE VALIDATION
+    // =========================
+
+    // Maximum 2 MB
+    if (file.size > 2 * 1024 * 1024) {
+      setError(
+        "Image size must be less than 2 MB."
+      );
+
+      setSuccess("");
+
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+
+      setError("");
+      setSuccess("");
+
+      const response =
+        await uploadProfilePicture(file);
+
+      const profileImageUrl =
+        response.data.profileImageUrl;
+
+      // =========================
+      // UPDATE USER STATE
+      // =========================
+
+      setUser((previous) => {
+        const updatedUser = {
+          ...previous,
+          profileImageUrl,
+        };
+
+        // =========================
+        // UPDATE LOCAL STORAGE
+        // =========================
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify(updatedUser)
+        );
+
+        // =========================
+        // UPDATE NAVBAR IMMEDIATELY
+        // =========================
+
+        window.dispatchEvent(
+          new CustomEvent("profileUpdated", {
+            detail: updatedUser,
+          })
+        );
+
+        return updatedUser;
+      });
+
+      setSuccess(
+        "Profile picture updated successfully."
+      );
+    } catch (error) {
+      console.log(error);
+
+      const message =
+        error.response?.data?.message;
+
+      setError(
+        Array.isArray(message)
+          ? message.join(", ")
+          : message ||
+              "Unable to upload profile picture."
+      );
+    } finally {
+      setUploadingImage(false);
+
+      // Allow selecting same image again
+      event.target.value = "";
     }
   };
 
@@ -105,7 +247,9 @@ function Profile() {
 
   const handleEdit = () => {
     setName(user.name || "");
+
     setEditing(true);
+
     setSuccess("");
     setError("");
   };
@@ -116,7 +260,9 @@ function Profile() {
 
   const handleCancel = () => {
     setName(user.name || "");
+
     setEditing(false);
+
     setError("");
   };
 
@@ -126,6 +272,10 @@ function Profile() {
 
   const handleSave = async () => {
     const trimmedName = name.trim();
+
+    // =========================
+    // NAME VALIDATION
+    // =========================
 
     if (!trimmedName) {
       setError("Name cannot be empty.");
@@ -141,6 +291,7 @@ function Profile() {
 
     try {
       setSaving(true);
+
       setError("");
       setSuccess("");
 
@@ -148,26 +299,51 @@ function Profile() {
         name: trimmedName,
       });
 
-      setUser(response.data.user);
-      setName(response.data.user.name);
+      const updatedUser = response.data.user;
 
-      // Update stored user
+      // =========================
+      // UPDATE PROFILE STATE
+      // =========================
+
+      setUser(updatedUser);
+
+      setName(updatedUser.name);
+
+      // =========================
+      // UPDATE LOCAL STORAGE
+      // =========================
+
       localStorage.setItem(
         "user",
-        JSON.stringify(response.data.user)
+        JSON.stringify(updatedUser)
+      );
+
+      // =========================
+      // UPDATE NAVBAR IMMEDIATELY
+      // =========================
+
+      window.dispatchEvent(
+        new CustomEvent("profileUpdated", {
+          detail: updatedUser,
+        })
       );
 
       setEditing(false);
-      setSuccess("Profile updated successfully.");
+
+      setSuccess(
+        "Profile updated successfully."
+      );
     } catch (error) {
       console.log(error);
 
-      const message = error.response?.data?.message;
+      const message =
+        error.response?.data?.message;
 
       setError(
         Array.isArray(message)
           ? message.join(", ")
-          : message || "Unable to update profile."
+          : message ||
+              "Unable to update profile."
       );
     } finally {
       setSaving(false);
@@ -180,6 +356,7 @@ function Profile() {
 
   const handleOpenChangePassword = () => {
     setShowChangePassword(true);
+
     setError("");
     setSuccess("");
   };
@@ -234,13 +411,25 @@ function Profile() {
       confirmPassword,
     } = passwordData;
 
+    // =========================
+    // CURRENT PASSWORD
+    // =========================
+
     if (!currentPassword.trim()) {
-      setError("Please enter your current password.");
+      setError(
+        "Please enter your current password."
+      );
       return;
     }
 
+    // =========================
+    // NEW PASSWORD
+    // =========================
+
     if (!newPassword.trim()) {
-      setError("Please enter a new password.");
+      setError(
+        "Please enter a new password."
+      );
       return;
     }
 
@@ -251,8 +440,14 @@ function Profile() {
       return;
     }
 
+    // =========================
+    // CONFIRM PASSWORD
+    // =========================
+
     if (!confirmPassword.trim()) {
-      setError("Please confirm your new password.");
+      setError(
+        "Please confirm your new password."
+      );
       return;
     }
 
@@ -262,6 +457,10 @@ function Profile() {
       );
       return;
     }
+
+    // =========================
+    // SAME PASSWORD CHECK
+    // =========================
 
     if (currentPassword === newPassword) {
       setError(
@@ -278,6 +477,10 @@ function Profile() {
         newPassword,
       });
 
+      // =========================
+      // CLEAR FORM
+      // =========================
+
       setPasswordData({
         currentPassword: "",
         newPassword: "",
@@ -288,20 +491,21 @@ function Profile() {
       setShowNewPassword(false);
       setShowConfirmPassword(false);
 
-      setSuccess("Password changed successfully.");
-
-      // Keep form open so user can see success message
-      // and close it manually.
+      setSuccess(
+        "Password changed successfully."
+      );
     } catch (error) {
       console.log(error);
 
-      const message = error.response?.data?.message;
+      const message =
+        error.response?.data?.message;
 
       if (Array.isArray(message)) {
         setError(message.join(", "));
       } else {
         setError(
-          message || "Unable to change password."
+          message ||
+            "Unable to change password."
         );
       }
     } finally {
@@ -329,13 +533,18 @@ function Profile() {
   }
 
   // =========================
-  // ERROR
+  // ERROR WITHOUT USER
   // =========================
 
   if (error && !user) {
     return (
-      <Container maxWidth="md" sx={{ mt: 5 }}>
-        <Alert severity="error">{error}</Alert>
+      <Container
+        maxWidth="md"
+        sx={{ mt: 5 }}
+      >
+        <Alert severity="error">
+          {error}
+        </Alert>
       </Container>
     );
   }
@@ -346,13 +555,20 @@ function Profile() {
 
   if (!user) {
     return (
-      <Container maxWidth="md" sx={{ mt: 5 }}>
+      <Container
+        maxWidth="md"
+        sx={{ mt: 5 }}
+      >
         <Alert severity="warning">
           Profile information not available.
         </Alert>
       </Container>
     );
   }
+
+  // =========================
+  // USER INITIAL
+  // =========================
 
   const firstLetter = user.name
     ? user.name.charAt(0).toUpperCase()
@@ -370,6 +586,7 @@ function Profile() {
       }}
     >
       <Container maxWidth="md">
+
         {/* =========================
             PAGE TITLE
         ========================= */}
@@ -444,6 +661,7 @@ function Profile() {
             overflow: "hidden",
           }}
         >
+
           {/* COVER */}
 
           <Box
@@ -470,6 +688,7 @@ function Profile() {
               pb: 4,
             }}
           >
+
             {/* EDIT BUTTON */}
 
             {!editing && (
@@ -484,12 +703,14 @@ function Profile() {
                     sm: 24,
                     md: 32,
                   },
-                  backgroundColor: "background.paper",
+                  backgroundColor:
+                    "background.paper",
                   border: "1px solid",
                   borderColor: "divider",
                   boxShadow: 1,
                   "&:hover": {
-                    backgroundColor: "action.hover",
+                    backgroundColor:
+                      "action.hover",
                   },
                 }}
               >
@@ -497,10 +718,13 @@ function Profile() {
               </IconButton>
             )}
 
-            {/* AVATAR */}
+            {/* =========================
+                PROFILE AVATAR
+            ========================= */}
 
-            <Avatar
+            <Box
               sx={{
+                position: "relative",
                 width: {
                   xs: 82,
                   sm: 100,
@@ -514,19 +738,115 @@ function Profile() {
                   sm: -6,
                 },
                 mb: 2,
-                border: "5px solid white",
-                backgroundColor: "primary.main",
-                fontSize: {
-                  xs: "2rem",
-                  sm: "2.5rem",
-                },
-                fontWeight: 700,
               }}
             >
-              {firstLetter}
-            </Avatar>
+              <Avatar
+                src={
+                  user.profileImageUrl ||
+                  undefined
+                }
+                alt={
+                  user.name || "Profile"
+                }
+                sx={{
+                  width: "100%",
+                  height: "100%",
+                  border: "5px solid white",
+                  backgroundColor:
+                    "primary.main",
+                  fontSize: {
+                    xs: "2rem",
+                    sm: "2.5rem",
+                  },
+                  fontWeight: 700,
+                }}
+              >
+                {!user.profileImageUrl &&
+                  firstLetter}
+              </Avatar>
 
-            {/* NAME */}
+              {/* HIDDEN FILE INPUT */}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                onChange={
+                  handleProfilePictureChange
+                }
+              />
+
+              {/* CAMERA BUTTON */}
+
+              <Tooltip title="Change profile picture">
+                <span>
+                  <IconButton
+                    onClick={
+                      handleProfilePictureClick
+                    }
+                    disabled={
+                      uploadingImage
+                    }
+                    aria-label="Change profile picture"
+                    sx={{
+                      position: "absolute",
+                      right: -4,
+                      bottom: -4,
+                      width: 34,
+                      height: 34,
+                      backgroundColor:
+                        "primary.main",
+                      color: "white",
+                      border:
+                        "3px solid white",
+                      "&:hover": {
+                        backgroundColor:
+                          "primary.dark",
+                      },
+                    }}
+                  >
+                    {uploadingImage ? (
+                      <CircularProgress
+                        size={17}
+                        color="inherit"
+                      />
+                    ) : (
+                      <PhotoCamera
+                        sx={{
+                          fontSize: 17,
+                        }}
+                      />
+                    )}
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Box>
+
+            {/* CHANGE PHOTO BUTTON */}
+
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<PhotoCamera />}
+              onClick={
+                handleProfilePictureClick
+              }
+              disabled={uploadingImage}
+              sx={{
+                mb: 2,
+                textTransform: "none",
+                borderRadius: 2,
+              }}
+            >
+              {uploadingImage
+                ? "Uploading..."
+                : "Change Photo"}
+            </Button>
+
+            {/* =========================
+                NAME
+            ========================= */}
 
             {editing ? (
               <Box
@@ -540,7 +860,9 @@ function Profile() {
                   label="Full Name"
                   value={name}
                   onChange={(event) =>
-                    setName(event.target.value)
+                    setName(
+                      event.target.value
+                    )
                   }
                   autoFocus
                   size="small"
@@ -561,7 +883,9 @@ function Profile() {
                     onClick={handleSave}
                     disabled={saving}
                   >
-                    {saving ? "Saving..." : "Save"}
+                    {saving
+                      ? "Saving..."
+                      : "Save"}
                   </Button>
 
                   <Button
@@ -611,7 +935,9 @@ function Profile() {
             <Chip
               label={
                 user.role
-                  ? user.role.charAt(0).toUpperCase() +
+                  ? user.role
+                      .charAt(0)
+                      .toUpperCase() +
                     user.role.slice(1)
                   : "User"
               }
@@ -664,6 +990,7 @@ function Profile() {
           <Divider sx={{ mb: 3 }} />
 
           <Grid container spacing={3}>
+
             {/* NAME */}
 
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -718,7 +1045,8 @@ function Profile() {
                     fontWeight={600}
                     sx={{
                       mt: 0.3,
-                      wordBreak: "break-word",
+                      wordBreak:
+                        "break-word",
                     }}
                   >
                     {user.email}
@@ -751,7 +1079,8 @@ function Profile() {
                     fontWeight={600}
                     sx={{
                       mt: 0.3,
-                      textTransform: "capitalize",
+                      textTransform:
+                        "capitalize",
                     }}
                   >
                     {user.role}
@@ -780,6 +1109,7 @@ function Profile() {
             },
           }}
         >
+
           {/* SECURITY HEADER */}
 
           <Box
@@ -805,14 +1135,14 @@ function Profile() {
             color="text.secondary"
             sx={{ mb: 3 }}
           >
-            Keep your account secure by using a strong
-            password.
+            Keep your account secure by using a
+            strong password.
           </Typography>
 
           <Divider sx={{ mb: 3 }} />
 
           {/* =========================
-              FORM HIDDEN
+              CHANGE PASSWORD BUTTON
           ========================= */}
 
           {!showChangePassword && (
@@ -827,7 +1157,8 @@ function Profile() {
                   xs: "stretch",
                   sm: "center",
                 },
-                justifyContent: "space-between",
+                justifyContent:
+                  "space-between",
                 gap: 2,
               }}
             >
@@ -843,15 +1174,17 @@ function Profile() {
                   variant="body2"
                   color="text.secondary"
                 >
-                  Update your password to keep your
-                  account secure.
+                  Update your password to keep
+                  your account secure.
                 </Typography>
               </Box>
 
               <Button
                 variant="contained"
                 startIcon={<Lock />}
-                onClick={handleOpenChangePassword}
+                onClick={
+                  handleOpenChangePassword
+                }
                 sx={{
                   alignSelf: {
                     xs: "stretch",
@@ -886,11 +1219,15 @@ function Profile() {
                 color="text.secondary"
                 sx={{ mb: 3 }}
               >
-                Enter your current password and choose a
-                new password.
+                Enter your current password and
+                choose a new password.
               </Typography>
 
-              <Grid container spacing={2.5}>
+              <Grid
+                container
+                spacing={2.5}
+              >
+
                 {/* CURRENT PASSWORD */}
 
                 <Grid size={{ xs: 12 }}>
@@ -906,7 +1243,9 @@ function Profile() {
                     value={
                       passwordData.currentPassword
                     }
-                    onChange={handlePasswordChange}
+                    onChange={
+                      handlePasswordChange
+                    }
                     autoComplete="current-password"
                     slotProps={{
                       input: {
@@ -915,6 +1254,7 @@ function Profile() {
                             <Lock fontSize="small" />
                           </InputAdornment>
                         ),
+
                         endAdornment: (
                           <InputAdornment position="end">
                             <IconButton
@@ -946,7 +1286,12 @@ function Profile() {
 
                 {/* NEW PASSWORD */}
 
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid
+                  size={{
+                    xs: 12,
+                    sm: 6,
+                  }}
+                >
                   <TextField
                     fullWidth
                     label="New Password"
@@ -956,8 +1301,12 @@ function Profile() {
                         ? "text"
                         : "password"
                     }
-                    value={passwordData.newPassword}
-                    onChange={handlePasswordChange}
+                    value={
+                      passwordData.newPassword
+                    }
+                    onChange={
+                      handlePasswordChange
+                    }
                     autoComplete="new-password"
                     helperText="Minimum 6 characters"
                     slotProps={{
@@ -967,6 +1316,7 @@ function Profile() {
                             <Lock fontSize="small" />
                           </InputAdornment>
                         ),
+
                         endAdornment: (
                           <InputAdornment position="end">
                             <IconButton
@@ -998,7 +1348,12 @@ function Profile() {
 
                 {/* CONFIRM PASSWORD */}
 
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid
+                  size={{
+                    xs: 12,
+                    sm: 6,
+                  }}
+                >
                   <TextField
                     fullWidth
                     label="Confirm New Password"
@@ -1011,7 +1366,9 @@ function Profile() {
                     value={
                       passwordData.confirmPassword
                     }
-                    onChange={handlePasswordChange}
+                    onChange={
+                      handlePasswordChange
+                    }
                     autoComplete="new-password"
                     slotProps={{
                       input: {
@@ -1020,6 +1377,7 @@ function Profile() {
                             <Lock fontSize="small" />
                           </InputAdornment>
                         ),
+
                         endAdornment: (
                           <InputAdornment position="end">
                             <IconButton
@@ -1070,8 +1428,12 @@ function Profile() {
                 <Button
                   variant="outlined"
                   startIcon={<Close />}
-                  onClick={handleCancelChangePassword}
-                  disabled={changingPassword}
+                  onClick={
+                    handleCancelChangePassword
+                  }
+                  disabled={
+                    changingPassword
+                  }
                   sx={{
                     width: {
                       xs: "100%",
@@ -1085,8 +1447,12 @@ function Profile() {
                 <Button
                   variant="contained"
                   startIcon={<Lock />}
-                  onClick={handleChangePassword}
-                  disabled={changingPassword}
+                  onClick={
+                    handleChangePassword
+                  }
+                  disabled={
+                    changingPassword
+                  }
                   sx={{
                     width: {
                       xs: "100%",

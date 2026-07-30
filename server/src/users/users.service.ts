@@ -124,4 +124,20 @@ export class UsersService {
       refreshToken: null,
     });
   }
+
+
+  // =========================
+// UPDATE PROFILE IMAGE
+// =========================
+
+async updateProfileImage(
+  id: number,
+  profileImageUrl: string,
+) {
+  await this.userRepository.update(id, {
+    profileImageUrl,
+  });
+
+  return await this.findOne(id);
+}
 }

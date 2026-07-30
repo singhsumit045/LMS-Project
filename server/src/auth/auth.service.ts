@@ -390,6 +390,28 @@ export class AuthService {
   }
 
   // =========================
+// GET PROFILE
+// =========================
+
+async getProfile(userId: number) {
+  const user = await this.usersService.findOne(userId);
+
+  if (!user) {
+    throw new UnauthorizedException(
+      'User not found',
+    );
+  }
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    profileImageUrl: user.profileImageUrl,
+  };
+}
+
+  // =========================
   // LOGOUT
   // =========================
 
