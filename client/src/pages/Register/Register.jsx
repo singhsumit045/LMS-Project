@@ -28,7 +28,8 @@ function Register() {
     const navigate = useNavigate();
 
     const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] =
+        useState(false);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -39,6 +40,10 @@ function Register() {
     });
 
     const [errors, setErrors] = useState({});
+
+    // =========================
+    // HANDLE INPUT CHANGE
+    // =========================
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -53,6 +58,10 @@ function Register() {
             [name]: "",
         }));
     };
+
+    // =========================
+    // HANDLE REGISTER
+    // =========================
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -76,13 +85,14 @@ function Register() {
             console.log(response.data);
 
             alert("Registration Successful");
+
             navigate("/login");
         } catch (error) {
             console.log(error.response?.data);
 
             alert(
                 error.response?.data?.message ||
-                "Registration failed"
+                    "Registration failed"
             );
         }
     };
@@ -92,11 +102,17 @@ function Register() {
             sx={{
                 minHeight: "100vh",
                 width: "100%",
-                backgroundColor: "#f5f7fb",
+                bgcolor: "background.default",
+
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                p: { xs: 1.5, sm: 2 },
+
+                p: {
+                    xs: 1.5,
+                    sm: 2,
+                },
+
                 boxSizing: "border-box",
             }}
         >
@@ -105,29 +121,56 @@ function Register() {
                 sx={{
                     width: "100%",
                     maxWidth: 1050,
-                    height: { xs: "auto", md: "calc(100vh - 32px)" },
-                    maxHeight: { md: 680 },
+
+                    height: {
+                        xs: "auto",
+                        md: "calc(100vh - 32px)",
+                    },
+
+                    maxHeight: {
+                        md: 680,
+                    },
+
                     borderRadius: 4,
                     overflow: "hidden",
+
                     display: "flex",
-                    border: "1px solid #e5e7eb",
-                    boxShadow:
-                        "0 20px 60px rgba(15, 23, 42, 0.10)",
+
+                    border: "1px solid",
+                    borderColor: "divider",
+
+                    bgcolor: "background.paper",
+
+                    boxShadow: (theme) =>
+                        theme.palette.mode === "dark"
+                            ? "0 20px 60px rgba(0,0,0,0.45)"
+                            : "0 20px 60px rgba(15,23,42,0.10)",
                 }}
             >
-                {/* ================= LEFT SIDE ================= */}
+                {/* =========================
+                    LEFT SIDE
+                ========================= */}
 
                 <Box
                     sx={{
                         width: "50%",
-                        display: { xs: "none", md: "flex" },
+
+                        display: {
+                            xs: "none",
+                            md: "flex",
+                        },
+
                         position: "relative",
                         overflow: "hidden",
+
                         background:
                             "linear-gradient(145deg, #1976d2 0%, #1259a7 100%)",
+
                         color: "#fff",
+
                         flexDirection: "column",
                         justifyContent: "space-between",
+
                         p: 5,
                     }}
                 >
@@ -136,11 +179,15 @@ function Register() {
                     <Box
                         sx={{
                             position: "absolute",
+
                             width: 280,
                             height: 280,
+
                             borderRadius: "50%",
+
                             backgroundColor:
                                 "rgba(255,255,255,0.07)",
+
                             top: -100,
                             right: -80,
                         }}
@@ -149,11 +196,15 @@ function Register() {
                     <Box
                         sx={{
                             position: "absolute",
+
                             width: 220,
                             height: 220,
+
                             borderRadius: "50%",
+
                             backgroundColor:
                                 "rgba(255,255,255,0.06)",
+
                             bottom: -80,
                             left: -80,
                         }}
@@ -170,9 +221,13 @@ function Register() {
                         <Box
                             sx={{
                                 backgroundColor: "#fff",
+
                                 borderRadius: 2,
+
                                 display: "inline-flex",
+
                                 alignItems: "center",
+
                                 px: 2,
                                 py: 1,
                             }}
@@ -196,7 +251,9 @@ function Register() {
                         sx={{
                             position: "relative",
                             zIndex: 2,
+
                             textAlign: "center",
+
                             px: 2,
                         }}
                     >
@@ -204,14 +261,20 @@ function Register() {
                             sx={{
                                 width: 155,
                                 height: 155,
+
                                 borderRadius: "50%",
+
                                 backgroundColor:
                                     "rgba(255,255,255,0.12)",
+
                                 mx: "auto",
                                 mb: 3,
+
                                 display: "flex",
+
                                 justifyContent: "center",
                                 alignItems: "center",
+
                                 position: "relative",
                             }}
                         >
@@ -225,14 +288,20 @@ function Register() {
                             <Box
                                 sx={{
                                     position: "absolute",
+
                                     right: 2,
                                     bottom: 8,
+
                                     width: 46,
                                     height: 46,
+
                                     borderRadius: "50%",
+
                                     backgroundColor: "#fff",
                                     color: "#1976d2",
+
                                     display: "flex",
+
                                     alignItems: "center",
                                     justifyContent: "center",
                                 }}
@@ -244,7 +313,9 @@ function Register() {
                         <Typography
                             variant="h4"
                             fontWeight={700}
-                            sx={{ mb: 1.5 }}
+                            sx={{
+                                mb: 1.5,
+                            }}
                         >
                             Start Your Learning Journey
                         </Typography>
@@ -253,14 +324,19 @@ function Register() {
                             sx={{
                                 color:
                                     "rgba(255,255,255,0.82)",
+
                                 fontSize: "1rem",
+
                                 lineHeight: 1.7,
+
                                 maxWidth: 390,
+
                                 mx: "auto",
                             }}
                         >
                             Create your LearnHub account and
-                            unlock a world of learning opportunities.
+                            unlock a world of learning
+                            opportunities.
                         </Typography>
 
                         {/* Features */}
@@ -268,8 +344,11 @@ function Register() {
                         <Box
                             sx={{
                                 display: "flex",
+
                                 justifyContent: "center",
+
                                 gap: 4,
+
                                 mt: 4,
                             }}
                         >
@@ -279,7 +358,9 @@ function Register() {
                                 <Typography
                                     variant="caption"
                                     display="block"
-                                    sx={{ mt: 0.5 }}
+                                    sx={{
+                                        mt: 0.5,
+                                    }}
                                 >
                                     Courses
                                 </Typography>
@@ -291,7 +372,9 @@ function Register() {
                                 <Typography
                                     variant="caption"
                                     display="block"
-                                    sx={{ mt: 0.5 }}
+                                    sx={{
+                                        mt: 0.5,
+                                    }}
                                 >
                                     Learning
                                 </Typography>
@@ -303,7 +386,9 @@ function Register() {
                                 <Typography
                                     variant="caption"
                                     display="block"
-                                    sx={{ mt: 0.5 }}
+                                    sx={{
+                                        mt: 0.5,
+                                    }}
                                 >
                                     Community
                                 </Typography>
@@ -316,8 +401,10 @@ function Register() {
                         sx={{
                             position: "relative",
                             zIndex: 2,
+
                             color:
                                 "rgba(255,255,255,0.65)",
+
                             textAlign: "center",
                         }}
                     >
@@ -325,17 +412,35 @@ function Register() {
                     </Typography>
                 </Box>
 
-                {/* ================= RIGHT SIDE ================= */}
+                {/* =========================
+                    RIGHT SIDE
+                ========================= */}
 
                 <Box
                     sx={{
-                        width: { xs: "100%", md: "50%" },
+                        width: {
+                            xs: "100%",
+                            md: "50%",
+                        },
+
                         display: "flex",
+
                         flexDirection: "column",
+
                         justifyContent: "center",
-                        p: { xs: 3, sm: 4, md: 5 },
-                        backgroundColor: "#fff",
-                        overflowY: { xs: "auto", md: "hidden" },
+
+                        p: {
+                            xs: 3,
+                            sm: 4,
+                            md: 5,
+                        },
+
+                        bgcolor: "background.paper",
+
+                        overflowY: {
+                            xs: "auto",
+                            md: "hidden",
+                        },
                     }}
                 >
                     {/* Mobile Logo */}
@@ -346,7 +451,9 @@ function Register() {
                                 xs: "flex",
                                 md: "none",
                             },
+
                             justifyContent: "center",
+
                             mb: 3,
                         }}
                     >
@@ -372,7 +479,7 @@ function Register() {
                             variant="h4"
                             fontWeight={700}
                             sx={{
-                                color: "#172033",
+                                color: "text.primary",
                                 mb: 0.7,
                             }}
                         >
@@ -381,12 +488,15 @@ function Register() {
 
                         <Typography
                             sx={{
-                                color: "#6b7280",
+                                color: "text.secondary",
+
                                 mb: 2.5,
+
                                 fontSize: "0.95rem",
                             }}
                         >
-                            Join LearnHub and start your learning journey.
+                            Join LearnHub and start your learning
+                            journey.
                         </Typography>
 
                         <Box
@@ -394,19 +504,23 @@ function Register() {
                             onSubmit={handleSubmit}
                             noValidate
                         >
-                            {/* Name + Email */}
+                            {/* =========================
+                                NAME + EMAIL
+                            ========================= */}
 
                             <Box
                                 sx={{
                                     display: "grid",
+
                                     gridTemplateColumns: {
                                         xs: "1fr",
                                         sm: "1fr 1fr",
                                     },
+
                                     gap: 1.5,
                                 }}
                             >
-                                {/* Name */}
+                                {/* NAME */}
 
                                 <Box>
                                     <Typography
@@ -414,7 +528,7 @@ function Register() {
                                         fontWeight={600}
                                         sx={{
                                             mb: 0.7,
-                                            color: "#374151",
+                                            color: "text.primary",
                                         }}
                                     >
                                         Full Name
@@ -436,24 +550,49 @@ function Register() {
                                             "& .MuiOutlinedInput-root":
                                                 {
                                                     borderRadius: 2,
+
                                                     backgroundColor:
-                                                        "#fafbfc",
+                                                        "background.default",
+
+                                                    "& fieldset": {
+                                                        borderColor:
+                                                            "divider",
+                                                    },
+
                                                     "&:hover fieldset":
                                                         {
                                                             borderColor:
-                                                                "#1976d2",
+                                                                "primary.main",
                                                         },
+
                                                     "&.Mui-focused fieldset":
                                                         {
                                                             borderColor:
-                                                                "#1976d2",
+                                                                "primary.main",
                                                         },
+                                                },
+
+                                            "& .MuiInputBase-input":
+                                                {
+                                                    color: "text.primary",
+
+                                                    "&::placeholder":
+                                                        {
+                                                            color:
+                                                                "text.secondary",
+                                                            opacity: 1,
+                                                        },
+                                                },
+
+                                            "& .MuiFormHelperText-root":
+                                                {
+                                                    color: "text.secondary",
                                                 },
                                         }}
                                     />
                                 </Box>
 
-                                {/* Email */}
+                                {/* EMAIL */}
 
                                 <Box>
                                     <Typography
@@ -461,7 +600,7 @@ function Register() {
                                         fontWeight={600}
                                         sx={{
                                             mb: 0.7,
-                                            color: "#374151",
+                                            color: "text.primary",
                                         }}
                                     >
                                         Email Address
@@ -484,37 +623,66 @@ function Register() {
                                             "& .MuiOutlinedInput-root":
                                                 {
                                                     borderRadius: 2,
+
                                                     backgroundColor:
-                                                        "#fafbfc",
+                                                        "background.default",
+
+                                                    "& fieldset": {
+                                                        borderColor:
+                                                            "divider",
+                                                    },
+
                                                     "&:hover fieldset":
                                                         {
                                                             borderColor:
-                                                                "#1976d2",
+                                                                "primary.main",
                                                         },
+
                                                     "&.Mui-focused fieldset":
                                                         {
                                                             borderColor:
-                                                                "#1976d2",
+                                                                "primary.main",
                                                         },
+                                                },
+
+                                            "& .MuiInputBase-input":
+                                                {
+                                                    color: "text.primary",
+
+                                                    "&::placeholder":
+                                                        {
+                                                            color:
+                                                                "text.secondary",
+                                                            opacity: 1,
+                                                        },
+                                                },
+
+                                            "& .MuiFormHelperText-root":
+                                                {
+                                                    color: "text.secondary",
                                                 },
                                         }}
                                     />
                                 </Box>
                             </Box>
 
-                            {/* Password + Confirm Password */}
+                            {/* =========================
+                                PASSWORD + CONFIRM
+                            ========================= */}
 
                             <Box
                                 sx={{
                                     display: "grid",
+
                                     gridTemplateColumns: {
                                         xs: "1fr",
                                         sm: "1fr 1fr",
                                     },
+
                                     gap: 1.5,
                                 }}
                             >
-                                {/* Password */}
+                                {/* PASSWORD */}
 
                                 <Box>
                                     <Typography
@@ -522,7 +690,7 @@ function Register() {
                                         fontWeight={600}
                                         sx={{
                                             mb: 0.7,
-                                            color: "#374151",
+                                            color: "text.primary",
                                         }}
                                     >
                                         Password
@@ -556,6 +724,14 @@ function Register() {
                                                                 )
                                                             }
                                                             edge="end"
+                                                            aria-label={
+                                                                showPassword
+                                                                    ? "Hide password"
+                                                                    : "Show password"
+                                                            }
+                                                            sx={{
+                                                                color: "text.secondary",
+                                                            }}
                                                         >
                                                             {showPassword ? (
                                                                 <VisibilityOff />
@@ -571,24 +747,49 @@ function Register() {
                                             "& .MuiOutlinedInput-root":
                                                 {
                                                     borderRadius: 2,
+
                                                     backgroundColor:
-                                                        "#fafbfc",
+                                                        "background.default",
+
+                                                    "& fieldset": {
+                                                        borderColor:
+                                                            "divider",
+                                                    },
+
                                                     "&:hover fieldset":
                                                         {
                                                             borderColor:
-                                                                "#1976d2",
+                                                                "primary.main",
                                                         },
+
                                                     "&.Mui-focused fieldset":
                                                         {
                                                             borderColor:
-                                                                "#1976d2",
+                                                                "primary.main",
                                                         },
+                                                },
+
+                                            "& .MuiInputBase-input":
+                                                {
+                                                    color: "text.primary",
+
+                                                    "&::placeholder":
+                                                        {
+                                                            color:
+                                                                "text.secondary",
+                                                            opacity: 1,
+                                                        },
+                                                },
+
+                                            "& .MuiFormHelperText-root":
+                                                {
+                                                    color: "text.secondary",
                                                 },
                                         }}
                                     />
                                 </Box>
 
-                                {/* Confirm Password */}
+                                {/* CONFIRM PASSWORD */}
 
                                 <Box>
                                     <Typography
@@ -596,7 +797,7 @@ function Register() {
                                         fontWeight={600}
                                         sx={{
                                             mb: 0.7,
-                                            color: "#374151",
+                                            color: "text.primary",
                                         }}
                                     >
                                         Confirm Password
@@ -621,7 +822,8 @@ function Register() {
                                             !!errors.confirmPassword
                                         }
                                         helperText={
-                                            errors.confirmPassword || " "
+                                            errors.confirmPassword ||
+                                            " "
                                         }
                                         slotProps={{
                                             input: {
@@ -634,6 +836,14 @@ function Register() {
                                                                 )
                                                             }
                                                             edge="end"
+                                                            aria-label={
+                                                                showConfirmPassword
+                                                                    ? "Hide password"
+                                                                    : "Show password"
+                                                            }
+                                                            sx={{
+                                                                color: "text.secondary",
+                                                            }}
                                                         >
                                                             {showConfirmPassword ? (
                                                                 <VisibilityOff />
@@ -649,32 +859,59 @@ function Register() {
                                             "& .MuiOutlinedInput-root":
                                                 {
                                                     borderRadius: 2,
+
                                                     backgroundColor:
-                                                        "#fafbfc",
+                                                        "background.default",
+
+                                                    "& fieldset": {
+                                                        borderColor:
+                                                            "divider",
+                                                    },
+
                                                     "&:hover fieldset":
                                                         {
                                                             borderColor:
-                                                                "#1976d2",
+                                                                "primary.main",
                                                         },
+
                                                     "&.Mui-focused fieldset":
                                                         {
                                                             borderColor:
-                                                                "#1976d2",
+                                                                "primary.main",
                                                         },
+                                                },
+
+                                            "& .MuiInputBase-input":
+                                                {
+                                                    color: "text.primary",
+
+                                                    "&::placeholder":
+                                                        {
+                                                            color:
+                                                                "text.secondary",
+                                                            opacity: 1,
+                                                        },
+                                                },
+
+                                            "& .MuiFormHelperText-root":
+                                                {
+                                                    color: "text.secondary",
                                                 },
                                         }}
                                     />
                                 </Box>
                             </Box>
 
-                            {/* Role */}
+                            {/* =========================
+                                ROLE
+                            ========================= */}
 
                             <Typography
                                 variant="body2"
                                 fontWeight={600}
                                 sx={{
                                     mb: 0.7,
-                                    color: "#374151",
+                                    color: "text.primary",
                                 }}
                             >
                                 Account Type
@@ -694,18 +931,39 @@ function Register() {
                                 }
                                 sx={{
                                     mb: 1,
+
                                     "& .MuiOutlinedInput-root": {
                                         borderRadius: 2,
+
                                         backgroundColor:
-                                            "#fafbfc",
+                                            "background.default",
+
+                                        "& fieldset": {
+                                            borderColor:
+                                                "divider",
+                                        },
+
                                         "&:hover fieldset": {
                                             borderColor:
-                                                "#1976d2",
+                                                "primary.main",
                                         },
+
                                         "&.Mui-focused fieldset": {
                                             borderColor:
-                                                "#1976d2",
+                                                "primary.main",
                                         },
+                                    },
+
+                                    "& .MuiInputBase-input": {
+                                        color: "text.primary",
+                                    },
+
+                                    "& .MuiSelect-icon": {
+                                        color: "text.secondary",
+                                    },
+
+                                    "& .MuiFormHelperText-root": {
+                                        color: "text.secondary",
                                     },
                                 }}
                             >
@@ -718,7 +976,9 @@ function Register() {
                                 </MenuItem>
                             </TextField>
 
-                            {/* Create Account */}
+                            {/* =========================
+                                CREATE ACCOUNT
+                            ========================= */}
 
                             <Button
                                 fullWidth
@@ -728,16 +988,25 @@ function Register() {
                                 sx={{
                                     py: 1.4,
                                     mt: 1,
+
                                     borderRadius: 2,
+
                                     textTransform: "none",
+
                                     fontSize: "1rem",
+
                                     fontWeight: 600,
-                                    backgroundColor: "#1976d2",
+
+                                    backgroundColor:
+                                        "primary.main",
+
                                     boxShadow:
                                         "0 8px 20px rgba(25,118,210,0.25)",
+
                                     "&:hover": {
                                         backgroundColor:
-                                            "#1565c0",
+                                            "primary.dark",
+
                                         boxShadow:
                                             "0 10px 25px rgba(25,118,210,0.30)",
                                     },
@@ -746,7 +1015,9 @@ function Register() {
                                 Create Account
                             </Button>
 
-                            {/* Login */}
+                            {/* =========================
+                                LOGIN
+                            ========================= */}
 
                             <Box
                                 sx={{
@@ -757,19 +1028,20 @@ function Register() {
                                 <Typography
                                     variant="body2"
                                     sx={{
-                                        color: "#6b7280",
+                                        color: "text.secondary",
                                     }}
                                 >
                                     Already have an account?{" "}
+
                                     <Link
                                         component={RouterLink}
                                         to="/login"
                                         underline="hover"
                                         sx={{
-                                            color: "#1976d2",
+                                            color: "primary.main",
                                             fontWeight: 600,
                                         }}
-                                    >
+                                    > 
                                         Login
                                     </Link>
                                 </Typography>
@@ -780,6 +1052,7 @@ function Register() {
             </Paper>
         </Box>
     );
+
 }
 
 export default Register;

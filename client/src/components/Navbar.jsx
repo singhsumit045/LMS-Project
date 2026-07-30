@@ -1,3 +1,4 @@
+
 import {
   AppBar,
   Toolbar,
@@ -7,14 +8,12 @@ import {
   Avatar,
   Tooltip,
   Divider,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
   Drawer,
   List,
   ListItem,
   ListItemButton,
+  ListItemIcon,
+  ListItemText,
   useMediaQuery,
 } from "@mui/material";
 
@@ -43,9 +42,8 @@ import logo from "../assets/LearnHub.png";
 const Navbar = ({ darkMode, toggleTheme }) => {
   const [user, setUser] = useState(null);
 
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const [profileAnchor, setProfileAnchor] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] =
+    useState(false);
 
   const navigate = useNavigate();
 
@@ -60,13 +58,17 @@ const Navbar = ({ darkMode, toggleTheme }) => {
   // =========================
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+    const storedUser =
+      localStorage.getItem("user");
 
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
       } catch (error) {
-        console.log("Invalid stored user:", error);
+        console.log(
+          "Invalid stored user:",
+          error
+        );
       }
     }
   }, []);
@@ -89,7 +91,8 @@ const Navbar = ({ darkMode, toggleTheme }) => {
       } catch (error) {
         console.log(
           "Profile fetch error:",
-          error.response?.data || error.message
+          error.response?.data ||
+            error.message
         );
       }
     };
@@ -139,10 +142,15 @@ const Navbar = ({ darkMode, toggleTheme }) => {
 
   const handleLogout = () => {
     setMobileMenuOpen(false);
-    setProfileAnchor(null);
 
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+    localStorage.removeItem(
+      "access_token"
+    );
+
+    localStorage.removeItem(
+      "refresh_token"
+    );
+
     localStorage.removeItem("user");
 
     setUser(null);
@@ -173,23 +181,11 @@ const Navbar = ({ darkMode, toggleTheme }) => {
   };
 
   // =========================
-  // PROFILE MENU
-  // =========================
-
-  const handleProfileMenuOpen = (event) => {
-    setProfileAnchor(event.currentTarget);
-  };
-
-  const handleProfileMenuClose = () => {
-    setProfileAnchor(null);
-  };
-
-  // =========================
   // OPEN PROFILE
   // =========================
 
   const handleOpenProfile = () => {
-    setProfileAnchor(null);
+    closeMobileMenu();
     navigate("/profile");
   };
 
@@ -205,6 +201,7 @@ const Navbar = ({ darkMode, toggleTheme }) => {
             xs: "64px",
             md: "70px",
           },
+
           px: {
             xs: 2,
             sm: 3,
@@ -239,16 +236,21 @@ const Navbar = ({ darkMode, toggleTheme }) => {
                 sm: 140,
                 md: 155,
               },
+
               height: {
                 xs: 42,
                 sm: 46,
                 md: 50,
               },
+
               objectFit: "contain",
               objectPosition: "left center",
               display: "block",
               borderRadius: 1,
-              transition: "transform 0.2s ease",
+
+              transition:
+                "transform 0.2s ease",
+
               "&:hover": {
                 transform: "scale(1.03)",
               },
@@ -268,7 +270,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               gap: 0.5,
             }}
           >
-            {/* Dashboard */}
+            {/* =========================
+                DASHBOARD
+            ========================= */}
 
             <Button
               color="inherit"
@@ -279,7 +283,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               Dashboard
             </Button>
 
-            {/* Courses */}
+            {/* =========================
+                COURSES
+            ========================= */}
 
             <Button
               color="inherit"
@@ -290,7 +296,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               Courses
             </Button>
 
-            {/* My Courses */}
+            {/* =========================
+                MY COURSES
+            ========================= */}
 
             <Button
               color="inherit"
@@ -301,7 +309,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               My Courses
             </Button>
 
-            {/* Create Course */}
+            {/* =========================
+                CREATE COURSE
+            ========================= */}
 
             {(user?.role === "teacher" ||
               user?.role === "admin") && (
@@ -315,7 +325,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               </Button>
             )}
 
-            {/* Theme Toggle */}
+            {/* =========================
+                THEME TOGGLE
+            ========================= */}
 
             <Tooltip
               title={
@@ -327,6 +339,11 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               <IconButton
                 color="inherit"
                 onClick={toggleTheme}
+                aria-label={
+                  darkMode
+                    ? "Switch to light mode"
+                    : "Switch to dark mode"
+                }
               >
                 {darkMode ? (
                   <LightMode />
@@ -336,31 +353,53 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               </IconButton>
             </Tooltip>
 
-            {/* PROFILE AVATAR */}
+            {/* =========================
+                PROFILE AVATAR
+                DIRECT PROFILE
+            ========================= */}
 
             <Tooltip
               title={
                 user?.name
-                  ? `${user.name}'s Profile`
-                  : "Profile"
+                  ? `Open ${user.name}'s Profile`
+                  : "Open Profile"
               }
             >
               <IconButton
-                onClick={handleProfileMenuOpen}
+                onClick={handleOpenProfile}
                 color="inherit"
-                sx={{ ml: 0.5 }}
+                aria-label="Open profile"
+                sx={{
+                  ml: 0.5,
+                  p: 0.5,
+                  borderRadius: "50%",
+                }}
               >
                 <Avatar
                   src={
                     user?.profileImageUrl ||
                     undefined
                   }
-                  alt={user?.name || "Profile"}
+                  alt={
+                    user?.name || "Profile"
+                  }
                   sx={{
                     width: 36,
                     height: 36,
-                    bgcolor: "secondary.main",
+                    bgcolor:
+                      "secondary.main",
                     fontWeight: 600,
+                    border: "2px solid",
+                    borderColor:
+                      "rgba(255,255,255,0.7)",
+
+                    transition:
+                      "transform 0.2s ease",
+
+                    "&:hover": {
+                      transform:
+                        "scale(1.06)",
+                    },
                   }}
                 >
                   {!user?.profileImageUrl &&
@@ -381,99 +420,12 @@ const Navbar = ({ darkMode, toggleTheme }) => {
             onClick={() =>
               setMobileMenuOpen(true)
             }
+            aria-label="Open navigation menu"
           >
             <MenuIcon />
           </IconButton>
         )}
       </Toolbar>
-
-      {/* =========================
-          PROFILE MENU
-      ========================= */}
-
-      <Menu
-        anchorEl={profileAnchor}
-        open={Boolean(profileAnchor)}
-        onClose={handleProfileMenuClose}
-      >
-        {/* USER INFO */}
-
-        <Box
-          sx={{
-            px: 2,
-            py: 1.5,
-            display: "flex",
-            alignItems: "center",
-            gap: 1.5,
-            minWidth: 220,
-          }}
-        >
-          <Avatar
-            src={
-              user?.profileImageUrl ||
-              undefined
-            }
-            alt={user?.name || "Profile"}
-            sx={{
-              width: 42,
-              height: 42,
-              bgcolor: "secondary.main",
-              fontWeight: 600,
-            }}
-          >
-            {!user?.profileImageUrl &&
-              getUserInitial()}
-          </Avatar>
-
-          <Box sx={{ minWidth: 0 }}>
-            <Box
-              sx={{
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                maxWidth: 150,
-              }}
-            >
-              {user?.name || "User"}
-            </Box>
-
-            <Box
-              sx={{
-                fontSize: "0.75rem",
-                color: "text.secondary",
-                textTransform: "capitalize",
-              }}
-            >
-              {user?.role || "Student"}
-            </Box>
-          </Box>
-        </Box>
-
-        <Divider />
-
-        {/* PROFILE */}
-
-        <MenuItem onClick={handleOpenProfile}>
-          <ListItemIcon>
-            <Person fontSize="small" />
-          </ListItemIcon>
-
-          Profile
-        </MenuItem>
-
-        <Divider />
-
-        {/* LOGOUT */}
-
-        <MenuItem onClick={handleLogout}>
-          <ListItemIcon>
-            <LogoutIcon fontSize="small" />
-          </ListItemIcon>
-
-          Logout
-        </MenuItem>
-      </Menu>
 
       {/* =========================
           MOBILE DRAWER
@@ -490,7 +442,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
           }}
           role="presentation"
         >
-          {/* USER INFO */}
+          {/* =========================
+              USER INFO
+          ========================= */}
 
           <Box
             sx={{
@@ -498,8 +452,12 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               display: "flex",
               alignItems: "center",
               gap: 1.5,
-              backgroundColor: "primary.main",
-              color: "primary.contrastText",
+
+              backgroundColor:
+                "primary.main",
+
+              color:
+                "primary.contrastText",
             }}
           >
             <Avatar
@@ -507,9 +465,12 @@ const Navbar = ({ darkMode, toggleTheme }) => {
                 user?.profileImageUrl ||
                 undefined
               }
-              alt={user?.name || "Profile"}
+              alt={
+                user?.name || "Profile"
+              }
               sx={{
-                bgcolor: "secondary.main",
+                bgcolor:
+                  "secondary.main",
                 fontWeight: 600,
               }}
             >
@@ -517,11 +478,16 @@ const Navbar = ({ darkMode, toggleTheme }) => {
                 getUserInitial()}
             </Avatar>
 
-            <Box>
+            <Box sx={{ minWidth: 0 }}>
               <Box
                 sx={{
                   fontWeight: 600,
                   fontSize: "1rem",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow:
+                    "ellipsis",
+                  maxWidth: 190,
                 }}
               >
                 {user?.name || "User"}
@@ -531,7 +497,8 @@ const Navbar = ({ darkMode, toggleTheme }) => {
                 sx={{
                   fontSize: "0.75rem",
                   opacity: 0.8,
-                  textTransform: "capitalize",
+                  textTransform:
+                    "capitalize",
                 }}
               >
                 {user?.role || "Student"}
@@ -539,10 +506,13 @@ const Navbar = ({ darkMode, toggleTheme }) => {
             </Box>
           </Box>
 
-          {/* MOBILE NAVIGATION */}
+          {/* =========================
+              MOBILE NAVIGATION
+          ========================= */}
 
           <List>
-            {/* Dashboard */}
+
+            {/* DASHBOARD */}
 
             <ListItem disablePadding>
               <ListItemButton
@@ -560,7 +530,7 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               </ListItemButton>
             </ListItem>
 
-            {/* Courses */}
+            {/* COURSES */}
 
             <ListItem disablePadding>
               <ListItemButton
@@ -578,7 +548,7 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               </ListItemButton>
             </ListItem>
 
-            {/* My Courses */}
+            {/* MY COURSES */}
 
             <ListItem disablePadding>
               <ListItemButton
@@ -596,7 +566,7 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               </ListItemButton>
             </ListItem>
 
-            {/* Create Course */}
+            {/* CREATE COURSE */}
 
             {(user?.role === "teacher" ||
               user?.role === "admin") && (
@@ -621,10 +591,7 @@ const Navbar = ({ darkMode, toggleTheme }) => {
 
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => {
-                  closeMobileMenu();
-                  navigate("/profile");
-                }}
+                onClick={handleOpenProfile}
               >
                 <ListItemIcon>
                   <Person />
@@ -642,7 +609,7 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               }}
             />
 
-            {/* Theme */}
+            {/* THEME */}
 
             <ListItem disablePadding>
               <ListItemButton
@@ -664,7 +631,7 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               </ListItemButton>
             </ListItem>
 
-            {/* Logout */}
+            {/* LOGOUT */}
 
             <ListItem disablePadding>
               <ListItemButton
@@ -687,3 +654,4 @@ const Navbar = ({ darkMode, toggleTheme }) => {
 };
 
 export default Navbar;
+

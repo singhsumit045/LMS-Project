@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -27,18 +28,104 @@ import {
     Add,
 } from "@mui/icons-material";
 
-import { getCourses } from "../../services/courseService";
+import {
+    getCourses,
+} from "../../services/courseService";
+
+import {
+    getProfile,
+} from "../../services/authService";
 
 
 const CourseList = () => {
 
     const [courses, setCourses] = useState([]);
+
+    const [user, setUser] = useState(null);
+
     const [search, setSearch] = useState("");
+
     const [category, setCategory] = useState("all");
+
     const [loading, setLoading] = useState(true);
+
+    const [profileLoading, setProfileLoading] =
+        useState(true);
+
     const [error, setError] = useState("");
 
     const navigate = useNavigate();
+
+
+    // =========================
+    // FETCH USER PROFILE
+    // =========================
+
+    useEffect(() => {
+
+        const fetchProfile = async () => {
+
+            try {
+
+                const response = await getProfile();
+
+                setUser(response.data);
+
+                // Keep localStorage user updated
+                localStorage.setItem(
+                    "user",
+                    JSON.stringify(response.data)
+                );
+
+            } catch (error) {
+
+                console.log(
+                    "Profile fetch error:",
+                    error
+                );
+
+                // Fallback to localStorage
+                try {
+
+                    const storedUser =
+                        JSON.parse(
+                            localStorage.getItem(
+                                "user"
+                            ) || "null"
+                        );
+
+                    setUser(storedUser);
+
+                } catch {
+
+                    setUser(null);
+
+                }
+
+            } finally {
+
+                setProfileLoading(false);
+
+            }
+
+        };
+
+
+        const accessToken =
+            localStorage.getItem("access_token");
+
+
+        if (accessToken) {
+
+            fetchProfile();
+
+        } else {
+
+            setProfileLoading(false);
+
+        }
+
+    }, []);
 
 
     // =========================
@@ -57,19 +144,31 @@ const CourseList = () => {
         try {
 
             setLoading(true);
+
             setError("");
 
-            const response = await getCourses();
+            const response =
+                await getCourses();
 
-            setCourses(response.data || []);
+            setCourses(
+                response.data || []
+            );
 
         } catch (error) {
 
-            console.log("Course fetch error:", error);
+            console.log(
+                "Course fetch error:",
+                error
+            );
+
+            const message =
+                error.response?.data?.message;
 
             setError(
-                error.response?.data?.message ||
-                "Unable to load courses."
+                Array.isArray(message)
+                    ? message.join(", ")
+                    : message ||
+                      "Unable to load courses."
             );
 
         } finally {
@@ -90,7 +189,10 @@ const CourseList = () => {
         const uniqueCategories = [
             ...new Set(
                 courses
-                    .map((course) => course.category)
+                    .map(
+                        (course) =>
+                            course.category
+                    )
                     .filter(Boolean)
             ),
         ];
@@ -108,9 +210,11 @@ const CourseList = () => {
 
         return courses.filter((course) => {
 
-            const searchText = search
-                .trim()
-                .toLowerCase();
+            const searchText =
+                search
+                    .trim()
+                    .toLowerCase();
+
 
             const matchesSearch =
                 course.title
@@ -127,11 +231,18 @@ const CourseList = () => {
                 course.category === category;
 
 
-            return matchesSearch && matchesCategory;
+            return (
+                matchesSearch &&
+                matchesCategory
+            );
 
         });
 
-    }, [courses, search, category]);
+    }, [
+        courses,
+        search,
+        category,
+    ]);
 
 
     // =========================
@@ -141,9 +252,19 @@ const CourseList = () => {
     const clearFilters = () => {
 
         setSearch("");
+
         setCategory("all");
 
     };
+
+
+    // =========================
+    // ROLE CHECK
+    // =========================
+
+    const canCreateCourse =
+        user?.role === "teacher" ||
+        user?.role === "admin";
 
 
     return (
@@ -165,16 +286,22 @@ const CourseList = () => {
             <Box
                 sx={{
                     display: "flex",
+
                     flexDirection: {
                         xs: "column",
                         md: "row",
                     },
-                    justifyContent: "space-between",
+
+                    justifyContent:
+                        "space-between",
+
                     alignItems: {
                         xs: "flex-start",
                         md: "center",
                     },
+
                     gap: 2,
+
                     mb: 4,
                 }}
             >
@@ -201,21 +328,34 @@ const CourseList = () => {
                             mt: 0.8,
                         }}
                     >
-                        Learn new skills and grow your career
+                        Learn new skills and grow
+                        your career
                     </Typography>
 
                 </Box>
 
 
-                <Button
-                    variant="contained"
-                    startIcon={<Add />}
-                    onClick={() =>
-                        navigate("/courses/create")
-                    }
-                >
-                    Create Course
-                </Button>
+                {/* =========================
+                    CREATE COURSE
+                    TEACHER + ADMIN ONLY
+                ========================= */}
+
+                {!profileLoading &&
+                    canCreateCourse && (
+
+                        <Button
+                            variant="contained"
+                            startIcon={<Add />}
+                            onClick={() =>
+                                navigate(
+                                    "/courses/create"
+                                )
+                            }
+                        >
+                            Create Course
+                        </Button>
+
+                    )}
 
             </Box>
 
@@ -238,7 +378,8 @@ const CourseList = () => {
 
                     border: "1px solid",
 
-                    borderColor: "divider",
+                    borderColor:
+                        "divider",
                 }}
             >
 
@@ -260,9 +401,10 @@ const CourseList = () => {
                             placeholder="Search by title or description..."
                             value={search}
                             onChange={(e) =>
-                                setSearch(e.target.value)
+                                setSearch(
+                                    e.target.value
+                                )
                             }
-
                             slotProps={{
                                 input: {
                                     startAdornment: (
@@ -290,7 +432,9 @@ const CourseList = () => {
                             label="Category"
                             value={category}
                             onChange={(e) =>
-                                setCategory(e.target.value)
+                                setCategory(
+                                    e.target.value
+                                )
                             }
                         >
 
@@ -299,16 +443,18 @@ const CourseList = () => {
                             </MenuItem>
 
 
-                            {categories.map((item) => (
+                            {categories.map(
+                                (item) => (
 
-                                <MenuItem
-                                    key={item}
-                                    value={item}
-                                >
-                                    {item}
-                                </MenuItem>
+                                    <MenuItem
+                                        key={item}
+                                        value={item}
+                                    >
+                                        {item}
+                                    </MenuItem>
 
-                            ))}
+                                )
+                            )}
 
                         </TextField>
 
@@ -349,9 +495,11 @@ const CourseList = () => {
 
                         display: "flex",
 
-                        justifyContent: "center",
+                        justifyContent:
+                            "center",
 
-                        alignItems: "center",
+                        alignItems:
+                            "center",
                     }}
                 >
 
@@ -371,9 +519,11 @@ const CourseList = () => {
                         sx={{
                             display: "flex",
 
-                            justifyContent: "space-between",
+                            justifyContent:
+                                "space-between",
 
-                            alignItems: "center",
+                            alignItems:
+                                "center",
 
                             mb: 2.5,
 
@@ -385,19 +535,27 @@ const CourseList = () => {
                             variant="h6"
                             fontWeight={600}
                         >
-                            {filteredCourses.length}{" "}
-                            {filteredCourses.length === 1
-                                ? "Course"
-                                : "Courses"}
+                            {
+                                filteredCourses.length
+                            }{" "}
+                            {
+                                filteredCourses.length ===
+                                1
+                                    ? "Course"
+                                    : "Courses"
+                            }
                         </Typography>
 
 
                         {(search ||
-                            category !== "all") && (
+                            category !==
+                                "all") && (
 
                             <Button
                                 size="small"
-                                onClick={clearFilters}
+                                onClick={
+                                    clearFilters
+                                }
                             >
                                 Clear Filters
                             </Button>
@@ -411,7 +569,8 @@ const CourseList = () => {
                         EMPTY STATE
                     ========================= */}
 
-                    {filteredCourses.length === 0 ? (
+                    {filteredCourses.length ===
+                    0 ? (
 
                         <Paper
                             elevation={0}
@@ -421,13 +580,16 @@ const CourseList = () => {
                                     md: 7,
                                 },
 
-                                textAlign: "center",
+                                textAlign:
+                                    "center",
 
                                 borderRadius: 3,
 
-                                border: "1px solid",
+                                border:
+                                    "1px solid",
 
-                                borderColor: "divider",
+                                borderColor:
+                                    "divider",
                             }}
                         >
 
@@ -457,8 +619,10 @@ const CourseList = () => {
                                     mt: 1,
                                 }}
                             >
-                                Try changing your search
-                                or category filter.
+                                Try changing
+                                your search
+                                or category
+                                filter.
                             </Typography>
 
 
@@ -467,7 +631,9 @@ const CourseList = () => {
                                 sx={{
                                     mt: 2.5,
                                 }}
-                                onClick={clearFilters}
+                                onClick={
+                                    clearFilters
+                                }
                             >
                                 Clear Filters
                             </Button>
@@ -485,214 +651,240 @@ const CourseList = () => {
                             spacing={3}
                         >
 
-                            {filteredCourses.map((course) => (
+                            {filteredCourses.map(
+                                (course) => (
 
-                                <Grid
-                                    key={course.id}
-                                    size={{
-                                        xs: 12,
-                                        sm: 6,
-                                        md: 4,
-                                        lg: 3,
-                                    }}
-                                >
-
-                                    <Card
-                                        elevation={0}
-                                        sx={{
-                                            height: "100%",
-
-                                            display: "flex",
-
-                                            flexDirection:
-                                                "column",
-
-                                            borderRadius: 3,
-
-                                            border:
-                                                "1px solid",
-
-                                            borderColor:
-                                                "divider",
-
-                                            overflow: "hidden",
-
-                                            transition:
-                                                "transform 0.2s ease, box-shadow 0.2s ease",
-
-                                            "&:hover": {
-                                                transform:
-                                                    "translateY(-5px)",
-
-                                                boxShadow:
-                                                    "0 10px 30px rgba(0,0,0,0.1)",
-                                            },
+                                    <Grid
+                                        key={
+                                            course.id
+                                        }
+                                        size={{
+                                            xs: 12,
+                                            sm: 6,
+                                            md: 4,
+                                            lg: 3,
                                         }}
                                     >
 
-                                        {/* COURSE HEADER */}
-
-                                        <Box
+                                        <Card
+                                            elevation={0}
                                             sx={{
-                                                height: 130,
+                                                height:
+                                                    "100%",
 
-                                                display: "flex",
+                                                display:
+                                                    "flex",
 
-                                                justifyContent:
-                                                    "center",
+                                                flexDirection:
+                                                    "column",
 
-                                                alignItems:
-                                                    "center",
+                                                borderRadius:
+                                                    3,
 
-                                                background:
-                                                    "linear-gradient(135deg, #1976d2, #7b1fa2)",
+                                                border:
+                                                    "1px solid",
 
-                                                color: "white",
+                                                borderColor:
+                                                    "divider",
+
+                                                overflow:
+                                                    "hidden",
+
+                                                transition:
+                                                    "transform 0.2s ease, box-shadow 0.2s ease",
+
+                                                "&:hover":
+                                                    {
+                                                        transform:
+                                                            "translateY(-5px)",
+
+                                                        boxShadow:
+                                                            "0 10px 30px rgba(0,0,0,0.1)",
+                                                    },
                                             }}
                                         >
 
-                                            <School
+                                            {/* COURSE HEADER */}
+
+                                            <Box
                                                 sx={{
-                                                    fontSize: 55,
-                                                }}
-                                            />
-
-                                        </Box>
-
-
-                                        {/* COURSE CONTENT */}
-
-                                        <CardContent
-                                            sx={{
-                                                flexGrow: 1,
-
-                                                p: 2.5,
-                                            }}
-                                        >
-
-                                            <Stack
-                                                direction="row"
-                                                spacing={1}
-                                                sx={{
-                                                    mb: 1.5,
-                                                }}
-                                            >
-
-                                                {course.category && (
-
-                                                    <Chip
-                                                        label={
-                                                            course.category
-                                                        }
-                                                        size="small"
-                                                        color="primary"
-                                                        variant="outlined"
-                                                    />
-
-                                                )}
-
-                                            </Stack>
-
-
-                                            <Typography
-                                                variant="h6"
-                                                fontWeight={700}
-                                                sx={{
-                                                    display:
-                                                        "-webkit-box",
-
-                                                    WebkitLineClamp: 2,
-
-                                                    WebkitBoxOrient:
-                                                        "vertical",
-
-                                                    overflow:
-                                                        "hidden",
-
-                                                    minHeight: 58,
-                                                }}
-                                            >
-                                                {course.title}
-                                            </Typography>
-
-
-                                            <Typography
-                                                variant="body2"
-                                                color="text.secondary"
-                                                sx={{
-                                                    mt: 1.5,
+                                                    height: 130,
 
                                                     display:
-                                                        "-webkit-box",
+                                                        "flex",
 
-                                                    WebkitLineClamp: 3,
+                                                    justifyContent:
+                                                        "center",
 
-                                                    WebkitBoxOrient:
-                                                        "vertical",
+                                                    alignItems:
+                                                        "center",
 
-                                                    overflow:
-                                                        "hidden",
+                                                    background:
+                                                        "linear-gradient(135deg, #1976d2, #7b1fa2)",
 
-                                                    minHeight: 60,
+                                                    color:
+                                                        "white",
                                                 }}
                                             >
-                                                {course.description ||
-                                                    "No description available for this course."}
-                                            </Typography>
+
+                                                <School
+                                                    sx={{
+                                                        fontSize:
+                                                            55,
+                                                    }}
+                                                />
+
+                                            </Box>
 
 
-                                            <Typography
-                                                variant="h6"
-                                                fontWeight={700}
-                                                color="primary"
+                                            {/* COURSE CONTENT */}
+
+                                            <CardContent
                                                 sx={{
-                                                    mt: 2,
+                                                    flexGrow:
+                                                        1,
+
+                                                    p: 2.5,
                                                 }}
                                             >
-                                                ₹{course.price ?? 0}
-                                            </Typography>
 
-                                        </CardContent>
+                                                <Stack
+                                                    direction="row"
+                                                    spacing={1}
+                                                    sx={{
+                                                        mb: 1.5,
+                                                    }}
+                                                >
+
+                                                    {course.category && (
+
+                                                        <Chip
+                                                            label={
+                                                                course.category
+                                                            }
+                                                            size="small"
+                                                            color="primary"
+                                                            variant="outlined"
+                                                        />
+
+                                                    )}
+
+                                                </Stack>
 
 
-                                        {/* CARD ACTION */}
+                                                <Typography
+                                                    variant="h6"
+                                                    fontWeight={700}
+                                                    sx={{
+                                                        display:
+                                                            "-webkit-box",
 
-                                        <CardActions
-                                            sx={{
-                                                p: 2.5,
+                                                        WebkitLineClamp:
+                                                            2,
 
-                                                pt: 0,
-                                            }}
-                                        >
+                                                        WebkitBoxOrient:
+                                                            "vertical",
 
-                                            <Button
-                                                fullWidth
-                                                variant="contained"
-                                                endIcon={
-                                                    <ArrowForward />
-                                                }
+                                                        overflow:
+                                                            "hidden",
 
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/courses/${course.id}`
-                                                    )
-                                                }
+                                                        minHeight:
+                                                            58,
+                                                    }}
+                                                >
+                                                    {
+                                                        course.title
+                                                    }
+                                                </Typography>
+
+
+                                                <Typography
+                                                    variant="body2"
+                                                    color="text.secondary"
+                                                    sx={{
+                                                        mt: 1.5,
+
+                                                        display:
+                                                            "-webkit-box",
+
+                                                        WebkitLineClamp:
+                                                            3,
+
+                                                        WebkitBoxOrient:
+                                                            "vertical",
+
+                                                        overflow:
+                                                            "hidden",
+
+                                                        minHeight:
+                                                            60,
+                                                    }}
+                                                >
+                                                    {
+                                                        course.description ||
+                                                        "No description available for this course."
+                                                    }
+                                                </Typography>
+
+
+                                                <Typography
+                                                    variant="h6"
+                                                    fontWeight={700}
+                                                    color="primary"
+                                                    sx={{
+                                                        mt: 2,
+                                                    }}
+                                                >
+                                                    ₹
+                                                    {
+                                                        course.price ??
+                                                        0
+                                                    }
+                                                </Typography>
+
+                                            </CardContent>
+
+
+                                            {/* CARD ACTION */}
+
+                                            <CardActions
+                                                sx={{
+                                                    p: 2.5,
+
+                                                    pt: 0,
+                                                }}
                                             >
-                                                View Details
-                                            </Button>
 
-                                        </CardActions>
+                                                <Button
+                                                    fullWidth
+                                                    variant="contained"
+                                                    endIcon={
+                                                        <ArrowForward />
+                                                    }
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/courses/${course.id}`
+                                                        )
+                                                    }
+                                                >
+                                                    View Details
+                                                </Button>
 
-                                    </Card>
+                                            </CardActions>
 
-                                </Grid>
+                                        </Card>
 
-                            ))}
+                                    </Grid>
+
+                                )
+                            )}
 
                         </Grid>
 
                     )}
+
                 </>
+
             )}
 
         </Container>
@@ -703,3 +895,4 @@ const CourseList = () => {
 
 
 export default CourseList;
+

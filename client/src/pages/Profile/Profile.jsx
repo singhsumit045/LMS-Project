@@ -1,4 +1,6 @@
+
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   getProfile,
@@ -38,9 +40,12 @@ import {
   VisibilityOff,
   Security,
   PhotoCamera,
+  Logout as LogoutIcon,
 } from "@mui/icons-material";
 
 function Profile() {
+  const navigate = useNavigate();
+
   const [user, setUser] = useState(null);
 
   const [loading, setLoading] = useState(true);
@@ -106,7 +111,6 @@ function Profile() {
       setUser(profileUser);
       setName(profileUser.name || "");
 
-      // Keep localStorage synchronized
       localStorage.setItem(
         "user",
         JSON.stringify(profileUser)
@@ -137,10 +141,6 @@ function Profile() {
 
     if (!file) return;
 
-    // =========================
-    // FILE TYPE VALIDATION
-    // =========================
-
     const allowedTypes = [
       "image/jpeg",
       "image/png",
@@ -155,12 +155,9 @@ function Profile() {
       setSuccess("");
 
       event.target.value = "";
+
       return;
     }
-
-    // =========================
-    // FILE SIZE VALIDATION
-    // =========================
 
     // Maximum 2 MB
     if (file.size > 2 * 1024 * 1024) {
@@ -171,6 +168,7 @@ function Profile() {
       setSuccess("");
 
       event.target.value = "";
+
       return;
     }
 
@@ -186,28 +184,16 @@ function Profile() {
       const profileImageUrl =
         response.data.profileImageUrl;
 
-      // =========================
-      // UPDATE USER STATE
-      // =========================
-
       setUser((previous) => {
         const updatedUser = {
           ...previous,
           profileImageUrl,
         };
 
-        // =========================
-        // UPDATE LOCAL STORAGE
-        // =========================
-
         localStorage.setItem(
           "user",
           JSON.stringify(updatedUser)
         );
-
-        // =========================
-        // UPDATE NAVBAR IMMEDIATELY
-        // =========================
 
         window.dispatchEvent(
           new CustomEvent("profileUpdated", {
@@ -273,12 +259,9 @@ function Profile() {
   const handleSave = async () => {
     const trimmedName = name.trim();
 
-    // =========================
-    // NAME VALIDATION
-    // =========================
-
     if (!trimmedName) {
       setError("Name cannot be empty.");
+
       return;
     }
 
@@ -286,6 +269,7 @@ function Profile() {
       setError(
         "Name must contain at least 2 characters."
       );
+
       return;
     }
 
@@ -301,26 +285,14 @@ function Profile() {
 
       const updatedUser = response.data.user;
 
-      // =========================
-      // UPDATE PROFILE STATE
-      // =========================
-
       setUser(updatedUser);
 
       setName(updatedUser.name);
-
-      // =========================
-      // UPDATE LOCAL STORAGE
-      // =========================
 
       localStorage.setItem(
         "user",
         JSON.stringify(updatedUser)
       );
-
-      // =========================
-      // UPDATE NAVBAR IMMEDIATELY
-      // =========================
 
       window.dispatchEvent(
         new CustomEvent("profileUpdated", {
@@ -411,25 +383,19 @@ function Profile() {
       confirmPassword,
     } = passwordData;
 
-    // =========================
-    // CURRENT PASSWORD
-    // =========================
-
     if (!currentPassword.trim()) {
       setError(
         "Please enter your current password."
       );
+
       return;
     }
-
-    // =========================
-    // NEW PASSWORD
-    // =========================
 
     if (!newPassword.trim()) {
       setError(
         "Please enter a new password."
       );
+
       return;
     }
 
@@ -437,17 +403,15 @@ function Profile() {
       setError(
         "New password must contain at least 6 characters."
       );
+
       return;
     }
-
-    // =========================
-    // CONFIRM PASSWORD
-    // =========================
 
     if (!confirmPassword.trim()) {
       setError(
         "Please confirm your new password."
       );
+
       return;
     }
 
@@ -455,17 +419,15 @@ function Profile() {
       setError(
         "New password and confirm password do not match."
       );
+
       return;
     }
-
-    // =========================
-    // SAME PASSWORD CHECK
-    // =========================
 
     if (currentPassword === newPassword) {
       setError(
         "New password must be different from your current password."
       );
+
       return;
     }
 
@@ -476,10 +438,6 @@ function Profile() {
         currentPassword,
         newPassword,
       });
-
-      // =========================
-      // CLEAR FORM
-      // =========================
 
       setPasswordData({
         currentPassword: "",
@@ -500,17 +458,29 @@ function Profile() {
       const message =
         error.response?.data?.message;
 
-      if (Array.isArray(message)) {
-        setError(message.join(", "));
-      } else {
-        setError(
-          message ||
-            "Unable to change password."
-        );
-      }
+      setError(
+        Array.isArray(message)
+          ? message.join(", ")
+          : message ||
+              "Unable to change password."
+      );
     } finally {
       setChangingPassword(false);
     }
+  };
+
+  // =========================
+  // LOGOUT
+  // =========================
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user");
+
+    setUser(null);
+
+    navigate("/login");
   };
 
   // =========================
@@ -525,6 +495,7 @@ function Profile() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          backgroundColor: "background.default",
         }}
       >
         <CircularProgress />
@@ -578,7 +549,8 @@ function Profile() {
     <Box
       sx={{
         minHeight: "80vh",
-        backgroundColor: "#f5f7fb",
+        backgroundColor: "background.default",
+
         py: {
           xs: 4,
           md: 7,
@@ -591,14 +563,15 @@ function Profile() {
             PAGE TITLE
         ========================= */}
 
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 3 }}>
           <Typography
             variant="h4"
             fontWeight={700}
+            color="text.primary"
             sx={{
               fontSize: {
                 xs: "1.8rem",
-                md: "2.2rem",
+                sm: "2.125rem",
               },
             }}
           >
@@ -606,11 +579,11 @@ function Profile() {
           </Typography>
 
           <Typography
+            variant="body1"
             color="text.secondary"
             sx={{ mt: 0.5 }}
           >
-            Manage your LearnHub account and security
-            settings.
+            Manage your LearnHub account and security settings
           </Typography>
         </Box>
 
@@ -659,6 +632,8 @@ function Profile() {
             border: "1px solid",
             borderColor: "divider",
             overflow: "hidden",
+            backgroundColor:
+              "background.paper",
           }}
         >
 
@@ -670,6 +645,7 @@ function Profile() {
                 xs: 100,
                 sm: 120,
               },
+
               background:
                 "linear-gradient(135deg, #1976d2, #42a5f5)",
             }}
@@ -680,11 +656,13 @@ function Profile() {
           <Box
             sx={{
               position: "relative",
+
               px: {
                 xs: 3,
                 sm: 4,
                 md: 5,
               },
+
               pb: 4,
             }}
           >
@@ -697,17 +675,25 @@ function Profile() {
                 aria-label="Edit profile"
                 sx={{
                   position: "absolute",
+
                   top: 20,
+
                   right: {
                     xs: 16,
                     sm: 24,
                     md: 32,
                   },
+
                   backgroundColor:
                     "background.paper",
+
+                  color: "text.primary",
+
                   border: "1px solid",
                   borderColor: "divider",
+
                   boxShadow: 1,
+
                   "&:hover": {
                     backgroundColor:
                       "action.hover",
@@ -725,18 +711,22 @@ function Profile() {
             <Box
               sx={{
                 position: "relative",
+
                 width: {
                   xs: 82,
                   sm: 100,
                 },
+
                 height: {
                   xs: 82,
                   sm: 100,
                 },
+
                 mt: {
                   xs: -5,
                   sm: -6,
                 },
+
                 mb: 2,
               }}
             >
@@ -751,13 +741,19 @@ function Profile() {
                 sx={{
                   width: "100%",
                   height: "100%",
-                  border: "5px solid white",
+
+                  border: "5px solid",
+                  borderColor:
+                    "background.paper",
+
                   backgroundColor:
                     "primary.main",
+
                   fontSize: {
                     xs: "2rem",
                     sm: "2.5rem",
                   },
+
                   fontWeight: 700,
                 }}
               >
@@ -791,15 +787,23 @@ function Profile() {
                     aria-label="Change profile picture"
                     sx={{
                       position: "absolute",
+
                       right: -4,
                       bottom: -4,
+
                       width: 34,
                       height: 34,
+
                       backgroundColor:
                         "primary.main",
-                      color: "white",
-                      border:
-                        "3px solid white",
+
+                      color:
+                        "primary.contrastText",
+
+                      border: "3px solid",
+                      borderColor:
+                        "background.paper",
+
                       "&:hover": {
                         backgroundColor:
                           "primary.dark",
@@ -903,11 +907,13 @@ function Profile() {
               <Typography
                 variant="h5"
                 fontWeight={700}
+                color="text.primary"
                 sx={{
                   fontSize: {
                     xs: "1.3rem",
                     sm: "1.5rem",
                   },
+
                   pr: {
                     xs: 5,
                     sm: 0,
@@ -959,9 +965,15 @@ function Profile() {
           elevation={0}
           sx={{
             mt: 3,
+
             borderRadius: 3,
+
             border: "1px solid",
             borderColor: "divider",
+
+            backgroundColor:
+              "background.paper",
+
             p: {
               xs: 3,
               sm: 4,
@@ -982,6 +994,7 @@ function Profile() {
             <Typography
               variant="h6"
               fontWeight={700}
+              color="text.primary"
             >
               Account Information
             </Typography>
@@ -1013,6 +1026,7 @@ function Profile() {
 
                   <Typography
                     fontWeight={600}
+                    color="text.primary"
                     sx={{ mt: 0.3 }}
                   >
                     {user.name}
@@ -1043,6 +1057,7 @@ function Profile() {
 
                   <Typography
                     fontWeight={600}
+                    color="text.primary"
                     sx={{
                       mt: 0.3,
                       wordBreak:
@@ -1077,6 +1092,7 @@ function Profile() {
 
                   <Typography
                     fontWeight={600}
+                    color="text.primary"
                     sx={{
                       mt: 0.3,
                       textTransform:
@@ -1099,9 +1115,15 @@ function Profile() {
           elevation={0}
           sx={{
             mt: 3,
+
             borderRadius: 3,
+
             border: "1px solid",
             borderColor: "divider",
+
+            backgroundColor:
+              "background.paper",
+
             p: {
               xs: 3,
               sm: 4,
@@ -1125,6 +1147,7 @@ function Profile() {
             <Typography
               variant="h6"
               fontWeight={700}
+              color="text.primary"
             >
               Security
             </Typography>
@@ -1149,16 +1172,20 @@ function Profile() {
             <Box
               sx={{
                 display: "flex",
+
                 flexDirection: {
                   xs: "column",
                   sm: "row",
                 },
+
                 alignItems: {
                   xs: "stretch",
                   sm: "center",
                 },
+
                 justifyContent:
                   "space-between",
+
                 gap: 2,
               }}
             >
@@ -1166,6 +1193,7 @@ function Profile() {
                 <Typography
                   variant="subtitle1"
                   fontWeight={700}
+                  color="text.primary"
                 >
                   Password
                 </Typography>
@@ -1190,6 +1218,7 @@ function Profile() {
                     xs: "stretch",
                     sm: "auto",
                   },
+
                   minWidth: {
                     sm: 170,
                   },
@@ -1209,6 +1238,7 @@ function Profile() {
               <Typography
                 variant="subtitle1"
                 fontWeight={700}
+                color="text.primary"
                 sx={{ mb: 0.5 }}
               >
                 Change Password
@@ -1413,15 +1443,19 @@ function Profile() {
               <Box
                 sx={{
                   display: "flex",
+
                   justifyContent: {
                     xs: "stretch",
                     sm: "flex-end",
                   },
+
                   flexDirection: {
                     xs: "column-reverse",
                     sm: "row",
                   },
+
                   gap: 1.5,
+
                   mt: 3,
                 }}
               >
@@ -1468,9 +1502,130 @@ function Profile() {
             </Box>
           )}
         </Paper>
+
+        {/* =========================
+            ACCOUNT ACTIONS
+        ========================= */}
+
+        <Paper
+          elevation={0}
+          sx={{
+            mt: 3,
+
+            borderRadius: 3,
+
+            border: "1px solid",
+            borderColor: "divider",
+
+            backgroundColor:
+              "background.paper",
+
+            p: {
+              xs: 3,
+              sm: 4,
+              md: 5,
+            },
+          }}
+        >
+          {/* HEADER */}
+
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              mb: 1,
+            }}
+          >
+            <LogoutIcon color="error" />
+
+            <Typography
+              variant="h6"
+              fontWeight={700}
+              color="text.primary"
+            >
+              Account Actions
+            </Typography>
+          </Box>
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mb: 3 }}
+          >
+            Manage your account session.
+          </Typography>
+
+          <Divider sx={{ mb: 3 }} />
+
+          {/* LOGOUT */}
+
+          <Box
+            sx={{
+              display: "flex",
+
+              flexDirection: {
+                xs: "column",
+                sm: "row",
+              },
+
+              alignItems: {
+                xs: "stretch",
+                sm: "center",
+              },
+
+              justifyContent:
+                "space-between",
+
+              gap: 2,
+            }}
+          >
+            <Box>
+              <Typography
+                variant="subtitle1"
+                fontWeight={700}
+                color="text.primary"
+              >
+                Logout
+              </Typography>
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+              >
+                Sign out of your LearnHub account
+                on this device.
+              </Typography>
+            </Box>
+
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<LogoutIcon />}
+              onClick={handleLogout}
+              sx={{
+                alignSelf: {
+                  xs: "stretch",
+                  sm: "auto",
+                },
+
+                minWidth: {
+                  sm: 150,
+                },
+
+                textTransform: "none",
+                fontWeight: 600,
+              }}
+            >
+              Logout
+            </Button>
+          </Box>
+        </Paper>
+
       </Container>
     </Box>
   );
 }
 
 export default Profile;
+

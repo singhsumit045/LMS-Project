@@ -1,6 +1,8 @@
 import { createTheme } from "@mui/material/styles";
 
 export const createAppTheme = (mode) => {
+  const isDark = mode === "dark";
+
   return createTheme({
     palette: {
       mode,
@@ -20,13 +22,13 @@ export const createAppTheme = (mode) => {
       },
 
       background: {
-        default: mode === "dark" ? "#121212" : "#f5f7fb",
-        paper: mode === "dark" ? "#1e1e1e" : "#ffffff",
+        default: isDark ? "#121212" : "#f5f7fb",
+        paper: isDark ? "#1e1e1e" : "#ffffff",
       },
 
       text: {
-        primary: mode === "dark" ? "#ffffff" : "#1f2937",
-        secondary: mode === "dark" ? "#bdbdbd" : "#6b7280",
+        primary: isDark ? "#ffffff" : "#1f2937",
+        secondary: isDark ? "#bdbdbd" : "#6b7280",
       },
 
       success: {
@@ -80,6 +82,10 @@ export const createAppTheme = (mode) => {
     },
 
     components: {
+      // =========================
+      // BUTTON
+      // =========================
+
       MuiButton: {
         defaultProps: {
           disableElevation: true,
@@ -90,21 +96,30 @@ export const createAppTheme = (mode) => {
             borderRadius: 10,
             padding: "10px 20px",
             fontWeight: 600,
+            textTransform: "none",
           },
         },
       },
+
+      // =========================
+      // CARD
+      // =========================
 
       MuiCard: {
         styleOverrides: {
           root: {
             borderRadius: 14,
-            boxShadow:
-              mode === "dark"
-                ? "0 4px 20px rgba(0, 0, 0, 0.4)"
-                : "0 4px 20px rgba(0, 0, 0, 0.08)",
+
+            boxShadow: isDark
+              ? "0 4px 20px rgba(0, 0, 0, 0.4)"
+              : "0 4px 20px rgba(0, 0, 0, 0.08)",
           },
         },
       },
+
+      // =========================
+      // PAPER
+      // =========================
 
       MuiPaper: {
         styleOverrides: {
@@ -114,13 +129,121 @@ export const createAppTheme = (mode) => {
         },
       },
 
+      // =========================
+      // TEXT FIELD / INPUT
+      // =========================
+
       MuiOutlinedInput: {
         styleOverrides: {
           root: {
             borderRadius: 10,
+
+            // Input text
+            "& input": {
+              color: isDark ? "#ffffff" : "#1f2937",
+              caretColor: isDark ? "#ffffff" : "#1976d2",
+            },
+
+            // Placeholder
+            "& input::placeholder": {
+              color: isDark ? "#9e9e9e" : "#6b7280",
+              opacity: 1,
+            },
+
+            // Normal border
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderColor: isDark
+                ? "#666666"
+                : "#c4c4c4",
+            },
+
+            // Hover border
+            "&:hover .MuiOutlinedInput-notchedOutline": {
+              borderColor: isDark
+                ? "#bdbdbd"
+                : "#555555",
+            },
+
+            // Focused border
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#1976d2",
+              borderWidth: 2,
+            },
+
+            // Disabled
+            "&.Mui-disabled input": {
+              color: isDark ? "#777777" : "#9e9e9e",
+              WebkitTextFillColor: isDark
+                ? "#777777"
+                : "#9e9e9e",
+            },
           },
         },
       },
+
+      // =========================
+      // TEXT FIELD LABEL
+      // =========================
+
+      MuiInputLabel: {
+        styleOverrides: {
+          root: {
+            color: isDark ? "#bdbdbd" : "#6b7280",
+
+            "&.Mui-focused": {
+              color: "#42a5f5",
+            },
+
+            "&.Mui-error": {
+              color: "#f44336",
+            },
+          },
+        },
+      },
+
+      // =========================
+      // HELPER TEXT
+      // =========================
+
+      MuiFormHelperText: {
+        styleOverrides: {
+          root: {
+            color: isDark ? "#bdbdbd" : "#6b7280",
+
+            "&.Mui-error": {
+              color: "#f44336",
+            },
+          },
+        },
+      },
+
+      // =========================
+      // INPUT ADORNMENT
+      // =========================
+
+      MuiInputAdornment: {
+        styleOverrides: {
+          root: {
+            color: isDark ? "#bdbdbd" : "#6b7280",
+          },
+        },
+      },
+
+      // =========================
+      // ICON BUTTON
+      // =========================
+
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            color: isDark ? "#ffffff" : "#424242",
+          },
+        },
+      },
+
+      // =========================
+      // APP BAR
+      // =========================
 
       MuiAppBar: {
         styleOverrides: {
@@ -130,11 +253,31 @@ export const createAppTheme = (mode) => {
         },
       },
 
+      // =========================
+      // CHIP
+      // =========================
+
       MuiChip: {
         styleOverrides: {
           root: {
             borderRadius: 8,
             fontWeight: 500,
+          },
+        },
+      },
+
+      // =========================
+      // SELECT
+      // =========================
+
+      MuiSelect: {
+        styleOverrides: {
+          select: {
+            color: isDark ? "#ffffff" : "#1f2937",
+          },
+
+          icon: {
+            color: isDark ? "#bdbdbd" : "#6b7280",
           },
         },
       },

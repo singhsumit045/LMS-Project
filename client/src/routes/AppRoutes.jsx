@@ -1,5 +1,14 @@
+
 import { Routes, Route } from "react-router-dom";
 
+// Layout
+import MainLayout from "../layouts/MainLayout";
+
+// Components
+import ProtectedRoute from "../components/ProtectedRoute";
+import RoleProtectedRoute from "../components/RoleProtectedRoute";
+
+// Pages
 import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
@@ -9,87 +18,111 @@ import NotFound from "../pages/NotFound/NotFound";
 
 import CourseList from "../pages/Courses/CourseList";
 import CreateCourse from "../pages/Courses/CreateCourse";
-import EditCourse from "../pages/Courses/EditCourse";
 import CourseDetails from "../pages/Courses/CourseDetails";
 
-import MyCourse from "../pages/MyCourses/MyCourse";
+import MyCourses from "../pages/MyCourses/MyCourse";
 
-import ProtectedRoute from "../components/ProtectedRoute";
 
-const AppRoutes = () => {
+const AppRoutes = ({ darkMode, toggleTheme }) => {
   return (
     <Routes>
+
+      {/* =========================
+          PUBLIC ROUTES
+      ========================= */}
+
       <Route path="/" element={<Home />} />
 
       <Route path="/login" element={<Login />} />
 
       <Route path="/register" element={<Register />} />
 
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
+
+      {/* =========================
+          PROTECTED ROUTES
+          WITH MAIN LAYOUT
+      ========================= */}
 
       <Route
-        path="/profile"
         element={
           <ProtectedRoute>
-            <Profile />
+            <MainLayout
+              darkMode={darkMode}
+              toggleTheme={toggleTheme}
+            />
           </ProtectedRoute>
         }
-      />
+      >
+
+        {/* Dashboard */}
+
+        <Route
+          path="/dashboard"
+          element={<Dashboard />}
+        />
+
+
+        {/* Profile */}
+
+        <Route
+          path="/profile"
+          element={<Profile />}
+        />
+
+
+        {/* Courses */}
+
+        <Route
+          path="/courses"
+          element={<CourseList />}
+        />
+
+
+        {/* Course Details */}
+
+        <Route
+          path="/courses/:id"
+          element={<CourseDetails />}
+        />
+
+
+        {/* Create Course */}
+
+        <Route
+          path="/courses/create"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={["teacher", "admin"]}
+            >
+              <CreateCourse />
+            </RoleProtectedRoute>
+          }
+        />
+
+
+        {/* My Courses */}
+
+        <Route
+          path="/my-courses"
+          element={<MyCourses />}
+        />
+
+      </Route>
+
+
+      {/* =========================
+          404
+      ========================= */}
 
       <Route
-        path="/courses"
-        element={
-          <ProtectedRoute>
-            <CourseList />
-          </ProtectedRoute>
-        }
-      />
-      
-      <Route
-        path="/courses/create"
-        element={
-          <ProtectedRoute>
-            <CreateCourse />
-          </ProtectedRoute>
-        }
+        path="*"
+        element={<NotFound />}
       />
 
-      <Route
-        path="/courses/edit/:id"
-        element={
-          <ProtectedRoute>
-            <EditCourse />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/courses/:id"
-        element={
-          <ProtectedRoute>
-            <CourseDetails />
-          </ProtectedRoute>
-        }
-      />
-<Route
-  path="/my-courses"
-  element={
-    <ProtectedRoute>
-      <MyCourse />
-    </ProtectedRoute>
-  }
-/>
-
-      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
 
+
 export default AppRoutes;
+
