@@ -3,896 +3,662 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
-    Container,
-    Box,
-    Typography,
-    Grid,
-    Card,
-    CardContent,
-    CardActions,
-    Button,
-    TextField,
-    MenuItem,
-    InputAdornment,
-    Chip,
-    CircularProgress,
-    Alert,
-    Paper,
-    Stack,
+  Container,
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  CardActions,
+  Button,
+  TextField,
+  MenuItem,
+  InputAdornment,
+  Chip,
+  CircularProgress,
+  Alert,
+  Paper,
+  Stack,
 } from "@mui/material";
 
 import {
-    Search,
-    School,
-    ArrowForward,
-    Add,
+  Search,
+  School,
+  ArrowForward,
+  Add,
 } from "@mui/icons-material";
 
-import {
-    getCourses,
-} from "../../services/courseService";
-
-import {
-    getProfile,
-} from "../../services/authService";
-
+import { getCourses } from "../../services/courseService";
+import { getProfile } from "../../services/authService";
 
 const CourseList = () => {
+  const [courses, setCourses] = useState([]);
+  const [user, setUser] = useState(null);
 
-    const [courses, setCourses] = useState([]);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
 
-    const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
 
-    const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
 
-    const [category, setCategory] = useState("all");
+  const navigate = useNavigate();
 
-    const [loading, setLoading] = useState(true);
+  // =========================
+  // FETCH USER PROFILE
+  // =========================
 
-    const [profileLoading, setProfileLoading] =
-        useState(true);
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await getProfile();
 
-    const [error, setError] = useState("");
+        setUser(response.data);
 
-    const navigate = useNavigate();
+        // Keep localStorage user updated
+        localStorage.setItem(
+          "user",
+          JSON.stringify(response.data)
+        );
+      } catch (error) {
+        console.log("Profile fetch error:", error);
 
-
-    // =========================
-    // FETCH USER PROFILE
-    // =========================
-
-    useEffect(() => {
-
-        const fetchProfile = async () => {
-
-            try {
-
-                const response = await getProfile();
-
-                setUser(response.data);
-
-                // Keep localStorage user updated
-                localStorage.setItem(
-                    "user",
-                    JSON.stringify(response.data)
-                );
-
-            } catch (error) {
-
-                console.log(
-                    "Profile fetch error:",
-                    error
-                );
-
-                // Fallback to localStorage
-                try {
-
-                    const storedUser =
-                        JSON.parse(
-                            localStorage.getItem(
-                                "user"
-                            ) || "null"
-                        );
-
-                    setUser(storedUser);
-
-                } catch {
-
-                    setUser(null);
-
-                }
-
-            } finally {
-
-                setProfileLoading(false);
-
-            }
-
-        };
-
-
-        const accessToken =
-            localStorage.getItem("access_token");
-
-
-        if (accessToken) {
-
-            fetchProfile();
-
-        } else {
-
-            setProfileLoading(false);
-
-        }
-
-    }, []);
-
-
-    // =========================
-    // FETCH COURSES
-    // =========================
-
-    useEffect(() => {
-
-        fetchCourses();
-
-    }, []);
-
-
-    const fetchCourses = async () => {
-
+        // Fallback to localStorage
         try {
+          const storedUser = JSON.parse(
+            localStorage.getItem("user") || "null"
+          );
 
-            setLoading(true);
-
-            setError("");
-
-            const response =
-                await getCourses();
-
-            setCourses(
-                response.data || []
-            );
-
-        } catch (error) {
-
-            console.log(
-                "Course fetch error:",
-                error
-            );
-
-            const message =
-                error.response?.data?.message;
-
-            setError(
-                Array.isArray(message)
-                    ? message.join(", ")
-                    : message ||
-                      "Unable to load courses."
-            );
-
-        } finally {
-
-            setLoading(false);
-
+          setUser(storedUser);
+        } catch {
+          setUser(null);
         }
-
+      } finally {
+        setProfileLoading(false);
+      }
     };
 
+    const accessToken =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("token");
 
-    // =========================
-    // CATEGORIES
-    // =========================
+    if (accessToken) {
+      fetchProfile();
+    } else {
+      setProfileLoading(false);
+    }
+  }, []);
 
-    const categories = useMemo(() => {
+  // =========================
+  // FETCH COURSES
+  // =========================
 
-        const uniqueCategories = [
-            ...new Set(
-                courses
-                    .map(
-                        (course) =>
-                            course.category
-                    )
-                    .filter(Boolean)
-            ),
-        ];
+  useEffect(() => {
+    fetchCourses();
+  }, []);
 
-        return uniqueCategories;
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-    }, [courses]);
+      const response = await getCourses();
 
+      setCourses(response.data || []);
+    } catch (error) {
+      console.log("Course fetch error:", error);
 
-    // =========================
-    // FILTER COURSES
-    // =========================
+      const message =
+        error.response?.data?.message;
 
-    const filteredCourses = useMemo(() => {
+      setError(
+        Array.isArray(message)
+          ? message.join(", ")
+          : message || "Unable to load courses."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        return courses.filter((course) => {
+  // =========================
+  // CATEGORIES
+  // =========================
 
-            const searchText =
-                search
-                    .trim()
-                    .toLowerCase();
+  const categories = useMemo(() => {
+    const uniqueCategories = [
+      ...new Set(
+        courses
+          .map((course) => course.category)
+          .filter(Boolean)
+      ),
+    ];
 
+    return uniqueCategories;
+  }, [courses]);
 
-            const matchesSearch =
-                course.title
-                    ?.toLowerCase()
-                    .includes(searchText) ||
+  // =========================
+  // FILTER COURSES
+  // =========================
 
-                course.description
-                    ?.toLowerCase()
-                    .includes(searchText);
+  const filteredCourses = useMemo(() => {
+    return courses.filter((course) => {
+      const searchText =
+        search.trim().toLowerCase();
 
+      const matchesSearch =
+        course.title
+          ?.toLowerCase()
+          .includes(searchText) ||
+        course.description
+          ?.toLowerCase()
+          .includes(searchText);
 
-            const matchesCategory =
-                category === "all" ||
-                course.category === category;
+      const matchesCategory =
+        category === "all" ||
+        course.category === category;
 
+      return matchesSearch && matchesCategory;
+    });
+  }, [courses, search, category]);
 
-            return (
-                matchesSearch &&
-                matchesCategory
-            );
+  // =========================
+  // CLEAR FILTERS
+  // =========================
 
-        });
+  const clearFilters = () => {
+    setSearch("");
+    setCategory("all");
+  };
 
-    }, [
-        courses,
-        search,
-        category,
-    ]);
+  // =========================
+  // ROLE CHECK
+  // =========================
 
+  const canCreateCourse =
+    user?.role === "teacher" ||
+    user?.role === "admin";
 
-    // =========================
-    // CLEAR FILTERS
-    // =========================
+  // =========================
+  // UI
+  // =========================
 
-    const clearFilters = () => {
+  return (
+    <Container
+      maxWidth="xl"
+      sx={{
+        py: {
+          xs: 3,
+          md: 5,
+        },
+      }}
+    >
+      {/* =========================
+          HEADER
+      ========================= */}
 
-        setSearch("");
-
-        setCategory("all");
-
-    };
-
-
-    // =========================
-    // ROLE CHECK
-    // =========================
-
-    const canCreateCourse =
-        user?.role === "teacher" ||
-        user?.role === "admin";
-
-
-    return (
-
-        <Container
-            maxWidth="xl"
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: {
+            xs: "column",
+            md: "row",
+          },
+          justifyContent: "space-between",
+          alignItems: {
+            xs: "flex-start",
+            md: "center",
+          },
+          gap: 2,
+          mb: 4,
+        }}
+      >
+        <Box>
+          <Typography
+            variant="h4"
+            fontWeight={700}
             sx={{
-                py: {
-                    xs: 3,
-                    md: 5,
-                },
+              fontSize: {
+                xs: "2rem",
+                md: "2.5rem",
+              },
             }}
+          >
+            Explore Courses
+          </Typography>
+
+          <Typography
+            color="text.secondary"
+            sx={{
+              mt: 0.8,
+            }}
+          >
+            Learn new skills and grow your career
+          </Typography>
+        </Box>
+
+        {/* CREATE COURSE - TEACHER + ADMIN ONLY */}
+
+        {!profileLoading && canCreateCourse && (
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() =>
+              navigate("/courses/create")
+            }
+          >
+            Create Course
+          </Button>
+        )}
+      </Box>
+
+      {/* =========================
+          SEARCH + FILTER
+      ========================= */}
+
+      <Paper
+        elevation={0}
+        sx={{
+          p: {
+            xs: 2,
+            md: 2.5,
+          },
+          mb: 4,
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+        }}
+      >
+        <Grid container spacing={2}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 8,
+            }}
+          >
+            <TextField
+              fullWidth
+              label="Search courses"
+              placeholder="Search by title or description..."
+              value={search}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+          </Grid>
+
+          <Grid
+            size={{
+              xs: 12,
+              md: 4,
+            }}
+          >
+            <TextField
+              fullWidth
+              select
+              label="Category"
+              value={category}
+              onChange={(e) =>
+                setCategory(e.target.value)
+              }
+            >
+              <MenuItem value="all">
+                All Categories
+              </MenuItem>
+
+              {categories.map((item) => (
+                <MenuItem
+                  key={item}
+                  value={item}
+                >
+                  {item}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* =========================
+          ERROR
+      ========================= */}
+
+      {error && (
+        <Alert
+          severity="error"
+          sx={{
+            mb: 3,
+          }}
         >
+          {error}
+        </Alert>
+      )}
 
-            {/* =========================
-                HEADER
-            ========================= */}
+      {/* =========================
+          LOADING
+      ========================= */}
 
-            <Box
-                sx={{
-                    display: "flex",
+      {loading ? (
+        <Box
+          sx={{
+            minHeight: 300,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      ) : (
+        <>
+          {/* =========================
+              COURSE COUNT
+          ========================= */}
 
-                    flexDirection: {
-                        xs: "column",
-                        md: "row",
-                    },
-
-                    justifyContent:
-                        "space-between",
-
-                    alignItems: {
-                        xs: "flex-start",
-                        md: "center",
-                    },
-
-                    gap: 2,
-
-                    mb: 4,
-                }}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2.5,
+              gap: 2,
+            }}
+          >
+            <Typography
+              variant="h6"
+              fontWeight={600}
             >
+              {filteredCourses.length}{" "}
+              {filteredCourses.length === 1
+                ? "Course"
+                : "Courses"}
+            </Typography>
 
-                <Box>
-
-                    <Typography
-                        variant="h4"
-                        fontWeight={700}
-                        sx={{
-                            fontSize: {
-                                xs: "2rem",
-                                md: "2.5rem",
-                            },
-                        }}
-                    >
-                        Explore Courses
-                    </Typography>
-
-
-                    <Typography
-                        color="text.secondary"
-                        sx={{
-                            mt: 0.8,
-                        }}
-                    >
-                        Learn new skills and grow
-                        your career
-                    </Typography>
-
-                </Box>
-
-
-                {/* =========================
-                    CREATE COURSE
-                    TEACHER + ADMIN ONLY
-                ========================= */}
-
-                {!profileLoading &&
-                    canCreateCourse && (
-
-                        <Button
-                            variant="contained"
-                            startIcon={<Add />}
-                            onClick={() =>
-                                navigate(
-                                    "/courses/create"
-                                )
-                            }
-                        >
-                            Create Course
-                        </Button>
-
-                    )}
-
-            </Box>
-
-
-            {/* =========================
-                SEARCH + FILTER
-            ========================= */}
-
-            <Paper
-                elevation={0}
-                sx={{
-                    p: {
-                        xs: 2,
-                        md: 2.5,
-                    },
-
-                    mb: 4,
-
-                    borderRadius: 3,
-
-                    border: "1px solid",
-
-                    borderColor:
-                        "divider",
-                }}
-            >
-
-                <Grid
-                    container
-                    spacing={2}
-                >
-
-                    <Grid
-                        size={{
-                            xs: 12,
-                            md: 8,
-                        }}
-                    >
-
-                        <TextField
-                            fullWidth
-                            label="Search courses"
-                            placeholder="Search by title or description..."
-                            value={search}
-                            onChange={(e) =>
-                                setSearch(
-                                    e.target.value
-                                )
-                            }
-                            slotProps={{
-                                input: {
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <Search />
-                                        </InputAdornment>
-                                    ),
-                                },
-                            }}
-                        />
-
-                    </Grid>
-
-
-                    <Grid
-                        size={{
-                            xs: 12,
-                            md: 4,
-                        }}
-                    >
-
-                        <TextField
-                            fullWidth
-                            select
-                            label="Category"
-                            value={category}
-                            onChange={(e) =>
-                                setCategory(
-                                    e.target.value
-                                )
-                            }
-                        >
-
-                            <MenuItem value="all">
-                                All Categories
-                            </MenuItem>
-
-
-                            {categories.map(
-                                (item) => (
-
-                                    <MenuItem
-                                        key={item}
-                                        value={item}
-                                    >
-                                        {item}
-                                    </MenuItem>
-
-                                )
-                            )}
-
-                        </TextField>
-
-                    </Grid>
-
-                </Grid>
-
-            </Paper>
-
-
-            {/* =========================
-                ERROR
-            ========================= */}
-
-            {error && (
-
-                <Alert
-                    severity="error"
-                    sx={{
-                        mb: 3,
-                    }}
-                >
-                    {error}
-                </Alert>
-
+            {(search || category !== "all") && (
+              <Button
+                size="small"
+                onClick={clearFilters}
+              >
+                Clear Filters
+              </Button>
             )}
+          </Box>
 
+          {/* =========================
+              EMPTY STATE
+          ========================= */}
 
-            {/* =========================
-                LOADING
-            ========================= */}
+          {filteredCourses.length === 0 ? (
+            <Paper
+              elevation={0}
+              sx={{
+                p: {
+                  xs: 4,
+                  md: 7,
+                },
+                textAlign: "center",
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <School
+                sx={{
+                  fontSize: 60,
+                  color: "text.secondary",
+                  mb: 1,
+                }}
+              />
 
-            {loading ? (
+              <Typography
+                variant="h6"
+                fontWeight={600}
+              >
+                No courses found
+              </Typography>
 
-                <Box
-                    sx={{
-                        minHeight: 300,
+              <Typography
+                color="text.secondary"
+                sx={{
+                  mt: 1,
+                }}
+              >
+                Try changing your search or
+                category filter.
+              </Typography>
 
-                        display: "flex",
+              <Button
+                variant="outlined"
+                sx={{
+                  mt: 2.5,
+                }}
+                onClick={clearFilters}
+              >
+                Clear Filters
+              </Button>
+            </Paper>
+          ) : (
+            /* =========================
+               COURSE GRID
+            ========================= */
 
-                        justifyContent:
-                            "center",
-
-                        alignItems:
-                            "center",
-                    }}
+            <Grid
+              container
+              spacing={3}
+            >
+              {filteredCourses.map((course) => (
+                <Grid
+                  key={course.id}
+                  size={{
+                    xs: 12,
+                    sm: 6,
+                    md: 4,
+                    lg: 3,
+                  }}
                 >
+                  <Card
+                    elevation={0}
+                    sx={{
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      borderRadius: 3,
+                      border: "1px solid",
+                      borderColor: "divider",
+                      overflow: "hidden",
+                      transition:
+                        "transform 0.2s ease, box-shadow 0.2s ease",
 
-                    <CircularProgress />
-
-                </Box>
-
-            ) : (
-
-                <>
-
+                      "&:hover": {
+                        transform:
+                          "translateY(-5px)",
+                        boxShadow:
+                          "0 10px 30px rgba(0,0,0,0.1)",
+                      },
+                    }}
+                  >
                     {/* =========================
-                        COURSE COUNT
+                        COURSE THUMBNAIL
                     ========================= */}
 
                     <Box
-                        sx={{
-                            display: "flex",
-
-                            justifyContent:
-                                "space-between",
-
-                            alignItems:
-                                "center",
-
-                            mb: 2.5,
-
-                            gap: 2,
-                        }}
+                      sx={{
+                        height: 180,
+                        width: "100%",
+                        overflow: "hidden",
+                        background:
+                          "linear-gradient(135deg, #1976d2, #7b1fa2)",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
                     >
+                      {course.thumbnail ? (
+                        <Box
+                          component="img"
+                          src={course.thumbnail}
+                          alt={course.title}
+                          onError={(e) => {
+                            e.currentTarget.style.display =
+                              "none";
 
-                        <Typography
-                            variant="h6"
-                            fontWeight={600}
-                        >
-                            {
-                                filteredCourses.length
-                            }{" "}
-                            {
-                                filteredCourses.length ===
-                                1
-                                    ? "Course"
-                                    : "Courses"
+                            const fallback =
+                              e.currentTarget
+                                .nextElementSibling;
+
+                            if (fallback) {
+                              fallback.style.display =
+                                "flex";
                             }
-                        </Typography>
+                          }}
+                          sx={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            display: "block",
+                          }}
+                        />
+                      ) : null}
 
+                      {/* FALLBACK ICON */}
 
-                        {(search ||
-                            category !==
-                                "all") && (
-
-                            <Button
-                                size="small"
-                                onClick={
-                                    clearFilters
-                                }
-                            >
-                                Clear Filters
-                            </Button>
-
-                        )}
-
+                      <Box
+                        sx={{
+                          display: course.thumbnail
+                            ? "none"
+                            : "flex",
+                          width: "100%",
+                          height: "100%",
+                          justifyContent:
+                            "center",
+                          alignItems: "center",
+                          color: "white",
+                        }}
+                      >
+                        <School
+                          sx={{
+                            fontSize: 55,
+                          }}
+                        />
+                      </Box>
                     </Box>
 
-
                     {/* =========================
-                        EMPTY STATE
+                        COURSE CONTENT
                     ========================= */}
 
-                    {filteredCourses.length ===
-                    0 ? (
-
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: {
-                                    xs: 4,
-                                    md: 7,
-                                },
-
-                                textAlign:
-                                    "center",
-
-                                borderRadius: 3,
-
-                                border:
-                                    "1px solid",
-
-                                borderColor:
-                                    "divider",
-                            }}
-                        >
-
-                            <School
-                                sx={{
-                                    fontSize: 60,
-
-                                    color:
-                                        "text.secondary",
-
-                                    mb: 1,
-                                }}
-                            />
-
-
-                            <Typography
-                                variant="h6"
-                                fontWeight={600}
-                            >
-                                No courses found
-                            </Typography>
-
-
-                            <Typography
-                                color="text.secondary"
-                                sx={{
-                                    mt: 1,
-                                }}
-                            >
-                                Try changing
-                                your search
-                                or category
-                                filter.
-                            </Typography>
-
-
-                            <Button
-                                variant="outlined"
-                                sx={{
-                                    mt: 2.5,
-                                }}
-                                onClick={
-                                    clearFilters
-                                }
-                            >
-                                Clear Filters
-                            </Button>
-
-                        </Paper>
-
-                    ) : (
-
-                        /* =========================
-                           COURSE GRID
-                        ========================= */
-
-                        <Grid
-                            container
-                            spacing={3}
-                        >
-
-                            {filteredCourses.map(
-                                (course) => (
-
-                                    <Grid
-                                        key={
-                                            course.id
-                                        }
-                                        size={{
-                                            xs: 12,
-                                            sm: 6,
-                                            md: 4,
-                                            lg: 3,
-                                        }}
-                                    >
-
-                                        <Card
-                                            elevation={0}
-                                            sx={{
-                                                height:
-                                                    "100%",
-
-                                                display:
-                                                    "flex",
-
-                                                flexDirection:
-                                                    "column",
-
-                                                borderRadius:
-                                                    3,
-
-                                                border:
-                                                    "1px solid",
-
-                                                borderColor:
-                                                    "divider",
-
-                                                overflow:
-                                                    "hidden",
-
-                                                transition:
-                                                    "transform 0.2s ease, box-shadow 0.2s ease",
-
-                                                "&:hover":
-                                                    {
-                                                        transform:
-                                                            "translateY(-5px)",
-
-                                                        boxShadow:
-                                                            "0 10px 30px rgba(0,0,0,0.1)",
-                                                    },
-                                            }}
-                                        >
-
-                                            {/* COURSE HEADER */}
-
-                                            <Box
-                                                sx={{
-                                                    height: 130,
-
-                                                    display:
-                                                        "flex",
-
-                                                    justifyContent:
-                                                        "center",
-
-                                                    alignItems:
-                                                        "center",
-
-                                                    background:
-                                                        "linear-gradient(135deg, #1976d2, #7b1fa2)",
-
-                                                    color:
-                                                        "white",
-                                                }}
-                                            >
-
-                                                <School
-                                                    sx={{
-                                                        fontSize:
-                                                            55,
-                                                    }}
-                                                />
-
-                                            </Box>
-
-
-                                            {/* COURSE CONTENT */}
-
-                                            <CardContent
-                                                sx={{
-                                                    flexGrow:
-                                                        1,
-
-                                                    p: 2.5,
-                                                }}
-                                            >
-
-                                                <Stack
-                                                    direction="row"
-                                                    spacing={1}
-                                                    sx={{
-                                                        mb: 1.5,
-                                                    }}
-                                                >
-
-                                                    {course.category && (
-
-                                                        <Chip
-                                                            label={
-                                                                course.category
-                                                            }
-                                                            size="small"
-                                                            color="primary"
-                                                            variant="outlined"
-                                                        />
-
-                                                    )}
-
-                                                </Stack>
-
-
-                                                <Typography
-                                                    variant="h6"
-                                                    fontWeight={700}
-                                                    sx={{
-                                                        display:
-                                                            "-webkit-box",
-
-                                                        WebkitLineClamp:
-                                                            2,
-
-                                                        WebkitBoxOrient:
-                                                            "vertical",
-
-                                                        overflow:
-                                                            "hidden",
-
-                                                        minHeight:
-                                                            58,
-                                                    }}
-                                                >
-                                                    {
-                                                        course.title
-                                                    }
-                                                </Typography>
-
-
-                                                <Typography
-                                                    variant="body2"
-                                                    color="text.secondary"
-                                                    sx={{
-                                                        mt: 1.5,
-
-                                                        display:
-                                                            "-webkit-box",
-
-                                                        WebkitLineClamp:
-                                                            3,
-
-                                                        WebkitBoxOrient:
-                                                            "vertical",
-
-                                                        overflow:
-                                                            "hidden",
-
-                                                        minHeight:
-                                                            60,
-                                                    }}
-                                                >
-                                                    {
-                                                        course.description ||
-                                                        "No description available for this course."
-                                                    }
-                                                </Typography>
-
-
-                                                <Typography
-                                                    variant="h6"
-                                                    fontWeight={700}
-                                                    color="primary"
-                                                    sx={{
-                                                        mt: 2,
-                                                    }}
-                                                >
-                                                    ₹
-                                                    {
-                                                        course.price ??
-                                                        0
-                                                    }
-                                                </Typography>
-
-                                            </CardContent>
-
-
-                                            {/* CARD ACTION */}
-
-                                            <CardActions
-                                                sx={{
-                                                    p: 2.5,
-
-                                                    pt: 0,
-                                                }}
-                                            >
-
-                                                <Button
-                                                    fullWidth
-                                                    variant="contained"
-                                                    endIcon={
-                                                        <ArrowForward />
-                                                    }
-                                                    onClick={() =>
-                                                        navigate(
-                                                            `/courses/${course.id}`
-                                                        )
-                                                    }
-                                                >
-                                                    View Details
-                                                </Button>
-
-                                            </CardActions>
-
-                                        </Card>
-
-                                    </Grid>
-
-                                )
-                            )}
-
-                        </Grid>
-
-                    )}
-
-                </>
-
-            )}
-
-        </Container>
-
-    );
-
+                    <CardContent
+                      sx={{
+                        flexGrow: 1,
+                        p: 2.5,
+                      }}
+                    >
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        sx={{
+                          mb: 1.5,
+                        }}
+                      >
+                        {course.category && (
+                          <Chip
+                            label={course.category}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                          />
+                        )}
+                      </Stack>
+
+                      <Typography
+                        variant="h6"
+                        fontWeight={700}
+                        sx={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient:
+                            "vertical",
+                          overflow: "hidden",
+                          minHeight: 58,
+                        }}
+                      >
+                        {course.title}
+                      </Typography>
+
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          mt: 1.5,
+                          display: "-webkit-box",
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient:
+                            "vertical",
+                          overflow: "hidden",
+                          minHeight: 60,
+                        }}
+                      >
+                        {course.description ||
+                          "No description available for this course."}
+                      </Typography>
+
+                      <Typography
+                        variant="h6"
+                        fontWeight={700}
+                        color="primary"
+                        sx={{
+                          mt: 2,
+                        }}
+                      >
+                        ₹{course.price ?? 0}
+                      </Typography>
+                    </CardContent>
+
+                    {/* =========================
+                        CARD ACTION
+                    ========================= */}
+
+                    <CardActions
+                      sx={{
+                        p: 2.5,
+                        pt: 0,
+                      }}
+                    >
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        endIcon={
+                          <ArrowForward />
+                        }
+                        onClick={() =>
+                          navigate(
+                            `/courses/${course.id}`
+                          )
+                        }
+                      >
+                        View Details
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </>
+      )}
+    </Container>
+  );
 };
-
 
 export default CourseList;
 

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { createEnrollment } from "../../services/enrollmentService";
@@ -25,22 +26,61 @@ import {
   CheckCircle,
   ArrowBack,
   Edit,
+  VideoLibrary,
 } from "@mui/icons-material";
 
 import { getCourseById } from "../../services/courseService";
+import { getVideosByCourse } from "../../services/videoService";
 
 const CourseDetails = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  // =========================
+  // COURSE STATE
+  // =========================
+
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // =========================
+  // ENROLLMENT STATE
+  // =========================
 
   const [enrolling, setEnrolling] = useState(false);
   const [enrolled, setEnrolled] = useState(false);
   const [enrollError, setEnrollError] = useState("");
 
-  const { id } = useParams();
-  const navigate = useNavigate();
+  // =========================
+  // VIDEO STATE
+  // =========================
 
-  const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [videos, setVideos] = useState([]);
+  const [videosLoading, setVideosLoading] = useState(true);
+  const [videosError, setVideosError] = useState("");
+
+  // =========================
+  // GET USER
+  // =========================
+
+  const storedUser = localStorage.getItem("user");
+
+  let user = null;
+
+  try {
+    user = storedUser ? JSON.parse(storedUser) : null;
+  } catch (error) {
+    console.log("User data error:", error);
+  }
+
+  const isTeacherOrAdmin =
+    user?.role === "teacher" ||
+    user?.role === "admin";
+
+  // =========================
+  // ENROLL
+  // =========================
 
   const handleEnroll = async () => {
     try {
@@ -57,7 +97,7 @@ const CourseDetails = () => {
 
       setEnrollError(
         error.response?.data?.message ||
-        "Failed to enroll in this course."
+          "Failed to enroll in this course."
       );
     } finally {
       setEnrolling(false);
@@ -65,72 +105,57 @@ const CourseDetails = () => {
   };
 
   // =========================
-  // GET USER
-  // =========================
-
-  const storedUser = localStorage.getItem("user");
-
-  let user = null;
-
-  try {
-
-    user = storedUser
-      ? JSON.parse(storedUser)
-      : null;
-
-  } catch (error) {
-
-    console.log("User data error:", error);
-
-  }
-
-
-  const isTeacherOrAdmin =
-    user?.role === "teacher" ||
-    user?.role === "admin";
-
-
-  // =========================
   // FETCH COURSE
   // =========================
 
   useEffect(() => {
-
     fetchCourse();
-
+    fetchVideos();
   }, [id]);
 
-
   const fetchCourse = async () => {
-
     try {
-
       setLoading(true);
       setError("");
 
-      const response =
-        await getCourseById(id);
+      const response = await getCourseById(id);
 
       setCourse(response.data);
-
     } catch (error) {
-
-      console.log(
-        "Course details error:",
-        error
-      );
+      console.log("Course details error:", error);
 
       setError(
         error.response?.data?.message ||
-        "Unable to load course details."
+          "Unable to load course details."
       );
-
     } finally {
-
       setLoading(false);
-
     }
+  };
 
+  // =========================
+  // FETCH VIDEOS
+  // =========================
+
+  const fetchVideos = async () => {
+    try {
+      setVideosLoading(true);
+      setVideosError("");
+
+      const response = await getVideosByCourse(id);
+
+      setVideos(response.data || []);
+    } catch (error) {
+      console.log("Fetch videos error:", error);
+
+      setVideosError(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to load course videos."
+      );
+    } finally {
+      setVideosLoading(false);
+    }
   };
 
   // =========================
@@ -138,45 +163,32 @@ const CourseDetails = () => {
   // =========================
 
   if (loading) {
-
     return (
-
       <Box
         sx={{
           minHeight: "70vh",
-
           display: "flex",
-
           justifyContent: "center",
-
           alignItems: "center",
         }}
       >
-
         <CircularProgress />
-
       </Box>
-
     );
-
   }
-
 
   // =========================
   // ERROR / NOT FOUND
   // =========================
 
   if (error || !course) {
-
     return (
-
       <Container
         maxWidth="md"
         sx={{
           py: 8,
         }}
       >
-
         <Alert
           severity="error"
           sx={{
@@ -186,22 +198,15 @@ const CourseDetails = () => {
           {error || "Course not found."}
         </Alert>
 
-
         <Button
           startIcon={<ArrowBack />}
-          onClick={() =>
-            navigate("/courses")
-          }
+          onClick={() => navigate("/courses")}
         >
           Back to Courses
         </Button>
-
       </Container>
-
     );
-
   }
-
 
   // =========================
   // COURSE DATA
@@ -212,20 +217,14 @@ const CourseDetails = () => {
     course.teacher?.name ||
     "LearnHub Instructor";
 
-
   const instructorRole =
     course.instructor?.role ||
     "Full Stack Developer";
 
-
   const instructorInitial =
-    instructorName
-      .charAt(0)
-      .toUpperCase();
-
+    instructorName.charAt(0).toUpperCase();
 
   return (
-
     <Container
       maxWidth="xl"
       sx={{
@@ -235,16 +234,13 @@ const CourseDetails = () => {
         },
       }}
     >
-
       {/* =========================
-                BACK BUTTON
-            ========================= */}
+          BACK BUTTON
+      ========================= */}
 
       <Button
         startIcon={<ArrowBack />}
-        onClick={() =>
-          navigate("/courses")
-        }
+        onClick={() => navigate("/courses")}
         sx={{
           mb: 3,
         }}
@@ -252,10 +248,9 @@ const CourseDetails = () => {
         Back to Courses
       </Button>
 
-
       {/* =========================
-                COURSE HERO
-            ========================= */}
+          COURSE HERO
+      ========================= */}
 
       <Paper
         elevation={0}
@@ -277,20 +272,17 @@ const CourseDetails = () => {
           overflow: "hidden",
         }}
       >
-
         <Grid
           container
           spacing={4}
           alignItems="center"
         >
-
           <Grid
             size={{
               xs: 12,
               md: 8,
             }}
           >
-
             <Stack
               direction="row"
               spacing={1}
@@ -300,47 +292,32 @@ const CourseDetails = () => {
                 mb: 2,
               }}
             >
-
               {course.category && (
-
                 <Chip
-                  label={
-                    course.category
-                  }
+                  label={course.category}
                   sx={{
                     color: "white",
-
                     borderColor:
                       "rgba(255,255,255,0.5)",
-
                     backgroundColor:
                       "rgba(255,255,255,0.12)",
                   }}
                   variant="outlined"
                 />
-
               )}
 
-
               <Chip
-                label={
-                  course.level ||
-                  "Beginner"
-                }
+                label={course.level || "Beginner"}
                 sx={{
                   color: "white",
-
                   borderColor:
                     "rgba(255,255,255,0.5)",
-
                   backgroundColor:
                     "rgba(255,255,255,0.12)",
                 }}
                 variant="outlined"
               />
-
             </Stack>
-
 
             <Typography
               variant="h2"
@@ -351,31 +328,25 @@ const CourseDetails = () => {
                   sm: "2.5rem",
                   md: "3.2rem",
                 },
-
                 lineHeight: 1.15,
               }}
             >
               {course.title}
             </Typography>
 
-
             <Typography
               sx={{
                 mt: 2,
-
                 opacity: 0.9,
-
                 fontSize: {
                   xs: "1rem",
                   md: "1.15rem",
                 },
-
                 maxWidth: 750,
               }}
             >
               {course.description}
             </Typography>
-
 
             {/* COURSE META */}
 
@@ -388,70 +359,49 @@ const CourseDetails = () => {
                 mt: 3,
               }}
             >
-
               <Box
                 sx={{
                   display: "flex",
-
                   alignItems: "center",
-
                   gap: 0.7,
                 }}
               >
-
                 <AccessTime />
 
                 <Typography>
-                  {course.duration ||
-                    "10 Hours"}
+                  {course.duration || "10 Hours"}
                 </Typography>
-
               </Box>
-
 
               <Box
                 sx={{
                   display: "flex",
-
                   alignItems: "center",
-
                   gap: 0.7,
                 }}
               >
-
                 <Star />
 
                 <Typography>
-                  {course.rating ||
-                    "4.8"}{" "}
-                  Rating
+                  {course.rating || "4.8"} Rating
                 </Typography>
-
               </Box>
-
 
               <Box
                 sx={{
                   display: "flex",
-
                   alignItems: "center",
-
                   gap: 0.7,
                 }}
               >
-
                 <School />
 
                 <Typography>
                   Beginner Friendly
                 </Typography>
-
               </Box>
-
             </Stack>
-
           </Grid>
-
 
           {/* HERO ICON */}
 
@@ -461,7 +411,6 @@ const CourseDetails = () => {
               md: 4,
             }}
           >
-
             <Box
               sx={{
                 minHeight: {
@@ -470,9 +419,7 @@ const CourseDetails = () => {
                 },
 
                 display: "flex",
-
                 alignItems: "center",
-
                 justifyContent: "center",
 
                 borderRadius: 4,
@@ -484,7 +431,6 @@ const CourseDetails = () => {
                   "1px solid rgba(255,255,255,0.2)",
               }}
             >
-
               <PlayCircle
                 sx={{
                   fontSize: {
@@ -493,29 +439,23 @@ const CourseDetails = () => {
                   },
                 }}
               />
-
             </Box>
-
           </Grid>
-
         </Grid>
-
       </Paper>
 
-
       {/* =========================
-                MAIN CONTENT
-            ========================= */}
+          MAIN CONTENT
+      ========================= */}
 
       <Grid
         container
         spacing={4}
         alignItems="flex-start"
       >
-
         {/* =========================
-                    LEFT CONTENT
-                ========================= */}
+            LEFT CONTENT
+        ========================= */}
 
         <Grid
           size={{
@@ -523,6 +463,178 @@ const CourseDetails = () => {
             md: 8,
           }}
         >
+          {/* =========================
+              COURSE VIDEOS
+          ========================= */}
+
+          <Paper
+            elevation={0}
+            sx={{
+              p: {
+                xs: 3,
+                md: 4,
+              },
+
+              borderRadius: 3,
+
+              border: "1px solid",
+              borderColor: "divider",
+
+              mb: 4,
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                mb: 3,
+              }}
+            >
+              <VideoLibrary
+                color="primary"
+                sx={{
+                  fontSize: 30,
+                }}
+              />
+
+              <Typography
+                variant="h5"
+                fontWeight={700}
+              >
+                Course Videos
+              </Typography>
+            </Box>
+
+            {/* VIDEO LOADING */}
+
+            {videosLoading && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  py: 5,
+                }}
+              >
+                <CircularProgress />
+              </Box>
+            )}
+
+            {/* VIDEO ERROR */}
+
+            {!videosLoading && videosError && (
+              <Alert severity="error">
+                {videosError}
+              </Alert>
+            )}
+
+            {/* NO VIDEOS */}
+
+            {!videosLoading &&
+              !videosError &&
+              videos.length === 0 && (
+                <Alert severity="info">
+                  No videos have been added to
+                  this course yet.
+                </Alert>
+              )}
+
+            {/* VIDEO LIST */}
+
+            {!videosLoading &&
+              !videosError &&
+              videos.length > 0 && (
+                <Stack spacing={3}>
+                  {videos.map((video, index) => (
+                    <Paper
+                      key={video.id}
+                      variant="outlined"
+                      sx={{
+                        p: {
+                          xs: 2,
+                          md: 2.5,
+                        },
+
+                        borderRadius: 3,
+
+                        overflow: "hidden",
+                      }}
+                    >
+                      {/* VIDEO PLAYER */}
+
+                      <Box
+                        sx={{
+                          width: "100%",
+                          backgroundColor: "#000",
+                          borderRadius: 2,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <video
+                          controls
+                          preload="metadata"
+                          style={{
+                            display: "block",
+                            width: "100%",
+                            maxHeight: "500px",
+                          }}
+                          src={video.videoUrl}
+                        >
+                          Your browser does not
+                          support the video player.
+                        </video>
+                      </Box>
+
+                      {/* VIDEO INFORMATION */}
+
+                      <Box
+                        sx={{
+                          pt: 2,
+                        }}
+                      >
+                        <Typography
+                          variant="h6"
+                          fontWeight={700}
+                        >
+                          {index + 1}. {video.title}
+                        </Typography>
+
+                        <Typography
+                          color="text.secondary"
+                          sx={{
+                            mt: 0.7,
+                            lineHeight: 1.7,
+                          }}
+                        >
+                          {video.description}
+                        </Typography>
+
+                        {video.duration && (
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              mt: 1,
+                            }}
+                          >
+                            Duration:{" "}
+                            {Math.floor(
+                              video.duration / 60
+                            )}
+                            :
+                            {String(
+                              Math.floor(
+                                video.duration % 60
+                              )
+                            ).padStart(2, "0")}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Paper>
+                  ))}
+                </Stack>
+              )}
+          </Paper>
 
           {/* WHAT YOU WILL LEARN */}
 
@@ -536,16 +648,12 @@ const CourseDetails = () => {
 
               borderRadius: 3,
 
-              border:
-                "1px solid",
-
-              borderColor:
-                "divider",
+              border: "1px solid",
+              borderColor: "divider",
 
               mb: 4,
             }}
           >
-
             <Typography
               variant="h5"
               fontWeight={700}
@@ -556,19 +664,16 @@ const CourseDetails = () => {
               What you'll learn
             </Typography>
 
-
             <Grid
               container
               spacing={2}
             >
-
               {[
                 "Build real-world applications",
                 "Learn industry best practices",
                 "Work with modern technologies",
                 "Create practical projects",
               ].map((item) => (
-
                 <Grid
                   key={item}
                   size={{
@@ -576,18 +681,13 @@ const CourseDetails = () => {
                     sm: 6,
                   }}
                 >
-
                   <Box
                     sx={{
                       display: "flex",
-
-                      alignItems:
-                        "flex-start",
-
+                      alignItems: "flex-start",
                       gap: 1.5,
                     }}
                   >
-
                     <CheckCircle
                       color="success"
                       sx={{
@@ -595,21 +695,14 @@ const CourseDetails = () => {
                       }}
                     />
 
-
                     <Typography>
                       {item}
                     </Typography>
-
                   </Box>
-
                 </Grid>
-
               ))}
-
             </Grid>
-
           </Paper>
-
 
           {/* COURSE DESCRIPTION */}
 
@@ -623,16 +716,12 @@ const CourseDetails = () => {
 
               borderRadius: 3,
 
-              border:
-                "1px solid",
-
-              borderColor:
-                "divider",
+              border: "1px solid",
+              borderColor: "divider",
 
               mb: 4,
             }}
           >
-
             <Typography
               variant="h5"
               fontWeight={700}
@@ -643,7 +732,6 @@ const CourseDetails = () => {
               About this course
             </Typography>
 
-
             <Typography
               color="text.secondary"
               sx={{
@@ -653,9 +741,7 @@ const CourseDetails = () => {
               {course.description ||
                 "This course is designed to help you develop practical skills and build real-world projects."}
             </Typography>
-
           </Paper>
-
 
           {/* INSTRUCTOR */}
 
@@ -669,14 +755,10 @@ const CourseDetails = () => {
 
               borderRadius: 3,
 
-              border:
-                "1px solid",
-
-              borderColor:
-                "divider",
+              border: "1px solid",
+              borderColor: "divider",
             }}
           >
-
             <Typography
               variant="h5"
               fontWeight={700}
@@ -687,37 +769,26 @@ const CourseDetails = () => {
               Instructor
             </Typography>
 
-
             <Box
               sx={{
                 display: "flex",
-
                 alignItems: "center",
-
                 gap: 2,
               }}
             >
-
               <Avatar
                 sx={{
                   width: 58,
-
                   height: 58,
-
-                  bgcolor:
-                    "primary.main",
-
+                  bgcolor: "primary.main",
                   fontSize: 22,
-
                   fontWeight: 600,
                 }}
               >
                 {instructorInitial}
               </Avatar>
 
-
               <Box>
-
                 <Typography
                   fontWeight={700}
                   variant="h6"
@@ -725,25 +796,17 @@ const CourseDetails = () => {
                   {instructorName}
                 </Typography>
 
-
-                <Typography
-                  color="text.secondary"
-                >
+                <Typography color="text.secondary">
                   {instructorRole}
                 </Typography>
-
               </Box>
-
             </Box>
-
           </Paper>
-
         </Grid>
 
-
         {/* =========================
-                    RIGHT SIDEBAR
-                ========================= */}
+            RIGHT SIDEBAR
+        ========================= */}
 
         <Grid
           size={{
@@ -751,7 +814,6 @@ const CourseDetails = () => {
             md: 4,
           }}
         >
-
           <Paper
             elevation={0}
             sx={{
@@ -759,11 +821,8 @@ const CourseDetails = () => {
 
               borderRadius: 3,
 
-              border:
-                "1px solid",
-
-              borderColor:
-                "divider",
+              border: "1px solid",
+              borderColor: "divider",
 
               position: {
                 xs: "static",
@@ -775,7 +834,6 @@ const CourseDetails = () => {
               },
             }}
           >
-
             {/* COURSE PREVIEW */}
 
             <Box
@@ -785,11 +843,8 @@ const CourseDetails = () => {
                 borderRadius: 3,
 
                 display: "flex",
-
                 alignItems: "center",
-
-                justifyContent:
-                  "center",
+                justifyContent: "center",
 
                 background:
                   "linear-gradient(135deg, #1976d2, #7b1fa2)",
@@ -797,15 +852,12 @@ const CourseDetails = () => {
                 color: "white",
               }}
             >
-
               <PlayCircle
                 sx={{
                   fontSize: 70,
                 }}
               />
-
             </Box>
-
 
             {/* PRICE */}
 
@@ -820,7 +872,9 @@ const CourseDetails = () => {
               ₹{course.price ?? 0}
             </Typography>
 
-            {/* ENROLL */}
+            {/* =========================
+                STUDENT ENROLL
+            ========================= */}
 
             {!isTeacherOrAdmin && (
               <>
@@ -828,7 +882,9 @@ const CourseDetails = () => {
                   fullWidth
                   variant="contained"
                   size="large"
-                  disabled={enrolling || enrolled}
+                  disabled={
+                    enrolling || enrolled
+                  }
                   onClick={handleEnroll}
                   sx={{
                     mt: 3,
@@ -858,10 +914,11 @@ const CourseDetails = () => {
               </>
             )}
 
-            {/* EDIT */}
+            {/* =========================
+                TEACHER / ADMIN EDIT
+            ========================= */}
 
             {isTeacherOrAdmin && (
-
               <Button
                 fullWidth
                 variant="outlined"
@@ -869,12 +926,9 @@ const CourseDetails = () => {
                 startIcon={<Edit />}
                 sx={{
                   mt: 3,
-
                   py: 1.3,
-
                   borderRadius: 2,
                 }}
-
                 onClick={() =>
                   navigate(
                     `/courses/edit/${course.id}`
@@ -883,25 +937,31 @@ const CourseDetails = () => {
               >
                 Edit Course
               </Button>
-
             )}
 
-            <Button
-  fullWidth
-  variant="contained"
-  size="large"
-  sx={{
-    mt: 2,
-    py: 1.3,
-    borderRadius: 2,
-  }}
-  onClick={() =>
-    navigate(`/courses/${course.id}/manage-content`)
-  }
->
-  Manage Content
-</Button>
+            {/* =========================
+                TEACHER / ADMIN MANAGE CONTENT
+            ========================= */}
 
+            {isTeacherOrAdmin && (
+              <Button
+                fullWidth
+                variant="contained"
+                size="large"
+                sx={{
+                  mt: 2,
+                  py: 1.3,
+                  borderRadius: 2,
+                }}
+                onClick={() =>
+                  navigate(
+                    `/courses/${course.id}/manage-content`
+                  )
+                }
+              >
+                Manage Content
+              </Button>
+            )}
 
             <Divider
               sx={{
@@ -909,107 +969,70 @@ const CourseDetails = () => {
               }}
             />
 
-
             {/* FEATURES */}
 
             <Stack spacing={2}>
-
               <Box
                 sx={{
                   display: "flex",
-
                   gap: 1.5,
-
-                  alignItems:
-                    "center",
+                  alignItems: "center",
                 }}
               >
-
-                <CheckCircle
-                  color="success"
-                />
+                <CheckCircle color="success" />
 
                 <Typography>
                   Lifetime Access
                 </Typography>
-
               </Box>
-
 
               <Box
                 sx={{
                   display: "flex",
-
                   gap: 1.5,
-
-                  alignItems:
-                    "center",
+                  alignItems: "center",
                 }}
               >
-
-                <CheckCircle
-                  color="success"
-                />
+                <CheckCircle color="success" />
 
                 <Typography>
                   Certificate Included
                 </Typography>
-
               </Box>
-
 
               <Box
                 sx={{
                   display: "flex",
-
                   gap: 1.5,
-
-                  alignItems:
-                    "center",
+                  alignItems: "center",
                 }}
               >
-
-                <CheckCircle
-                  color="success"
-                />
+                <CheckCircle color="success" />
 
                 <Typography>
                   Project Based Learning
                 </Typography>
-
               </Box>
-
 
               <Box
                 sx={{
                   display: "flex",
-
                   gap: 1.5,
-
-                  alignItems:
-                    "center",
+                  alignItems: "center",
                 }}
               >
-
-                <CheckCircle
-                  color="success"
-                />
+                <CheckCircle color="success" />
 
                 <Typography>
                   Learn at Your Own Pace
                 </Typography>
-
               </Box>
-
             </Stack>
-
           </Paper>
-
         </Grid>
-
       </Grid>
     </Container>
   );
-
 };
+
 export default CourseDetails;
