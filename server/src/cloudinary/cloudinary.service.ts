@@ -37,4 +37,24 @@ export class CloudinaryService {
     uploadStream.end(file.buffer);
   });
 }
+
+async uploadVideo(file: UploadedFile): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'learnhub/videos',
+        resource_type: 'video',
+      },
+      (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      },
+    );
+
+    uploadStream.end(file.buffer);
+  });
+}
 }

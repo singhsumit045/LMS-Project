@@ -21,6 +21,8 @@ import CreateCourse from "../pages/Courses/CreateCourse";
 import CourseDetails from "../pages/Courses/CourseDetails";
 
 import MyCourses from "../pages/MyCourses/MyCourse";
+import ManageCourseContent from "../pages/Courses/ManageCourseContent/ManageCourseContent";
+import ManageVideos from "../pages/ManageVideos/ManageVideos";
 
 
 const AppRoutes = ({ darkMode, toggleTheme }) => {
@@ -84,6 +86,29 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/:id"
           element={<CourseDetails />}
         />
+
+
+        <Route
+          path="/courses/:id/manage-content"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={["teacher", "admin"]}
+            >
+              <ManageCourseContent />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+  path="/courses/:id/manage-videos"
+  element={
+    <RoleProtectedRoute
+      allowedRoles={["teacher", "admin"]}
+    >
+      <ManageVideos />
+    </RoleProtectedRoute>
+  }
+/>
 
 
         {/* Create Course */}

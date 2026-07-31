@@ -254,6 +254,8 @@ const EditCourse = () => {
             Edit Course
           </Typography>
 
+          
+
           <Typography
             color="text.secondary"
             sx={{

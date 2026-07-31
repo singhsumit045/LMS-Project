@@ -886,6 +886,22 @@ const CourseDetails = () => {
 
             )}
 
+            <Button
+  fullWidth
+  variant="contained"
+  size="large"
+  sx={{
+    mt: 2,
+    py: 1.3,
+    borderRadius: 2,
+  }}
+  onClick={() =>
+    navigate(`/courses/${course.id}/manage-content`)
+  }
+>
+  Manage Content
+</Button>
+
 
             <Divider
               sx={{

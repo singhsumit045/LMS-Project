@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { CoursesModule } from './courses/courses.module';
 import { EnrollmentsModule } from './enrollments/enrollments.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { VideosModule } from './videos/videos.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     UsersModule,
     CoursesModule,
     EnrollmentsModule,
+    VideosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
