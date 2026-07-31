@@ -4,7 +4,11 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+
+import { User } from '../../users/entities/user.entity';
 
 @Entity()
 export class Course {
@@ -31,6 +35,24 @@ export class Course {
 
   @Column()
   category!: string;
+
+  // =========================
+  // COURSE TEACHER
+  // =========================
+
+  @ManyToOne(() => User, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'teacherId' })
+  teacher!: User;
+
+  @Column()
+  teacherId!: number;
+
+  // =========================
+  // TIMESTAMPS
+  // =========================
 
   @CreateDateColumn()
   createdAt!: Date;

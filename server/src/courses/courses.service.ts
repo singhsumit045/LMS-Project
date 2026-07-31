@@ -13,15 +13,33 @@ export class CoursesService {
     private readonly courseRepository: Repository<Course>,
   ) {}
 
-  async create(createCourseDto: CreateCourseDto) {
-    const course = this.courseRepository.create(createCourseDto);
+  // =========================
+  // CREATE COURSE
+  // =========================
+
+  async create(
+    createCourseDto: CreateCourseDto,
+    teacherId: number,
+  ) {
+    const course = this.courseRepository.create({
+      ...createCourseDto,
+      teacherId,
+    });
 
     return await this.courseRepository.save(course);
   }
 
+  // =========================
+  // GET ALL COURSES
+  // =========================
+
   async findAll() {
     return await this.courseRepository.find();
   }
+
+  // =========================
+  // GET COURSE BY ID
+  // =========================
 
   async findOne(id: number) {
     return await this.courseRepository.findOne({
@@ -29,11 +47,40 @@ export class CoursesService {
     });
   }
 
-  async update(id: number, updateCourseDto: UpdateCourseDto) {
-    await this.courseRepository.update(id, updateCourseDto);
+  // =========================
+  // GET TEACHER COURSES
+  // =========================
+
+  async findMyCourses(teacherId: number) {
+    return await this.courseRepository.find({
+      where: {
+        teacherId,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  }
+
+  // =========================
+  // UPDATE COURSE
+  // =========================
+
+  async update(
+    id: number,
+    updateCourseDto: UpdateCourseDto,
+  ) {
+    await this.courseRepository.update(
+      id,
+      updateCourseDto,
+    );
 
     return await this.findOne(id);
   }
+
+  // =========================
+  // DELETE COURSE
+  // =========================
 
   async remove(id: number) {
     await this.courseRepository.delete(id);

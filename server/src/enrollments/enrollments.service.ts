@@ -1,178 +1,193 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
 
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Enrollment } from './entities/enrollment.entity';
-import { User } from '../users/entities/user.entity';
 import { Course } from '../courses/entities/course.entity';
 
 @Injectable()
-export class EnrollmentsService {
+export class EnrollmentService {
   constructor(
     @InjectRepository(Enrollment)
     private readonly enrollmentRepository: Repository<Enrollment>,
-
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
 
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
   ) {}
 
-  // =========================
-  // CREATE ENROLLMENT
-  // =========================
+  // =====================================================
+  // TEACHER DASHBOARD
+  // =====================================================
 
-  async create(userId: number, courseId: number) {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-    });
+  async getTeacherDashboard(teacherId: number) {
+    // =====================================================
+    // GET ALL COURSES CREATED BY THIS TEACHER
+    // =====================================================
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const course = await this.courseRepository.findOne({
-      where: { id: courseId },
-    });
-
-    if (!course) {
-      throw new NotFoundException('Course not found');
-    }
-
-    const existingEnrollment =
-      await this.enrollmentRepository.findOne({
+    const teacherCourses =
+      await this.courseRepository.find({
         where: {
-          user: { id: userId },
-          course: { id: courseId },
+          teacherId,
+        },
+        order: {
+          createdAt: 'DESC',
         },
       });
 
-    if (existingEnrollment) {
-      throw new ConflictException(
-        'You are already enrolled in this course',
-      );
-    }
+    // =====================================================
+    // GET ALL ENROLLMENTS FROM TEACHER COURSES
+    // =====================================================
 
-    const enrollment = this.enrollmentRepository.create({
-      user,
-      course,
-      progress: 0,
-      completed: false,
-    });
-
-    return this.enrollmentRepository.save(enrollment);
-  }
-
-  // =========================
-  // GET ALL ENROLLMENTS
-  // =========================
-
-  async findAll() {
-    return this.enrollmentRepository.find({
-      relations: {
-        user: true,
-        course: true,
-      },
-    });
-  }
-
-  // =========================
-  // GET MY COURSES
-  // =========================
-
-  async findMyCourses(userId: number) {
-    return this.enrollmentRepository.find({
-      where: {
-        user: {
-          id: userId,
+    const enrollments =
+      await this.enrollmentRepository.find({
+        where: {
+          course: {
+            teacherId,
+          },
         },
-      },
-      relations: {
-        course: true,
-      },
-    });
-  }
 
-  // =========================
-  // GET ONE ENROLLMENT
-  // =========================
-
-  async findOne(id: number) {
-    const enrollment =
-      await this.enrollmentRepository.findOne({
-        where: { id },
         relations: {
           user: true,
           course: true,
         },
+
+        order: {
+          enrolledAt: 'DESC',
+        },
       });
 
-    if (!enrollment) {
-      throw new NotFoundException(
-        'Enrollment not found',
-      );
+    // =====================================================
+    // UNIQUE STUDENTS
+    // =====================================================
+
+    const studentMap = new Map<
+      number,
+      {
+        id: number;
+        name: string;
+        courses: {
+          id: number;
+          title: string;
+        }[];
+      }
+    >();
+
+    for (const enrollment of enrollments) {
+      const student = enrollment.user;
+      const course = enrollment.course;
+
+      if (!student || !course) {
+        continue;
+      }
+
+      if (!studentMap.has(student.id)) {
+        studentMap.set(student.id, {
+          id: student.id,
+          name: student.name,
+          courses: [],
+        });
+      }
+
+      const studentData =
+        studentMap.get(student.id)!;
+
+      const alreadyEnrolled =
+        studentData.courses.some(
+          (item) => item.id === course.id,
+        );
+
+      if (!alreadyEnrolled) {
+        studentData.courses.push({
+          id: course.id,
+          title: course.title,
+        });
+      }
     }
 
-    return enrollment;
-  }
+    const students =
+      Array.from(studentMap.values());
 
-  // =========================
-  // UPDATE PROGRESS
-  // =========================
+    // =====================================================
+    // COURSES
+    // =====================================================
 
-  async update(id: number, progress: number) {
-    const enrollment =
-      await this.enrollmentRepository.findOne({
-        where: { id },
+    const courseMap = new Map<
+      number,
+      {
+        id: number;
+        title: string;
+        description: string;
+        thumbnail: string | null;
+        price: number;
+        category: string;
+        students: {
+          id: number;
+          name: string;
+        }[];
+      }
+    >();
+
+    // First add ALL teacher courses
+    // Even if there are zero students
+
+    for (const course of teacherCourses) {
+      courseMap.set(course.id, {
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        thumbnail: course.thumbnail || null,
+        price: Number(course.price),
+        category: course.category,
+        students: [],
       });
-
-    if (!enrollment) {
-      throw new NotFoundException(
-        'Enrollment not found',
-      );
     }
 
-    if (progress < 0 || progress > 100) {
-      throw new ConflictException(
-        'Progress must be between 0 and 100',
-      );
+    // Then add enrolled students
+    for (const enrollment of enrollments) {
+      const course = enrollment.course;
+      const student = enrollment.user;
+
+      if (!course || !student) {
+        continue;
+      }
+
+      const courseData =
+        courseMap.get(course.id);
+
+      if (!courseData) {
+        continue;
+      }
+
+      const alreadyAdded =
+        courseData.students.some(
+          (item) => item.id === student.id,
+        );
+
+      if (!alreadyAdded) {
+        courseData.students.push({
+          id: student.id,
+          name: student.name,
+        });
+      }
     }
 
-    enrollment.progress = progress;
+    const courses =
+      Array.from(courseMap.values());
 
-    if (progress === 100) {
-      enrollment.completed = true;
-    }
-
-    return this.enrollmentRepository.save(enrollment);
-  }
-
-  // =========================
-  // DELETE ENROLLMENT
-  // =========================
-
-  async remove(id: number) {
-    const enrollment =
-      await this.enrollmentRepository.findOne({
-        where: { id },
-      });
-
-    if (!enrollment) {
-      throw new NotFoundException(
-        'Enrollment not found',
-      );
-    }
-
-    await this.enrollmentRepository.remove(enrollment);
+    // =====================================================
+    // RESPONSE
+    // =====================================================
 
     return {
-      message: 'Enrollment removed successfully',
+      totalCourses: teacherCourses.length,
+
+      totalStudents: students.length,
+
+      students,
+
+      courses,
     };
   }
 }
+

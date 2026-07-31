@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 
 import { CoursesService } from './courses.service';
@@ -31,8 +32,31 @@ export class CoursesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('teacher', 'admin')
   @Post()
-  create(@Body() createCourseDto: CreateCourseDto) {
-    return this.coursesService.create(createCourseDto);
+  create(
+    @Body() createCourseDto: CreateCourseDto,
+    @Req() req: any,
+  ) {
+    const teacherId = req.user.id;
+
+    return this.coursesService.create(
+      createCourseDto,
+      teacherId,
+    );
+  }
+
+  // =========================
+  // GET MY COURSES
+  // =========================
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('teacher', 'admin')
+  @Get('my-courses')
+  findMyCourses(@Req() req: any) {
+    const teacherId = req.user.id;
+
+    return this.coursesService.findMyCourses(
+      teacherId,
+    );
   }
 
   // =========================
@@ -55,7 +79,6 @@ export class CoursesController {
 
   // =========================
   // UPDATE COURSE
-  // TEACHER + ADMIN ONLY
   // =========================
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -73,7 +96,6 @@ export class CoursesController {
 
   // =========================
   // DELETE COURSE
-  // TEACHER + ADMIN ONLY
   // =========================
 
   @UseGuards(JwtAuthGuard, RolesGuard)
