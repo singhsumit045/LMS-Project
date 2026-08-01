@@ -8,6 +8,7 @@ import {
     Paper,
     InputAdornment,
     IconButton,
+    Divider,
 } from "@mui/material";
 
 import {
@@ -25,6 +26,7 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
+import TrendingUpOutlinedIcon from "@mui/icons-material/TrendingUpOutlined";
 
 import { validateLogin } from "../../utils/validation";
 import { loginUser } from "../../services/authService";
@@ -129,71 +131,114 @@ const Login = () => {
 
         <Box
             sx={{
-                height: "100vh",
+                minHeight: "100dvh",
                 width: "100%",
-                overflow: "hidden",
 
-                backgroundColor:
-                    isDark
-                        ? "#121212"
-                        : "#f5f7fb",
+                overflowX: "hidden",
+                overflowY: "auto",
 
                 display: "flex",
-
-                alignItems: "center",
-
+                alignItems: {
+                    xs: "flex-start",
+                    sm: "center",
+                },
                 justifyContent: "center",
 
-                p: {
-                    xs: 1.5,
-                    sm: 2,
-                },
+                background: isDark
+                    ? "linear-gradient(135deg, #0f0f0f 0%, #171717 100%)"
+                    : "linear-gradient(135deg, #f4f8ff 0%, #eef3fa 100%)",
 
                 boxSizing: "border-box",
+
+                p: {
+                    xs: 0,
+                    sm: 2,
+                    md: 3,
+                },
             }}
         >
+
+            {/* =========================
+                MAIN CARD
+            ========================= */}
 
             <Paper
                 elevation={0}
                 sx={{
                     width: "100%",
-
-                    maxWidth: 1050,
-
-                    height: {
-                        xs: "auto",
-                        md: "calc(100vh - 32px)",
+                    maxWidth: {
+                        xs: "100%",
+                        sm: 720,
+                        md: 1000,
+                        lg: 1120,
                     },
 
-                    maxHeight: "680px",
+                    minHeight: {
+                        xs: "100dvh",
+                        sm: "auto",
+                        md: 620,
+                    },
 
-                    borderRadius: 4,
-
-                    overflow: "hidden",
+                    maxHeight: {
+                        xs: "none",
+                        sm: "none",
+                        md: "760px",
+                    },
 
                     display: "flex",
 
-                    border: "1px solid",
+                    flexDirection: {
+                        xs: "column",
+                        md: "row",
+                    },
 
-                    borderColor:
-                        isDark
-                            ? "#333333"
-                            : "#e5e7eb",
+                    overflow: "hidden",
 
-                    boxShadow:
-                        isDark
-                            ? "0 20px 60px rgba(0,0,0,0.45)"
-                            : "0 20px 60px rgba(15,23,42,0.10)",
+                    borderRadius: {
+                        xs: 0,
+                        sm: 4,
+                        md: 5,
+                    },
+
+                    border: {
+                        xs: "none",
+                        sm: "1px solid",
+                    },
+
+                    borderColor: isDark
+                        ? "rgba(255,255,255,0.08)"
+                        : "rgba(15,23,42,0.08)",
+
+                    backgroundColor: isDark
+                        ? "#1b1b1b"
+                        : "#ffffff",
+
+                    boxShadow: {
+                        xs: "none",
+                        sm: isDark
+                            ? "0 25px 70px rgba(0,0,0,0.45)"
+                            : "0 25px 70px rgba(31,41,55,0.12)",
+                    },
                 }}
             >
 
-                {/* =========================
+
+                {/* =====================================================
                     LEFT SIDE
-                ========================= */}
+                    TABLET + LAPTOP + DESKTOP
+                ===================================================== */}
 
                 <Box
                     sx={{
-                        width: "50%",
+                        width: {
+                            xs: "100%",
+                            md: "47%",
+                        },
+
+                        minHeight: {
+                            xs: "auto",
+                            md: 620,
+                        },
 
                         display: {
                             xs: "none",
@@ -204,64 +249,85 @@ const Login = () => {
 
                         overflow: "hidden",
 
-                        background:
-                            "linear-gradient(145deg, #1976d2 0%, #1259a7 100%)",
-
-                        color: "#fff",
-
                         flexDirection: "column",
 
-                        justifyContent:
-                            "space-between",
+                        justifyContent: "space-between",
 
-                        p: 5,
+                        p: {
+                            md: 4,
+                            lg: 5,
+                        },
+
+                        color: "#ffffff",
+
+                        background:
+                            "linear-gradient(145deg, #1976d2 0%, #1565c0 45%, #0d47a1 100%)",
                     }}
                 >
 
-                    {/* Decorative Circle */}
+                    {/* Decorative circle 1 */}
 
                     <Box
                         sx={{
                             position: "absolute",
 
-                            width: 280,
+                            width: {
+                                md: 220,
+                                lg: 320,
+                            },
 
-                            height: 280,
+                            height: {
+                                md: 220,
+                                lg: 320,
+                            },
 
                             borderRadius: "50%",
 
-                            backgroundColor:
+                            background:
                                 "rgba(255,255,255,0.07)",
 
-                            top: -100,
+                            top: {
+                                md: -100,
+                                lg: -130,
+                            },
 
-                            right: -80,
+                            right: {
+                                md: -80,
+                                lg: -100,
+                            },
                         }}
                     />
 
 
+                    {/* Decorative circle 2 */}
+
                     <Box
                         sx={{
                             position: "absolute",
 
-                            width: 220,
+                            width: {
+                                md: 180,
+                                lg: 250,
+                            },
 
-                            height: 220,
+                            height: {
+                                md: 180,
+                                lg: 250,
+                            },
 
                             borderRadius: "50%",
 
-                            backgroundColor:
+                            background:
                                 "rgba(255,255,255,0.06)",
 
-                            bottom: -80,
-
-                            left: -80,
+                            bottom: -90,
+                            left: -90,
                         }}
                     />
 
 
                     {/* =========================
-                        LOGO
+                        LEFT LOGO
                     ========================= */}
 
                     <Box
@@ -273,17 +339,26 @@ const Login = () => {
 
                         <Box
                             sx={{
-                                backgroundColor: "#fff",
-
-                                borderRadius: 2,
-
                                 display: "inline-flex",
 
                                 alignItems: "center",
 
-                                px: 2,
+                                backgroundColor: "#ffffff",
 
-                                py: 1,
+                                borderRadius: 2.5,
+
+                                px: {
+                                    md: 1.5,
+                                    lg: 2,
+                                },
+
+                                py: {
+                                    md: 0.75,
+                                    lg: 1,
+                                },
+
+                                boxShadow:
+                                    "0 8px 20px rgba(0,0,0,0.10)",
                             }}
                         >
 
@@ -295,11 +370,14 @@ const Login = () => {
                                 alt="LearnHub Logo"
 
                                 sx={{
-                                    width: 145,
+                                    width: {
+                                        md: 120,
+                                        lg: 145,
+                                    },
 
                                     height: "auto",
 
-                                    objectFit: "contain",
+                                    display: "block",
                                 }}
                             />
 
@@ -309,7 +387,7 @@ const Login = () => {
 
 
                     {/* =========================
-                        MAIN CONTENT
+                        CENTER ILLUSTRATION
                     ========================= */}
 
                     <Box
@@ -324,72 +402,103 @@ const Login = () => {
                         }}
                     >
 
+                        {/* Icon circle */}
+
                         <Box
                             sx={{
-                                width: 170,
+                                width: {
+                                    md: 135,
+                                    lg: 170,
+                                },
 
-                                height: 170,
+                                height: {
+                                    md: 135,
+                                    lg: 170,
+                                },
 
                                 borderRadius: "50%",
 
-                                backgroundColor:
-                                    "rgba(255,255,255,0.12)",
-
                                 mx: "auto",
 
-                                mb: 3,
+                                mb: {
+                                    md: 2,
+                                    lg: 3,
+                                },
 
                                 display: "flex",
 
-                                justifyContent:
-                                    "center",
-
                                 alignItems: "center",
 
+                                justifyContent: "center",
+
                                 position: "relative",
+
+                                background:
+                                    "rgba(255,255,255,0.12)",
+
+                                border:
+                                    "1px solid rgba(255,255,255,0.12)",
+
+                                boxShadow:
+                                    "inset 0 0 40px rgba(255,255,255,0.04)",
                             }}
                         >
 
                             <SchoolOutlinedIcon
                                 sx={{
-                                    fontSize: 85,
-
-                                    color: "#fff",
+                                    fontSize: {
+                                        md: 65,
+                                        lg: 85,
+                                    },
                                 }}
                             />
 
 
+                            {/* Small floating icon */}
+
                             <Box
                                 sx={{
-                                    position:
-                                        "absolute",
+                                    position: "absolute",
 
-                                    right: 5,
+                                    right: {
+                                        md: 0,
+                                        lg: 5,
+                                    },
 
-                                    bottom: 10,
+                                    bottom: {
+                                        md: 5,
+                                        lg: 10,
+                                    },
 
-                                    width: 48,
+                                    width: {
+                                        md: 40,
+                                        lg: 48,
+                                    },
 
-                                    height: 48,
+                                    height: {
+                                        md: 40,
+                                        lg: 48,
+                                    },
 
                                     borderRadius: "50%",
 
-                                    backgroundColor: "#fff",
+                                    display: "flex",
+
+                                    alignItems: "center",
+
+                                    justifyContent: "center",
 
                                     color: "#1976d2",
 
-                                    display: "flex",
+                                    backgroundColor: "#ffffff",
 
-                                    alignItems:
-                                        "center",
-
-                                    justifyContent:
-                                        "center",
+                                    boxShadow:
+                                        "0 8px 20px rgba(0,0,0,0.15)",
                                 }}
                             >
 
-                                <SchoolOutlinedIcon
-                                    fontSize="medium"
+                                <MenuBookOutlinedIcon
+                                    fontSize="small"
                                 />
 
                             </Box>
@@ -398,10 +507,14 @@ const Login = () => {
 
 
                         <Typography
-                            variant="h4"
-                            fontWeight={700}
+                            fontWeight={800}
                             sx={{
-                                mb: 1.5,
+                                fontSize: {
+                                    md: "1.65rem",
+                                    lg: "2rem",
+                                },
+
+                                mb: 1,
                             }}
                         >
                             Learn. Grow. Succeed.
@@ -410,16 +523,19 @@ const Login = () => {
 
                         <Typography
                             sx={{
-                                color:
-                                    "rgba(255,255,255,0.82)",
-
-                                fontSize: "1rem",
-
-                                lineHeight: 1.7,
-
                                 maxWidth: 390,
 
                                 mx: "auto",
+
+                                color:
+                                    "rgba(255,255,255,0.82)",
+
+                                fontSize: {
+                                    md: "0.88rem",
+                                    lg: "0.98rem",
+                                },
+
+                                lineHeight: 1.7,
                             }}
                         >
                             Continue your learning journey
@@ -428,31 +544,40 @@ const Login = () => {
                         </Typography>
 
 
-                        {/* Feature Icons */}
+                        {/* =========================
+                            FEATURES
+                        ========================= */}
 
                         <Box
                             sx={{
                                 display: "flex",
 
-                                justifyContent:
-                                    "center",
+                                justifyContent: "center",
 
-                                gap: 4,
+                                gap: {
+                                    md: 3,
+                                    lg: 5,
+                                },
 
-                                mt: 4,
+                                mt: {
+                                    md: 3,
+                                    lg: 4,
+                                },
                             }}
                         >
 
-                            <Box>
+                            <Box
+                                sx={{
+                                    textAlign: "center",
+                                }}
+                            >
 
                                 <MenuBookOutlinedIcon />
 
                                 <Typography
                                     variant="caption"
                                     display="block"
-                                    sx={{
-                                        mt: 0.5,
-                                    }}
+                                    sx={{ mt: 0.5 }}
                                 >
                                     Courses
                                 </Typography>
@@ -460,16 +585,18 @@ const Login = () => {
                             </Box>
 
 
-                            <Box>
+                            <Box
+                                sx={{
+                                    textAlign: "center",
+                                }}
+                            >
 
                                 <SchoolOutlinedIcon />
 
                                 <Typography
                                     variant="caption"
                                     display="block"
-                                    sx={{
-                                        mt: 0.5,
-                                    }}
+                                    sx={{ mt: 0.5 }}
                                 >
                                     Learning
                                 </Typography>
@@ -477,16 +604,18 @@ const Login = () => {
                             </Box>
 
 
-                            <Box>
+                            <Box
+                                sx={{
+                                    textAlign: "center",
+                                }}
+                            >
 
-                                <SchoolOutlinedIcon />
+                                <TrendingUpOutlinedIcon />
 
                                 <Typography
                                     variant="caption"
                                     display="block"
-                                    sx={{
-                                        mt: 0.5,
-                                    }}
+                                    sx={{ mt: 0.5 }}
                                 >
                                     Progress
                                 </Typography>
@@ -498,6 +627,8 @@ const Login = () => {
                     </Box>
 
 
+                    {/* Footer */}
+
                     <Typography
                         variant="body2"
                         sx={{
@@ -505,10 +636,12 @@ const Login = () => {
 
                             zIndex: 2,
 
+                            textAlign: "center",
+
                             color:
                                 "rgba(255,255,255,0.65)",
 
-                            textAlign: "center",
+                            fontSize: "0.8rem",
                         }}
                     >
                         Empowering learners, one course
@@ -518,37 +651,58 @@ const Login = () => {
                 </Box>
 
 
-                {/* =========================
+                {/* =====================================================
                     RIGHT SIDE
-                ========================= */}
+                ===================================================== */}
 
                 <Box
                     sx={{
                         width: {
                             xs: "100%",
-                            md: "50%",
+                            md: "53%",
                         },
+
+                        minWidth: 0,
 
                         display: "flex",
 
                         flexDirection: "column",
 
-                        justifyContent: "center",
+                        justifyContent: {
+                            xs: "flex-start",
+                            sm: "center",
+                        },
 
                         p: {
-                            xs: 3,
-                            sm: 5,
-                            md: 6,
+                            xs: 2.5,
+                            sm: 4,
+                            md: 5,
+                            lg: 6,
+                        },
+
+                        pt: {
+                            xs: 4,
+                            sm: 4,
+                            md: 5,
+                        },
+
+                        pb: {
+                            xs: 4,
+                            sm: 4,
+                            md: 5,
                         },
 
                         backgroundColor:
                             isDark
-                                ? "#1e1e1e"
-                                : "#fff",
+                                ? "#1b1b1b"
+                                : "#ffffff",
                     }}
                 >
 
-                    {/* Mobile Logo */}
+
+                    {/* =========================
+                        MOBILE / TABLET LOGO
+                    ========================= */}
 
                     <Box
                         sx={{
@@ -557,10 +711,12 @@ const Login = () => {
                                 md: "none",
                             },
 
-                            justifyContent:
-                                "center",
+                            justifyContent: "center",
 
-                            mb: 4,
+                            mb: {
+                                xs: 3,
+                                sm: 3,
+                            },
                         }}
                     >
 
@@ -572,37 +728,61 @@ const Login = () => {
                             alt="LearnHub Logo"
 
                             sx={{
-                                width: 165,
+                                width: {
+                                    xs: 130,
+                                    sm: 150,
+                                },
+
+                                maxWidth: "60vw",
 
                                 height: "auto",
+
+                                display: "block",
                             }}
                         />
 
                     </Box>
 
 
+                    {/* =========================
+                        FORM CONTAINER
+                    ========================= */}
+
                     <Box
                         sx={{
-                            maxWidth: 420,
-
                             width: "100%",
+
+                            maxWidth: {
+                                xs: 440,
+                                sm: 430,
+                                md: 430,
+                            },
 
                             mx: "auto",
                         }}
                     >
 
+
                         {/* =========================
-                            TITLE
+                            HEADING
                         ========================= */}
 
                         <Typography
-                            variant="h4"
-                            fontWeight={700}
+                            fontWeight={800}
                             sx={{
                                 color:
                                     isDark
                                         ? "#ffffff"
                                         : "#172033",
+
+                                fontSize: {
+                                    xs: "1.65rem",
+                                    sm: "1.9rem",
+                                    md: "2rem",
+                                    lg: "2.1rem",
+                                },
+
+                                lineHeight: 1.25,
 
                                 mb: 1,
                             }}
@@ -618,7 +798,18 @@ const Login = () => {
                                         ? "#bdbdbd"
                                         : "#6b7280",
 
-                                mb: 4,
+                                fontSize: {
+                                    xs: "0.88rem",
+                                    sm: "0.95rem",
+                                },
+
+                                lineHeight: 1.6,
+
+                                mb: {
+                                    xs: 3,
+                                    sm: 3.5,
+                                    md: 4,
+                                },
                             }}
                         >
                             Sign in to continue your
@@ -636,13 +827,14 @@ const Login = () => {
                             noValidate
                         >
 
+
                             {/* EMAIL LABEL */}
 
                             <Typography
                                 variant="body2"
                                 fontWeight={600}
                                 sx={{
-                                    mb: 1,
+                                    mb: 0.8,
 
                                     color:
                                         isDark
@@ -680,16 +872,25 @@ const Login = () => {
                                 }
 
                                 sx={{
-                                    mb: 1,
+                                    mb: 0.5,
 
                                     "& .MuiOutlinedInput-root":
                                         {
-                                            borderRadius: 2,
+                                            minHeight: {
+                                                xs: 52,
+                                                sm: 54,
+                                                md: 56,
+                                            },
+
+                                            borderRadius: 2.2,
 
                                             backgroundColor:
                                                 isDark
                                                     ? "#252525"
                                                     : "#fafbfc",
+
+                                            transition:
+                                                "all 0.2s ease",
 
                                             "& input": {
                                                 color:
@@ -703,16 +904,14 @@ const Login = () => {
                                                         : "#1f2937",
 
                                                 caretColor:
-                                                    isDark
-                                                        ? "#ffffff"
-                                                        : "#1976d2",
+                                                    "#1976d2",
                                             },
 
                                             "& input::placeholder":
                                                 {
                                                     color:
                                                         isDark
-                                                            ? "#bdbdbd"
+                                                            ? "#a9a9a9"
                                                             : "#6b7280",
 
                                                     opacity: 1,
@@ -721,14 +920,25 @@ const Login = () => {
                                             "& fieldset": {
                                                 borderColor:
                                                     isDark
-                                                        ? "#666666"
-                                                        : "#c4c4c4",
+                                                        ? "#555555"
+                                                        : "#d1d5db",
                                             },
 
                                             "&:hover fieldset":
                                                 {
                                                     borderColor:
                                                         "#1976d2",
+                                                },
+
+                                            "&.Mui-focused":
+                                                {
+                                                    backgroundColor:
+                                                        isDark
+                                                            ? "#292929"
+                                                            : "#ffffff",
+
+                                                    boxShadow:
+                                                        "0 0 0 3px rgba(25,118,210,0.08)",
                                                 },
 
                                             "&.Mui-focused fieldset":
@@ -743,7 +953,9 @@ const Login = () => {
                             />
 
 
-                            {/* PASSWORD HEADER */}
+                            {/* =========================
+                                PASSWORD HEADER
+                            ========================= */}
 
                             <Box
                                 sx={{
@@ -754,7 +966,9 @@ const Login = () => {
 
                                     alignItems: "center",
 
-                                    mb: 1,
+                                    gap: 1,
+
+                                    mb: 0.8,
                                 }}
                             >
 
@@ -775,15 +989,22 @@ const Login = () => {
                                 <Link
                                     component={RouterLink}
                                     to="/forgot-password"
+
                                     underline="hover"
+
                                     sx={{
-                                        fontSize:
-                                            "0.85rem",
-
-                                        fontWeight: 500,
-
                                         color:
                                             "#1976d2",
+
+                                        fontSize: {
+                                            xs: "0.76rem",
+                                            sm: "0.82rem",
+                                        },
+
+                                        fontWeight: 600,
+
+                                        whiteSpace:
+                                            "nowrap",
                                     }}
                                 >
                                     Forgot Password?
@@ -792,7 +1013,9 @@ const Login = () => {
                             </Box>
 
 
-                            {/* PASSWORD */}
+                            {/* =========================
+                                PASSWORD
+                            ========================= */}
 
                             <TextField
                                 fullWidth
@@ -829,6 +1052,8 @@ const Login = () => {
                                             >
 
                                                 <IconButton
+                                                    type="button"
+
                                                     onClick={() =>
                                                         setShowPassword(
                                                             !showPassword
@@ -847,7 +1072,15 @@ const Login = () => {
                                                         color:
                                                             isDark
                                                                 ? "#ffffff"
-                                                                : "#424242",
+                                                                : "#4b5563",
+
+                                                        "&:hover":
+                                                            {
+                                                                backgroundColor:
+                                                                    isDark
+                                                                        ? "rgba(255,255,255,0.08)"
+                                                                        : "rgba(25,118,210,0.06)",
+                                                            },
                                                     }}
                                                 >
 
@@ -865,16 +1098,25 @@ const Login = () => {
                                 }}
 
                                 sx={{
-                                    mb: 2,
+                                    mb: 1,
 
                                     "& .MuiOutlinedInput-root":
                                         {
-                                            borderRadius: 2,
+                                            minHeight: {
+                                                xs: 52,
+                                                sm: 54,
+                                                md: 56,
+                                            },
+
+                                            borderRadius: 2.2,
 
                                             backgroundColor:
                                                 isDark
                                                     ? "#252525"
                                                     : "#fafbfc",
+
+                                            transition:
+                                                "all 0.2s ease",
 
                                             "& input": {
                                                 color:
@@ -888,16 +1130,14 @@ const Login = () => {
                                                         : "#1f2937",
 
                                                 caretColor:
-                                                    isDark
-                                                        ? "#ffffff"
-                                                        : "#1976d2",
+                                                    "#1976d2",
                                             },
 
                                             "& input::placeholder":
                                                 {
                                                     color:
                                                         isDark
-                                                            ? "#bdbdbd"
+                                                            ? "#a9a9a9"
                                                             : "#6b7280",
 
                                                     opacity: 1,
@@ -906,14 +1146,25 @@ const Login = () => {
                                             "& fieldset": {
                                                 borderColor:
                                                     isDark
-                                                        ? "#666666"
-                                                        : "#c4c4c4",
+                                                        ? "#555555"
+                                                        : "#d1d5db",
                                             },
 
                                             "&:hover fieldset":
                                                 {
                                                     borderColor:
                                                         "#1976d2",
+                                                },
+
+                                            "&.Mui-focused":
+                                                {
+                                                    backgroundColor:
+                                                        isDark
+                                                            ? "#292929"
+                                                            : "#ffffff",
+
+                                                    boxShadow:
+                                                        "0 0 0 3px rgba(25,118,210,0.08)",
                                                 },
 
                                             "&.Mui-focused fieldset":
@@ -942,36 +1193,111 @@ const Login = () => {
                                 size="large"
 
                                 sx={{
-                                    py: 1.5,
+                                    minHeight: {
+                                        xs: 52,
+                                        sm: 54,
+                                        md: 56,
+                                    },
 
                                     mt: 1,
 
-                                    borderRadius: 2,
+                                    borderRadius: 2.2,
 
-                                    textTransform:
-                                        "none",
+                                    textTransform: "none",
 
-                                    fontSize: "1rem",
+                                    fontSize: {
+                                        xs: "0.98rem",
+                                        sm: "1rem",
+                                    },
 
-                                    fontWeight: 600,
+                                    fontWeight: 700,
 
-                                    backgroundColor:
-                                        "#1976d2",
+                                    background:
+                                        "linear-gradient(135deg, #1976d2 0%, #1565c0 100%)",
 
                                     boxShadow:
-                                        "0 8px 20px rgba(25,118,210,0.25)",
+                                        "0 8px 22px rgba(25,118,210,0.25)",
+
+                                    transition:
+                                        "all 0.2s ease",
 
                                     "&:hover": {
-                                        backgroundColor:
-                                            "#1565c0",
+                                        background:
+                                            "linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)",
+
+                                        transform:
+                                            "translateY(-1px)",
 
                                         boxShadow:
-                                            "0 10px 25px rgba(25,118,210,0.30)",
+                                            "0 11px 28px rgba(25,118,210,0.30)",
+                                    },
+
+                                    "&:active": {
+                                        transform:
+                                            "translateY(0)",
                                     },
                                 }}
                             >
                                 Login
                             </Button>
+
+
+                            {/* =========================
+                                DIVIDER
+                            ========================= */}
+
+                            <Box
+                                sx={{
+                                    display: "flex",
+
+                                    alignItems: "center",
+
+                                    gap: 1.5,
+
+                                    my: {
+                                        xs: 2.5,
+                                        sm: 3,
+                                    },
+                                }}
+                            >
+
+                                <Divider
+                                    sx={{
+                                        flex: 1,
+
+                                        borderColor:
+                                            isDark
+                                                ? "#383838"
+                                                : "#e5e7eb",
+                                    }}
+                                />
+
+                                <Typography
+                                    sx={{
+                                        fontSize:
+                                            "0.75rem",
+
+                                        color:
+                                            isDark
+                                                ? "#888888"
+                                                : "#9ca3af",
+                                    }}
+                                >
+                                    OR
+                                </Typography>
+
+                                <Divider
+                                    sx={{
+                                        flex: 1,
+
+                                        borderColor:
+                                            isDark
+                                                ? "#383838"
+                                                : "#e5e7eb",
+                                    }}
+                                />
+
+                            </Box>
 
 
                             {/* =========================
@@ -982,7 +1308,10 @@ const Login = () => {
                                 sx={{
                                     textAlign: "center",
 
-                                    mt: 3,
+                                    px: {
+                                        xs: 0,
+                                        sm: 1,
+                                    },
                                 }}
                             >
 
@@ -993,6 +1322,13 @@ const Login = () => {
                                             isDark
                                                 ? "#bdbdbd"
                                                 : "#6b7280",
+
+                                        fontSize: {
+                                            xs: "0.82rem",
+                                            sm: "0.875rem",
+                                        },
+
+                                        lineHeight: 1.6,
                                     }}
                                 >
                                     Don't have an account?{" "}
@@ -1000,12 +1336,16 @@ const Login = () => {
                                     <Link
                                         component={RouterLink}
                                         to="/register"
+
                                         underline="hover"
+
                                         sx={{
                                             color:
                                                 "#1976d2",
 
-                                            fontWeight: 600,
+                                            fontWeight: 700,
+
+                                            ml: 0.3,
                                         }}
                                     >
                                         Create an account

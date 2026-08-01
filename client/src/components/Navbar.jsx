@@ -298,19 +298,23 @@ const Navbar = ({ darkMode, toggleTheme }) => {
 
             {/* =========================
                 MY COURSES
+                STUDENT ONLY
             ========================= */}
 
-            <Button
-              color="inherit"
-              component={Link}
-              to="/my-courses"
-              startIcon={<LibraryBooks />}
-            >
-              My Courses
-            </Button>
+            {user?.role === "student" && (
+              <Button
+                color="inherit"
+                component={Link}
+                to="/my-courses"
+                startIcon={<LibraryBooks />}
+              >
+                My Courses
+              </Button>
+            )}
 
             {/* =========================
                 CREATE COURSE
+                TEACHER + ADMIN
             ========================= */}
 
             {(user?.role === "teacher" ||
@@ -355,7 +359,6 @@ const Navbar = ({ darkMode, toggleTheme }) => {
 
             {/* =========================
                 PROFILE AVATAR
-                DIRECT PROFILE
             ========================= */}
 
             <Tooltip
@@ -511,8 +514,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
           ========================= */}
 
           <List>
-
-            {/* DASHBOARD */}
+            {/* =========================
+                DASHBOARD
+            ========================= */}
 
             <ListItem disablePadding>
               <ListItemButton
@@ -530,7 +534,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               </ListItemButton>
             </ListItem>
 
-            {/* COURSES */}
+            {/* =========================
+                COURSES
+            ========================= */}
 
             <ListItem disablePadding>
               <ListItemButton
@@ -548,25 +554,33 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               </ListItemButton>
             </ListItem>
 
-            {/* MY COURSES */}
+            {/* =========================
+                MY COURSES
+                STUDENT ONLY
+            ========================= */}
 
-            <ListItem disablePadding>
-              <ListItemButton
-                component={Link}
-                to="/my-courses"
-                onClick={closeMobileMenu}
-              >
-                <ListItemIcon>
-                  <LibraryBooks />
-                </ListItemIcon>
+            {user?.role === "student" && (
+              <ListItem disablePadding>
+                <ListItemButton
+                  component={Link}
+                  to="/my-courses"
+                  onClick={closeMobileMenu}
+                >
+                  <ListItemIcon>
+                    <LibraryBooks />
+                  </ListItemIcon>
 
-                <ListItemText>
-                  My Courses
-                </ListItemText>
-              </ListItemButton>
-            </ListItem>
+                  <ListItemText>
+                    My Courses
+                  </ListItemText>
+                </ListItemButton>
+              </ListItem>
+            )}
 
-            {/* CREATE COURSE */}
+            {/* =========================
+                CREATE COURSE
+                TEACHER + ADMIN
+            ========================= */}
 
             {(user?.role === "teacher" ||
               user?.role === "admin") && (
@@ -587,7 +601,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               </ListItem>
             )}
 
-            {/* PROFILE */}
+            {/* =========================
+                PROFILE
+            ========================= */}
 
             <ListItem disablePadding>
               <ListItemButton
@@ -609,7 +625,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               }}
             />
 
-            {/* THEME */}
+            {/* =========================
+                THEME
+            ========================= */}
 
             <ListItem disablePadding>
               <ListItemButton
@@ -631,7 +649,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               </ListItemButton>
             </ListItem>
 
-            {/* LOGOUT */}
+            {/* =========================
+                LOGOUT
+            ========================= */}
 
             <ListItem disablePadding>
               <ListItemButton

@@ -33,6 +33,7 @@ import NotFound from "../pages/NotFound/NotFound";
 import CourseList from "../pages/Courses/CourseList";
 import CreateCourse from "../pages/Courses/CreateCourse";
 import CourseDetails from "../pages/Courses/CourseDetails";
+import EditCourse from "../pages/Courses/EditCourse";
 
 import MyCourses from "../pages/MyCourses/MyCourse";
 
@@ -40,178 +41,238 @@ import ManageCourseContent from "../pages/Courses/ManageCourseContent/ManageCour
 
 import ManageVideos from "../pages/ManageVideos/ManageVideos";
 
+// =========================
+// Admin
+// =========================
+
+import ManageUsers from "../pages/Admin/ManageUsers";
+
 
 // =========================
 // APP ROUTES
 // =========================
 
 const AppRoutes = ({ darkMode, toggleTheme }) => {
-    return (
-        <Routes>
 
-            {/* =========================
-                PUBLIC ROUTES
-            ========================= */}
+  return (
 
-            <Route
-                path="/"
-                element={<Home />}
+    <Routes>
+
+      {/* =====================================================
+          PUBLIC ROUTES
+      ===================================================== */}
+
+      <Route
+        path="/"
+        element={<Home />}
+      />
+
+      <Route
+        path="/login"
+        element={<Login />}
+      />
+
+      <Route
+        path="/register"
+        element={<Register />}
+      />
+
+
+      {/* =====================================================
+          PROTECTED ROUTES
+          WITH MAIN LAYOUT
+      ===================================================== */}
+
+      <Route
+        element={
+          <ProtectedRoute>
+
+            <MainLayout
+              darkMode={darkMode}
+              toggleTheme={toggleTheme}
             />
 
-            <Route
-                path="/login"
-                element={<Login />}
-            />
+          </ProtectedRoute>
+        }
+      >
 
-            <Route
-                path="/register"
-                element={<Register />}
-            />
+        {/* =================================================
+            DASHBOARD
+            Student  → StudentDashboard
+            Teacher  → TeacherDashboard
+            Admin    → AdminDashboard
+        ================================================= */}
+
+        <Route
+          path="/dashboard"
+          element={<DashboardRouter />}
+        />
 
 
-            {/* =========================
-                PROTECTED ROUTES
-                WITH MAIN LAYOUT
-            ========================= */}
+        {/* =================================================
+            PROFILE
+        ================================================= */}
 
-            <Route
-                element={
-                    <ProtectedRoute>
-                        <MainLayout
-                            darkMode={darkMode}
-                            toggleTheme={toggleTheme}
-                        />
-                    </ProtectedRoute>
-                }
+        <Route
+          path="/profile"
+          element={<Profile />}
+        />
+
+
+        {/* =================================================
+            COURSES
+        ================================================= */}
+
+        <Route
+          path="/courses"
+          element={<CourseList />}
+        />
+
+
+        {/* =================================================
+            COURSE DETAILS
+        ================================================= */}
+
+        <Route
+          path="/courses/:id"
+          element={<CourseDetails />}
+        />
+
+
+        {/* =================================================
+            CREATE COURSE
+            TEACHER + ADMIN
+        ================================================= */}
+
+        <Route
+          path="/courses/create"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
             >
 
-                {/* =========================
-                    DASHBOARD
+              <CreateCourse />
 
-                    Student → StudentDashboard
-                    Teacher → TeacherDashboard
-                    Admin → Dashboard
-                ========================= */}
-
-                <Route
-                    path="/dashboard"
-                    element={<DashboardRouter />}
-                />
+            </RoleProtectedRoute>
+          }
+        />
 
 
-                {/* =========================
-                    PROFILE
-                ========================= */}
+        {/* =================================================
+            MANAGE COURSE CONTENT
+            TEACHER + ADMIN
+        ================================================= */}
 
-                <Route
-                    path="/profile"
-                    element={<Profile />}
-                />
+        <Route
+          path="/courses/:id/manage-content"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
+            >
 
+              <ManageCourseContent />
 
-                {/* =========================
-                    COURSES
-                ========================= */}
-
-                <Route
-                    path="/courses"
-                    element={<CourseList />}
-                />
-
-
-                {/* =========================
-                    COURSE DETAILS
-                ========================= */}
-
-                <Route
-                    path="/courses/:id"
-                    element={<CourseDetails />}
-                />
+            </RoleProtectedRoute>
+          }
+        />
 
 
-                {/* =========================
-                    CREATE COURSE
-                    TEACHER + ADMIN
-                ========================= */}
+        {/* =================================================
+            EDIT COURSE
+            TEACHER + ADMIN
+        ================================================= */}
 
-                <Route
-                    path="/courses/create"
-                    element={
-                        <RoleProtectedRoute
-                            allowedRoles={[
-                                "teacher",
-                                "admin",
-                            ]}
-                        >
-                            <CreateCourse />
-                        </RoleProtectedRoute>
-                    }
-                />
+        <Route
+          path="/courses/edit/:id"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
+            >
 
+              <EditCourse />
 
-                {/* =========================
-                    MANAGE COURSE CONTENT
-                    TEACHER + ADMIN
-                ========================= */}
-
-                <Route
-                    path="/courses/:id/manage-content"
-                    element={
-                        <RoleProtectedRoute
-                            allowedRoles={[
-                                "teacher",
-                                "admin",
-                            ]}
-                        >
-                            <ManageCourseContent />
-                        </RoleProtectedRoute>
-                    }
-                />
+            </RoleProtectedRoute>
+          }
+        />
 
 
-                {/* =========================
-                    MANAGE VIDEOS
-                    TEACHER + ADMIN
-                ========================= */}
+        {/* =================================================
+            MANAGE VIDEOS
+            TEACHER + ADMIN
+        ================================================= */}
 
-                <Route
-                    path="/courses/:id/manage-videos"
-                    element={
-                        <RoleProtectedRoute
-                            allowedRoles={[
-                                "teacher",
-                                "admin",
-                            ]}
-                        >
-                            <ManageVideos />
-                        </RoleProtectedRoute>
-                    }
-                />
+        <Route
+          path="/courses/:id/manage-videos"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
+            >
 
+              <ManageVideos />
 
-                {/* =========================
-                    MY COURSES
-                ========================= */}
-
-                <Route
-                    path="/my-courses"
-                    element={<MyCourses />}
-                />
-
-            </Route>
+            </RoleProtectedRoute>
+          }
+        />
 
 
-            {/* =========================
-                404
-            ========================= */}
+        {/* =================================================
+            MY COURSES
+        ================================================= */}
 
-            <Route
-                path="*"
-                element={<NotFound />}
-            />
+        <Route
+          path="/my-courses"
+          element={<MyCourses />}
+        />
 
-        </Routes>
-    );
+
+        {/* =================================================
+            ADMIN
+            MANAGE USERS
+            ADMIN ONLY
+        ================================================= */}
+
+        <Route
+          path="/admin/users"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={[
+                "admin",
+              ]}
+            >
+
+              <ManageUsers />
+
+            </RoleProtectedRoute>
+          }
+        />
+
+      </Route>
+
+
+      {/* =====================================================
+          404
+      ===================================================== */}
+
+      <Route
+        path="*"
+        element={<NotFound />}
+      />
+
+    </Routes>
+  );
 };
+
 
 export default AppRoutes;
