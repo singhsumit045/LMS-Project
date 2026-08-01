@@ -14,12 +14,19 @@ import {
   Alert,
   Divider,
   InputAdornment,
+  Chip,
+  Stack,
 } from "@mui/material";
 
 import {
   School,
   Save,
   ArrowBack,
+  Image,
+  Visibility,
+  CurrencyRupee,
+  Category,
+  Description,
 } from "@mui/icons-material";
 
 import { createCourse } from "../../services/courseService";
@@ -38,6 +45,10 @@ const CreateCourse = () => {
     category: "",
   });
 
+  // =========================
+  // HANDLE INPUT CHANGE
+  // =========================
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -48,6 +59,10 @@ const CreateCourse = () => {
 
     setError("");
   };
+
+  // =========================
+  // CREATE COURSE
+  // =========================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,7 +82,10 @@ const CreateCourse = () => {
       return;
     }
 
-    if (formData.price === "" || Number(formData.price) < 0) {
+    if (
+      formData.price === "" ||
+      Number(formData.price) < 0
+    ) {
       setError("Please enter a valid course price.");
       return;
     }
@@ -96,281 +114,630 @@ const CreateCourse = () => {
     }
   };
 
+  // =========================
+  // CANCEL
+  // =========================
+
+  const handleCancel = () => {
+    if (loading) return;
+
+    navigate("/courses");
+  };
+
   return (
     <Container
-      maxWidth="md"
+      maxWidth="xl"
       sx={{
         py: {
           xs: 3,
-          md: 6,
+          md: 5,
         },
       }}
     >
-      {/* Back Button */}
+      {/* =========================
+          BACK BUTTON
+      ========================= */}
 
       <Button
         startIcon={<ArrowBack />}
-        onClick={() => navigate("/courses")}
+        onClick={handleCancel}
         sx={{
-          mb: 2,
+          mb: 3,
           textTransform: "none",
+          fontWeight: 600,
         }}
       >
         Back to Courses
       </Button>
 
-      <Paper
-        elevation={0}
+      {/* =========================
+          PAGE HEADER
+      ========================= */}
+
+      <Box
         sx={{
-          p: {
-            xs: 2.5,
-            sm: 4,
-            md: 5,
-          },
-          borderRadius: 4,
-          border: "1px solid",
-          borderColor: "divider",
+          mb: 4,
         }}
       >
-        {/* Header */}
-
-        <Box
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
           sx={{
-            textAlign: "center",
-            mb: 4,
+            mb: 1,
           }}
         >
           <Box
             sx={{
-              width: 64,
-              height: 64,
-              mx: "auto",
-              mb: 2,
-              borderRadius: "50%",
+              width: 52,
+              height: 52,
+              borderRadius: 3,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               bgcolor: "primary.main",
               color: "primary.contrastText",
+              flexShrink: 0,
             }}
           >
-            <School fontSize="large" />
+            <School />
           </Box>
 
-          <Typography
-            variant="h4"
-            fontWeight={700}
+          <Box>
+            <Typography
+              variant="h4"
+              fontWeight={800}
+              sx={{
+                fontSize: {
+                  xs: "1.8rem",
+                  sm: "2.2rem",
+                  md: "2.5rem",
+                },
+              }}
+            >
+              Create New Course
+            </Typography>
+
+            <Typography
+              color="text.secondary"
+              sx={{
+                mt: 0.5,
+              }}
+            >
+              Create an engaging learning experience for
+              your students.
+            </Typography>
+          </Box>
+        </Stack>
+      </Box>
+
+      <Grid
+        container
+        spacing={4}
+        alignItems="flex-start"
+      >
+        {/* =================================================
+            LEFT - CREATE COURSE FORM
+        ================================================= */}
+
+        <Grid
+          size={{
+            xs: 12,
+            md: 7,
+          }}
+        >
+          <Paper
+            elevation={0}
             sx={{
-              fontSize: {
-                xs: "1.8rem",
-                sm: "2.2rem",
+              p: {
+                xs: 2.5,
+                sm: 4,
+                md: 4.5,
+              },
+              borderRadius: 4,
+              border: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            {/* FORM HEADER */}
+
+            <Box
+              sx={{
+                mb: 3,
+              }}
+            >
+              <Typography
+                variant="h6"
+                fontWeight={700}
+              >
+                Course Information
+              </Typography>
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  mt: 0.5,
+                }}
+              >
+                Enter the basic information about your
+                course.
+              </Typography>
+            </Box>
+
+            <Divider
+              sx={{
+                mb: 3,
+              }}
+            />
+
+            {/* ERROR */}
+
+            {error && (
+              <Alert
+                severity="error"
+                sx={{
+                  mb: 3,
+                  borderRadius: 2,
+                }}
+              >
+                {Array.isArray(error)
+                  ? error.join(", ")
+                  : error}
+              </Alert>
+            )}
+
+            {/* FORM */}
+
+            <Box
+              component="form"
+              onSubmit={handleSubmit}
+            >
+              <Grid
+                container
+                spacing={2.5}
+              >
+                {/* TITLE */}
+
+                <Grid
+                  size={{
+                    xs: 12,
+                  }}
+                >
+                  <TextField
+                    fullWidth
+                    required
+                    label="Course Title"
+                    name="title"
+                    placeholder="e.g. Full Stack Web Development"
+                    value={formData.title}
+                    onChange={handleChange}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <School color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+
+                {/* CATEGORY */}
+
+                <Grid
+                  size={{
+                    xs: 12,
+                    sm: 6,
+                  }}
+                >
+                  <TextField
+                    fullWidth
+                    required
+                    label="Category"
+                    name="category"
+                    placeholder="e.g. Web Development"
+                    value={formData.category}
+                    onChange={handleChange}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Category color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+
+                {/* PRICE */}
+
+                <Grid
+                  size={{
+                    xs: 12,
+                    sm: 6,
+                  }}
+                >
+                  <TextField
+                    fullWidth
+                    required
+                    type="number"
+                    label="Course Price"
+                    name="price"
+                    placeholder="0"
+                    value={formData.price}
+                    onChange={handleChange}
+                    slotProps={{
+                      htmlInput: {
+                        min: 0,
+                      },
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <CurrencyRupee color="action" />
+                          </InputAdornment>
+                        ),
+                      },
+                    }}
+                  />
+                </Grid>
+
+                {/* THUMBNAIL */}
+
+                <Grid
+                  size={{
+                    xs: 12,
+                  }}
+                >
+                  <TextField
+                    fullWidth
+                    label="Thumbnail URL"
+                    name="thumbnail"
+                    placeholder="https://example.com/course-image.jpg"
+                    value={formData.thumbnail}
+                    onChange={handleChange}
+                    helperText="Add a high-quality image URL for your course thumbnail."
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Image color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+
+                {/* DESCRIPTION */}
+
+                <Grid
+                  size={{
+                    xs: 12,
+                  }}
+                >
+                  <TextField
+                    fullWidth
+                    required
+                    multiline
+                    minRows={6}
+                    label="Course Description"
+                    name="description"
+                    placeholder="Describe what students will learn in this course..."
+                    value={formData.description}
+                    onChange={handleChange}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment
+                          position="start"
+                          sx={{
+                            alignSelf: "flex-start",
+                            mt: 1.5,
+                          }}
+                        >
+                          <Description color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+
+                {/* BUTTONS */}
+
+                <Grid
+                  size={{
+                    xs: 12,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: {
+                        xs: "column-reverse",
+                        sm: "row",
+                      },
+                      justifyContent: "flex-end",
+                      gap: 2,
+                      mt: 1,
+                    }}
+                  >
+                    <Button
+                      variant="outlined"
+                      onClick={handleCancel}
+                      disabled={loading}
+                      sx={{
+                        minWidth: 140,
+                        textTransform: "none",
+                        borderRadius: 2,
+                        py: 1.25,
+                      }}
+                    >
+                      Cancel
+                    </Button>
+
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      disabled={loading}
+                      startIcon={
+                        loading ? (
+                          <CircularProgress
+                            size={20}
+                            color="inherit"
+                          />
+                        ) : (
+                          <Save />
+                        )
+                      }
+                      sx={{
+                        minWidth: 180,
+                        textTransform: "none",
+                        borderRadius: 2,
+                        py: 1.25,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {loading
+                        ? "Creating..."
+                        : "Create Course"}
+                    </Button>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* =================================================
+            RIGHT - LIVE COURSE PREVIEW
+        ================================================= */}
+
+        <Grid
+          size={{
+            xs: 12,
+            md: 5,
+          }}
+        >
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: 4,
+              border: "1px solid",
+              borderColor: "divider",
+              overflow: "hidden",
+              position: {
+                xs: "static",
+                md: "sticky",
+              },
+              top: {
+                md: 20,
               },
             }}
           >
-            Create New Course
-          </Typography>
+            {/* PREVIEW HEADER */}
 
-          <Typography
-            color="text.secondary"
-            sx={{
-              mt: 1,
-            }}
-          >
-            Add course information and publish it on LearnHub.
-          </Typography>
-        </Box>
+            <Box
+              sx={{
+                px: 3,
+                py: 2.5,
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                borderBottom: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Visibility color="primary" />
 
-        <Divider sx={{ mb: 4 }} />
+              <Box>
+                <Typography
+                  fontWeight={700}
+                >
+                  Course Preview
+                </Typography>
 
-        {/* Error */}
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                >
+                  Live preview
+                </Typography>
+              </Box>
+            </Box>
 
-        {error && (
-          <Alert
-            severity="error"
-            sx={{
-              mb: 3,
-              borderRadius: 2,
-            }}
-          >
-            {Array.isArray(error)
-              ? error.join(", ")
-              : error}
-          </Alert>
-        )}
+            {/* THUMBNAIL */}
 
-        {/* Form */}
-
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-        >
-          <Grid container spacing={2.5}>
-            {/* Title */}
-
-            <Grid size={{ xs: 12 }}>
-              <TextField
-                fullWidth
-                required
-                label="Course Title"
-                name="title"
-                placeholder="e.g. Full Stack Web Development"
-                value={formData.title}
-                onChange={handleChange}
-              />
-            </Grid>
-
-            {/* Category */}
-
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                required
-                label="Category"
-                name="category"
-                placeholder="e.g. Web Development"
-                value={formData.category}
-                onChange={handleChange}
-              />
-            </Grid>
-
-            {/* Price */}
-
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                required
-                type="number"
-                label="Course Price"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                slotProps={{
-                  htmlInput: {
-                    min: 0,
-                  },
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        ₹
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
-            </Grid>
-
-            {/* Thumbnail */}
-
-            <Grid size={{ xs: 12 }}>
-              <TextField
-                fullWidth
-                label="Thumbnail URL"
-                name="thumbnail"
-                placeholder="https://example.com/course-image.jpg"
-                value={formData.thumbnail}
-                onChange={handleChange}
-                helperText="Optional — add an image URL for the course thumbnail."
-              />
-            </Grid>
-
-            {/* Thumbnail Preview */}
-
-            {formData.thumbnail && (
-              <Grid size={{ xs: 12 }}>
+            <Box
+              sx={{
+                height: {
+                  xs: 220,
+                  sm: 260,
+                },
+                position: "relative",
+                overflow: "hidden",
+                background:
+                  "linear-gradient(135deg, #1976d2, #7b1fa2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {formData.thumbnail ? (
                 <Box
                   component="img"
                   src={formData.thumbnail}
-                  alt="Course thumbnail preview"
+                  alt="Course preview"
                   onError={(e) => {
-                    e.currentTarget.style.display = "none";
+                    e.currentTarget.style.display =
+                      "none";
                   }}
                   sx={{
                     width: "100%",
-                    maxHeight: 250,
+                    height: "100%",
                     objectFit: "cover",
-                    borderRadius: 3,
-                    border: "1px solid",
-                    borderColor: "divider",
+                    display: "block",
                   }}
                 />
-              </Grid>
-            )}
+              ) : (
+                <Box
+                  sx={{
+                    textAlign: "center",
+                    color: "white",
+                  }}
+                >
+                  <Image
+                    sx={{
+                      fontSize: 60,
+                      opacity: 0.8,
+                    }}
+                  />
 
-            {/* Description */}
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mt: 1,
+                      opacity: 0.9,
+                    }}
+                  >
+                    Course thumbnail
+                  </Typography>
+                </Box>
+              )}
 
-            <Grid size={{ xs: 12 }}>
-              <TextField
-                fullWidth
-                required
-                multiline
-                minRows={5}
-                label="Course Description"
-                name="description"
-                placeholder="Describe what students will learn in this course..."
-                value={formData.description}
-                onChange={handleChange}
+              {/* PREVIEW LABEL */}
+
+              <Chip
+                label="Preview"
+                size="small"
+                sx={{
+                  position: "absolute",
+                  top: 15,
+                  left: 15,
+                  bgcolor: "rgba(0,0,0,0.6)",
+                  color: "white",
+                  backdropFilter: "blur(5px)",
+                }}
               />
-            </Grid>
+            </Box>
 
-            {/* Buttons */}
+            {/* COURSE PREVIEW CONTENT */}
 
-            <Grid size={{ xs: 12 }}>
+            <Box
+              sx={{
+                p: 3,
+              }}
+            >
+              {/* CATEGORY */}
+
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{
+                  mb: 1.5,
+                }}
+              >
+                {formData.category && (
+                  <Chip
+                    label={formData.category}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                  />
+                )}
+
+                <Chip
+                  label="Beginner"
+                  size="small"
+                  variant="outlined"
+                />
+              </Stack>
+
+              {/* TITLE */}
+
+              <Typography
+                variant="h5"
+                fontWeight={700}
+                sx={{
+                  lineHeight: 1.25,
+                  wordBreak: "break-word",
+                }}
+              >
+                {formData.title ||
+                  "Your Course Title"}
+              </Typography>
+
+              {/* DESCRIPTION */}
+
+              <Typography
+                color="text.secondary"
+                sx={{
+                  mt: 1.5,
+                  lineHeight: 1.7,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {formData.description ||
+                  "Your course description will appear here. Add a clear description to help students understand what they will learn."}
+              </Typography>
+
+              <Divider
+                sx={{
+                  my: 2.5,
+                }}
+              />
+
+              {/* PRICE */}
+
               <Box
                 sx={{
                   display: "flex",
-                  flexDirection: {
-                    xs: "column-reverse",
-                    sm: "row",
-                  },
-                  justifyContent: "flex-end",
-                  gap: 2,
-                  mt: 1,
+                  alignItems: "center",
+                  justifyContent: "space-between",
                 }}
               >
-                <Button
-                  variant="outlined"
-                  onClick={() => navigate("/courses")}
-                  disabled={loading}
-                  sx={{
-                    minWidth: 140,
-                    textTransform: "none",
-                    borderRadius: 2,
-                    py: 1.2,
-                  }}
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
                 >
-                  Cancel
-                </Button>
+                  Course Price
+                </Typography>
 
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={loading}
-                  startIcon={
-                    loading ? (
-                      <CircularProgress
-                        size={20}
-                        color="inherit"
-                      />
-                    ) : (
-                      <Save />
-                    )
-                  }
-                  sx={{
-                    minWidth: 170,
-                    textTransform: "none",
-                    borderRadius: 2,
-                    py: 1.2,
-                  }}
+                <Typography
+                  variant="h5"
+                  fontWeight={800}
+                  color="success.main"
                 >
-                  {loading
-                    ? "Creating..."
-                    : "Create Course"}
-                </Button>
+                  ₹
+                  {formData.price !== ""
+                    ? Number(
+                        formData.price
+                      ).toLocaleString("en-IN")
+                    : "0"}
+                </Typography>
               </Box>
-            </Grid>
-          </Grid>
-        </Box>
-      </Paper>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
     </Container>
   );
 };
