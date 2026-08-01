@@ -1,10 +1,15 @@
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 
-import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Enrollment } from './entities/enrollment.entity';
 import { Course } from '../courses/entities/course.entity';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class EnrollmentService {
@@ -14,13 +19,137 @@ export class EnrollmentService {
 
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
+
+  // =====================================================
+  // STUDENT ENROLL
+  // POST /enrollments
+  // =====================================================
+
+  async createEnrollment(
+    userId: number,
+    courseId: number,
+  ) {
+    // Find student
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(
+        'User not found',
+      );
+    }
+
+    // Find course
+    const course = await this.courseRepository.findOne({
+      where: {
+        id: courseId,
+      },
+    });
+
+    if (!course) {
+      throw new NotFoundException(
+        'Course not found',
+      );
+    }
+
+    // Prevent duplicate enrollment
+    const existingEnrollment =
+      await this.enrollmentRepository.findOne({
+        where: {
+          user: {
+            id: userId,
+          },
+          course: {
+            id: courseId,
+          },
+        },
+      });
+
+    if (existingEnrollment) {
+      throw new BadRequestException(
+        'You are already enrolled in this course',
+      );
+    }
+
+    // Create enrollment
+    const enrollment =
+      this.enrollmentRepository.create({
+        user,
+        course,
+        progress: 0,
+        completed: false,
+      });
+
+    const savedEnrollment =
+      await this.enrollmentRepository.save(
+        enrollment,
+      );
+
+    return {
+      message: 'Course enrolled successfully',
+      enrollment: savedEnrollment,
+    };
+  }
+
+  // =====================================================
+  // STUDENT MY COURSES
+  // GET /enrollments/my-courses
+  // =====================================================
+
+  async getMyCourses(userId: number) {
+    const enrollments =
+      await this.enrollmentRepository.find({
+        where: {
+          user: {
+            id: userId,
+          },
+        },
+
+        relations: {
+          course: true,
+        },
+
+        order: {
+          enrolledAt: 'DESC',
+        },
+      });
+
+    return enrollments.map((enrollment) => ({
+      enrollmentId: enrollment.id,
+
+      progress: enrollment.progress,
+
+      completed: enrollment.completed,
+
+      enrolledAt: enrollment.enrolledAt,
+
+      course: {
+        id: enrollment.course.id,
+        title: enrollment.course.title,
+        description:
+          enrollment.course.description,
+        thumbnail:
+          enrollment.course.thumbnail || null,
+        price: Number(enrollment.course.price),
+        category: enrollment.course.category,
+      },
+    }));
+  }
 
   // =====================================================
   // TEACHER DASHBOARD
   // =====================================================
 
-  async getTeacherDashboard(teacherId: number) {
+  async getTeacherDashboard(
+    teacherId: number,
+  ) {
     // =====================================================
     // GET ALL COURSES CREATED BY THIS TEACHER
     // =====================================================
@@ -30,6 +159,7 @@ export class EnrollmentService {
         where: {
           teacherId,
         },
+
         order: {
           createdAt: 'DESC',
         },
@@ -128,9 +258,7 @@ export class EnrollmentService {
       }
     >();
 
-    // First add ALL teacher courses
-    // Even if there are zero students
-
+    // Add ALL teacher courses
     for (const course of teacherCourses) {
       courseMap.set(course.id, {
         id: course.id,
@@ -143,7 +271,7 @@ export class EnrollmentService {
       });
     }
 
-    // Then add enrolled students
+    // Add enrolled students
     for (const enrollment of enrollments) {
       const course = enrollment.course;
       const student = enrollment.user;
@@ -190,4 +318,3 @@ export class EnrollmentService {
     };
   }
 }
-

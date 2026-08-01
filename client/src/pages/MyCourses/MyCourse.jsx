@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -21,7 +20,10 @@ import {
   ArrowForward,
 } from "@mui/icons-material";
 
-import { getMyCourses } from "../../services/enrollmentService";
+import {
+  getMyCourses,
+  getTeacherDashboard,
+} from "../../services/enrollmentService";
 
 const MyCourse = () => {
   const navigate = useNavigate();
@@ -29,15 +31,77 @@ const MyCourse = () => {
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [user, setUser] = useState(null);
+
+  // =========================
+  // GET USER
+  // =========================
 
   useEffect(() => {
-    fetchEnrollments();
+    const storedUser = localStorage.getItem("user");
+
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.log("User data error:", error);
+      }
+    }
   }, []);
 
-  const fetchEnrollments = async () => {
+  // =========================
+  // FETCH COURSES
+  // =========================
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  const fetchCourses = async () => {
     try {
       setLoading(true);
       setError("");
+
+      const storedUser = localStorage.getItem("user");
+
+      let currentUser = null;
+
+      try {
+        currentUser = storedUser
+          ? JSON.parse(storedUser)
+          : null;
+      } catch (error) {
+        console.log("User data error:", error);
+      }
+
+      // =====================================
+      // TEACHER
+      // =====================================
+
+      if (currentUser?.role === "teacher") {
+        const response = await getTeacherDashboard();
+
+        const teacherCourses =
+          response.data?.courses || [];
+
+        // Teacher dashboard ke courses ko
+        // enrollment format me convert kar rahe hain
+        const formattedCourses =
+          teacherCourses.map((course) => ({
+            id: course.id,
+            course: course,
+            progress: 0,
+            completed: false,
+          }));
+
+        setEnrollments(formattedCourses);
+
+        return;
+      }
+
+      // =====================================
+      // STUDENT
+      // =====================================
 
       const response = await getMyCourses();
 
@@ -73,6 +137,12 @@ const MyCourse = () => {
     );
   }
 
+  // =========================
+  // ROLE
+  // =========================
+
+  const isTeacher = user?.role === "teacher";
+
   return (
     <Container
       maxWidth="xl"
@@ -107,7 +177,9 @@ const MyCourse = () => {
           mb: 4,
         }}
       >
-        Courses you are currently enrolled in
+        {isTeacher
+          ? "Courses you have created"
+          : "Courses you are currently enrolled in"}
       </Typography>
 
       {/* =========================
@@ -154,14 +226,20 @@ const MyCourse = () => {
             variant="h6"
             fontWeight={600}
           >
-            You haven't enrolled in any course yet.
+            {isTeacher
+              ? "You haven't created any course yet."
+              : "You haven't enrolled in any course yet."}
           </Typography>
 
           <Typography
             color="text.secondary"
-            sx={{ mt: 1 }}
+            sx={{
+              mt: 1,
+            }}
           >
-            Explore our courses and start learning.
+            {isTeacher
+              ? "Create your first course to start teaching."
+              : "Explore our courses and start learning."}
           </Typography>
 
           <Button
@@ -171,9 +249,17 @@ const MyCourse = () => {
               borderRadius: 2,
               textTransform: "none",
             }}
-            onClick={() => navigate("/courses")}
+            onClick={() =>
+              navigate(
+                isTeacher
+                  ? "/courses/create"
+                  : "/courses"
+              )
+            }
           >
-            Explore Courses
+            {isTeacher
+              ? "Create Course"
+              : "Explore Courses"}
           </Button>
         </Box>
       ) : (
@@ -217,33 +303,58 @@ const MyCourse = () => {
                     },
                   }}
                 >
-                  {/* COURSE IMAGE AREA */}
+                  {/* =========================
+                      COURSE THUMBNAIL
+                  ========================= */}
 
                   <Box
                     sx={{
-                      height: 130,
+                      height: 180,
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
                       background:
                         "linear-gradient(135deg, #1976d2, #7b1fa2)",
                       color: "white",
+                      overflow: "hidden",
                     }}
                   >
-                    <School
-                      sx={{
-                        fontSize: 55,
-                      }}
-                    />
+                    {course.thumbnail ? (
+                      <Box
+                        component="img"
+                        src={course.thumbnail}
+                        alt={course.title}
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          display: "block",
+                        }}
+                        onError={(event) => {
+                          event.currentTarget.style.display =
+                            "none";
+                        }}
+                      />
+                    ) : (
+                      <School
+                        sx={{
+                          fontSize: 55,
+                        }}
+                      />
+                    )}
                   </Box>
 
-                  {/* COURSE CONTENT */}
+                  {/* =========================
+                      COURSE CONTENT
+                  ========================= */}
 
                   <CardContent
                     sx={{
                       flexGrow: 1,
                     }}
                   >
+                    {/* CATEGORY */}
+
                     {course.category && (
                       <Chip
                         label={course.category}
@@ -256,12 +367,16 @@ const MyCourse = () => {
                       />
                     )}
 
+                    {/* TITLE */}
+
                     <Typography
                       variant="h6"
                       fontWeight={700}
                     >
                       {course.title}
                     </Typography>
+
+                    {/* DESCRIPTION */}
 
                     <Typography
                       variant="body2"
@@ -278,6 +393,8 @@ const MyCourse = () => {
                         "No description available."}
                     </Typography>
 
+                    {/* PRICE */}
+
                     <Typography
                       fontWeight={700}
                       color="primary"
@@ -288,23 +405,29 @@ const MyCourse = () => {
                       ₹{course.price ?? 0}
                     </Typography>
 
-                    {/* PROGRESS */}
+                    {/* =========================
+                        STUDENT PROGRESS ONLY
+                    ========================= */}
 
-                    {typeof enrollment.progress ===
-                      "number" && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          mt: 1,
-                        }}
-                      >
-                        Progress: {enrollment.progress}%
-                      </Typography>
-                    )}
+                    {!isTeacher &&
+                      typeof enrollment.progress ===
+                        "number" && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            mt: 1,
+                          }}
+                        >
+                          Progress:{" "}
+                          {enrollment.progress}%
+                        </Typography>
+                      )}
                   </CardContent>
 
-                  {/* BUTTON */}
+                  {/* =========================
+                      BUTTON
+                  ========================= */}
 
                   <CardActions
                     sx={{
@@ -325,7 +448,9 @@ const MyCourse = () => {
                         borderRadius: 2,
                       }}
                     >
-                      Continue Learning
+                      {isTeacher
+                        ? "View Course"
+                        : "Continue Learning"}
                     </Button>
                   </CardActions>
                 </Card>
@@ -339,4 +464,3 @@ const MyCourse = () => {
 };
 
 export default MyCourse;
-

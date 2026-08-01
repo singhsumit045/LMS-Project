@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { createEnrollment } from "../../services/enrollmentService";
@@ -61,7 +60,7 @@ const CourseDetails = () => {
   const [videosError, setVideosError] = useState("");
 
   // =========================
-  // GET USER
+  // GET LOGGED-IN USER
   // =========================
 
   const storedUser = localStorage.getItem("user");
@@ -74,9 +73,21 @@ const CourseDetails = () => {
     console.log("User data error:", error);
   }
 
-  const isTeacherOrAdmin =
-    user?.role === "teacher" ||
-    user?.role === "admin";
+  // =========================
+  // ROLE + COURSE OWNER CHECK
+  // =========================
+
+  const isAdmin = user?.role === "admin";
+
+  const isCourseOwner =
+    user?.role === "teacher" &&
+    (
+      Number(course?.teacher?.id) === Number(user?.id) ||
+      Number(course?.teacherId) === Number(user?.id)
+    );
+
+  const canManageCourse =
+    isAdmin || isCourseOwner;
 
   // =========================
   // ENROLL
@@ -105,7 +116,7 @@ const CourseDetails = () => {
   };
 
   // =========================
-  // FETCH COURSE
+  // FETCH COURSE + VIDEOS
   // =========================
 
   useEffect(() => {
@@ -113,12 +124,18 @@ const CourseDetails = () => {
     fetchVideos();
   }, [id]);
 
+  // =========================
+  // FETCH COURSE
+  // =========================
+
   const fetchCourse = async () => {
     try {
       setLoading(true);
       setError("");
 
       const response = await getCourseById(id);
+
+      console.log("Course API response:", response.data);
 
       setCourse(response.data);
     } catch (error) {
@@ -224,6 +241,9 @@ const CourseDetails = () => {
   const instructorInitial =
     instructorName.charAt(0).toUpperCase();
 
+  const thumbnail =
+    course.thumbnail || "";
+
   return (
     <Container
       maxWidth="xl"
@@ -255,46 +275,64 @@ const CourseDetails = () => {
       <Paper
         elevation={0}
         sx={{
-          p: {
-            xs: 3,
-            md: 5,
-          },
-
           mb: 4,
-
           borderRadius: 4,
-
+          overflow: "hidden",
           background:
             "linear-gradient(135deg, #1976d2 0%, #7b1fa2 100%)",
-
           color: "white",
-
-          overflow: "hidden",
         }}
       >
         <Grid
           container
-          spacing={4}
-          alignItems="center"
+          spacing={0}
+          alignItems="stretch"
         >
+          {/* HERO CONTENT */}
+
           <Grid
             size={{
               xs: 12,
-              md: 8,
+              md: 7,
             }}
           >
-            <Stack
-              direction="row"
-              spacing={1}
-              flexWrap="wrap"
-              useFlexGap
+            <Box
               sx={{
-                mb: 2,
+                p: {
+                  xs: 3,
+                  md: 5,
+                },
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
               }}
             >
-              {course.category && (
+              <Stack
+                direction="row"
+                spacing={1}
+                flexWrap="wrap"
+                useFlexGap
+                sx={{
+                  mb: 2,
+                }}
+              >
+                {course.category && (
+                  <Chip
+                    label={course.category}
+                    sx={{
+                      color: "white",
+                      borderColor:
+                        "rgba(255,255,255,0.5)",
+                      backgroundColor:
+                        "rgba(255,255,255,0.12)",
+                    }}
+                    variant="outlined"
+                  />
+                )}
+
                 <Chip
-                  label={course.category}
+                  label={course.level || "Beginner"}
                   sx={{
                     color: "white",
                     borderColor:
@@ -304,141 +342,159 @@ const CourseDetails = () => {
                   }}
                   variant="outlined"
                 />
-              )}
+              </Stack>
 
-              <Chip
-                label={course.level || "Beginner"}
+              <Typography
+                variant="h2"
+                fontWeight={700}
                 sx={{
-                  color: "white",
-                  borderColor:
-                    "rgba(255,255,255,0.5)",
-                  backgroundColor:
-                    "rgba(255,255,255,0.12)",
-                }}
-                variant="outlined"
-              />
-            </Stack>
-
-            <Typography
-              variant="h2"
-              fontWeight={700}
-              sx={{
-                fontSize: {
-                  xs: "2rem",
-                  sm: "2.5rem",
-                  md: "3.2rem",
-                },
-                lineHeight: 1.15,
-              }}
-            >
-              {course.title}
-            </Typography>
-
-            <Typography
-              sx={{
-                mt: 2,
-                opacity: 0.9,
-                fontSize: {
-                  xs: "1rem",
-                  md: "1.15rem",
-                },
-                maxWidth: 750,
-              }}
-            >
-              {course.description}
-            </Typography>
-
-            {/* COURSE META */}
-
-            <Stack
-              direction="row"
-              spacing={2}
-              flexWrap="wrap"
-              useFlexGap
-              sx={{
-                mt: 3,
-              }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0.7,
+                  fontSize: {
+                    xs: "2rem",
+                    sm: "2.5rem",
+                    md: "3.2rem",
+                  },
+                  lineHeight: 1.15,
                 }}
               >
-                <AccessTime />
+                {course.title}
+              </Typography>
 
-                <Typography>
-                  {course.duration || "10 Hours"}
-                </Typography>
-              </Box>
-
-              <Box
+              <Typography
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0.7,
+                  mt: 2,
+                  opacity: 0.9,
+                  fontSize: {
+                    xs: "1rem",
+                    md: "1.15rem",
+                  },
+                  maxWidth: 750,
                 }}
               >
-                <Star />
+                {course.description}
+              </Typography>
 
-                <Typography>
-                  {course.rating || "4.8"} Rating
-                </Typography>
-              </Box>
+              {/* COURSE META */}
 
-              <Box
+              <Stack
+                direction="row"
+                spacing={2}
+                flexWrap="wrap"
+                useFlexGap
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0.7,
+                  mt: 3,
                 }}
               >
-                <School />
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.7,
+                  }}
+                >
+                  <AccessTime />
 
-                <Typography>
-                  Beginner Friendly
-                </Typography>
-              </Box>
-            </Stack>
+                  <Typography>
+                    {course.duration || "10 Hours"}
+                  </Typography>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.7,
+                  }}
+                >
+                  <Star />
+
+                  <Typography>
+                    {course.rating || "4.8"} Rating
+                  </Typography>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.7,
+                  }}
+                >
+                  <School />
+
+                  <Typography>
+                    Beginner Friendly
+                  </Typography>
+                </Box>
+              </Stack>
+            </Box>
           </Grid>
 
-          {/* HERO ICON */}
+          {/* HERO THUMBNAIL */}
 
           <Grid
             size={{
               xs: 12,
-              md: 4,
+              md: 5,
             }}
           >
             <Box
               sx={{
                 minHeight: {
-                  xs: 180,
-                  md: 240,
+                  xs: 240,
+                  md: 360,
                 },
+
+                height: "100%",
+
+                position: "relative",
 
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
 
-                borderRadius: 4,
-
-                backgroundColor:
-                  "rgba(255,255,255,0.12)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.2)",
+                background:
+                  "linear-gradient(135deg, #1976d2, #7b1fa2)",
               }}
             >
-              <PlayCircle
-                sx={{
-                  fontSize: {
-                    xs: 80,
-                    md: 110,
-                  },
-                }}
-              />
+              {thumbnail ? (
+                <Box
+                  component="img"
+                  src={thumbnail}
+                  alt={course.title}
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    minHeight: {
+                      xs: 240,
+                      md: 360,
+                    },
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
+              ) : (
+                <PlayCircle
+                  sx={{
+                    fontSize: {
+                      xs: 80,
+                      md: 110,
+                    },
+                  }}
+                />
+              )}
+
+              {/* IMAGE OVERLAY */}
+
+              {thumbnail && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    inset: 0,
+                    background:
+                      "linear-gradient(to top, rgba(0,0,0,0.25), rgba(0,0,0,0.02))",
+                  }}
+                />
+              )}
             </Box>
           </Grid>
         </Grid>
@@ -636,7 +692,9 @@ const CourseDetails = () => {
               )}
           </Paper>
 
-          {/* WHAT YOU WILL LEARN */}
+          {/* =========================
+              WHAT YOU WILL LEARN
+          ========================= */}
 
           <Paper
             elevation={0}
@@ -704,7 +762,9 @@ const CourseDetails = () => {
             </Grid>
           </Paper>
 
-          {/* COURSE DESCRIPTION */}
+          {/* =========================
+              COURSE DESCRIPTION
+          ========================= */}
 
           <Paper
             elevation={0}
@@ -743,7 +803,9 @@ const CourseDetails = () => {
             </Typography>
           </Paper>
 
-          {/* INSTRUCTOR */}
+          {/* =========================
+              INSTRUCTOR
+          ========================= */}
 
           <Paper
             elevation={0}
@@ -834,7 +896,9 @@ const CourseDetails = () => {
               },
             }}
           >
-            {/* COURSE PREVIEW */}
+            {/* =========================
+                COURSE THUMBNAIL
+            ========================= */}
 
             <Box
               sx={{
@@ -842,21 +906,38 @@ const CourseDetails = () => {
 
                 borderRadius: 3,
 
+                overflow: "hidden",
+
+                position: "relative",
+
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
 
                 background:
                   "linear-gradient(135deg, #1976d2, #7b1fa2)",
-
-                color: "white",
               }}
             >
-              <PlayCircle
-                sx={{
-                  fontSize: 70,
-                }}
-              />
+              {thumbnail ? (
+                <Box
+                  component="img"
+                  src={thumbnail}
+                  alt={course.title}
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
+              ) : (
+                <PlayCircle
+                  sx={{
+                    fontSize: 70,
+                    color: "white",
+                  }}
+                />
+              )}
             </Box>
 
             {/* PRICE */}
@@ -876,7 +957,7 @@ const CourseDetails = () => {
                 STUDENT ENROLL
             ========================= */}
 
-            {!isTeacherOrAdmin && (
+            {user?.role === "student" && (
               <>
                 <Button
                   fullWidth
@@ -915,52 +996,52 @@ const CourseDetails = () => {
             )}
 
             {/* =========================
-                TEACHER / ADMIN EDIT
+                COURSE OWNER / ADMIN
             ========================= */}
 
-            {isTeacherOrAdmin && (
-              <Button
-                fullWidth
-                variant="outlined"
-                size="large"
-                startIcon={<Edit />}
-                sx={{
-                  mt: 3,
-                  py: 1.3,
-                  borderRadius: 2,
-                }}
-                onClick={() =>
-                  navigate(
-                    `/courses/edit/${course.id}`
-                  )
-                }
-              >
-                Edit Course
-              </Button>
-            )}
+            {canManageCourse && (
+              <>
+                {/* EDIT COURSE */}
 
-            {/* =========================
-                TEACHER / ADMIN MANAGE CONTENT
-            ========================= */}
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  size="large"
+                  startIcon={<Edit />}
+                  sx={{
+                    mt: 3,
+                    py: 1.3,
+                    borderRadius: 2,
+                  }}
+                  onClick={() =>
+                    navigate(
+                      `/courses/edit/${course.id}`
+                    )
+                  }
+                >
+                  Edit Course
+                </Button>
 
-            {isTeacherOrAdmin && (
-              <Button
-                fullWidth
-                variant="contained"
-                size="large"
-                sx={{
-                  mt: 2,
-                  py: 1.3,
-                  borderRadius: 2,
-                }}
-                onClick={() =>
-                  navigate(
-                    `/courses/${course.id}/manage-content`
-                  )
-                }
-              >
-                Manage Content
-              </Button>
+                {/* MANAGE CONTENT */}
+
+                <Button
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    mt: 2,
+                    py: 1.3,
+                    borderRadius: 2,
+                  }}
+                  onClick={() =>
+                    navigate(
+                      `/courses/${course.id}/manage-content`
+                    )
+                  }
+                >
+                  Manage Content
+                </Button>
+              </>
             )}
 
             <Divider
