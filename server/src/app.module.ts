@@ -10,6 +10,7 @@ import { EnrollmentsModule } from './enrollments/enrollments.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { VideosModule } from './videos/videos.module';
 import { AdminModule } from './admin/admin.module';
+import { PresenceModule } from './presence/presence.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AdminModule } from './admin/admin.module';
     EnrollmentsModule,
     VideosModule,
     AdminModule,
+    PresenceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

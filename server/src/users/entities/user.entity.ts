@@ -22,4 +22,18 @@ export class User {
 
   @Column({ type: 'varchar', length: 1000, nullable: true })
   profileImageUrl!: string | null;
+
+  // =========================
+  // ONLINE / OFFLINE STATUS
+  // =========================
+
+  @Column({ default: false })
+  isOnline!: boolean;
+
+  // =========================
+  // LAST ACTIVE TIME
+  // =========================
+
+  @Column({ type: 'datetime', nullable: true })
+  lastSeen!: Date | null;
 }

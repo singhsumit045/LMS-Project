@@ -226,7 +226,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           }
         />
 
-
         {/* =================================================
             MY COURSES
         ================================================= */}
@@ -235,7 +234,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/my-courses"
           element={<MyCourses />}
         />
-
 
         {/* =================================================
             ADMIN

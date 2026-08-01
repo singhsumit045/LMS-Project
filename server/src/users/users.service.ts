@@ -1,3 +1,4 @@
+
 import { Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -125,19 +126,33 @@ export class UsersService {
     });
   }
 
+  // =========================
+  // UPDATE PROFILE IMAGE
+  // =========================
+
+  async updateProfileImage(
+    id: number,
+    profileImageUrl: string,
+  ) {
+    await this.userRepository.update(id, {
+      profileImageUrl,
+    });
+
+    return await this.findOne(id);
+  }
 
   // =========================
-// UPDATE PROFILE IMAGE
-// =========================
+  // UPDATE ONLINE STATUS
+  // =========================
 
-async updateProfileImage(
-  id: number,
-  profileImageUrl: string,
-) {
-  await this.userRepository.update(id, {
-    profileImageUrl,
-  });
+  async updateOnlineStatus(
+    userId: number,
+    isOnline: boolean,
+  ) {
+    await this.userRepository.update(userId, {
+      isOnline,
+      lastSeen: new Date(),
+    });
+  }
+}
 
-  return await this.findOne(id);
-}
-}

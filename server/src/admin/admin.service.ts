@@ -1,3 +1,4 @@
+
 import {
   Injectable,
   NotFoundException,
@@ -78,6 +79,13 @@ export class AdminService {
       name: user.name,
       email: user.email,
       role: user.role,
+
+      // Profile Picture
+      profileImageUrl: user.profileImageUrl,
+
+      // Online / Offline
+      isOnline: user.isOnline,
+      lastSeen: user.lastSeen,
     }));
   }
 
@@ -133,3 +141,4 @@ export class AdminService {
     };
   }
 }
+
