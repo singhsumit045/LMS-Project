@@ -46,16 +46,15 @@ import ManageVideos from "../pages/ManageVideos/ManageVideos";
 // =========================
 
 import ManageUsers from "../pages/Admin/ManageUsers";
-
+import ManageEnrollments from "../pages/Admin/ManageEnrollments";
+import ManageCourses from "../pages/Admin/ManageCourses";
 
 // =========================
 // APP ROUTES
 // =========================
 
 const AppRoutes = ({ darkMode, toggleTheme }) => {
-
   return (
-
     <Routes>
 
       {/* =====================================================
@@ -80,27 +79,23 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
 
       {/* =====================================================
           PROTECTED ROUTES
-          WITH MAIN LAYOUT
+          ALL INSIDE MAIN LAYOUT
+          → Navbar will appear automatically
       ===================================================== */}
 
       <Route
         element={
           <ProtectedRoute>
-
             <MainLayout
               darkMode={darkMode}
               toggleTheme={toggleTheme}
             />
-
           </ProtectedRoute>
         }
       >
 
         {/* =================================================
             DASHBOARD
-            Student  → StudentDashboard
-            Teacher  → TeacherDashboard
-            Admin    → AdminDashboard
         ================================================= */}
 
         <Route
@@ -153,9 +148,7 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
                 "admin",
               ]}
             >
-
               <CreateCourse />
-
             </RoleProtectedRoute>
           }
         />
@@ -175,9 +168,7 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
                 "admin",
               ]}
             >
-
               <ManageCourseContent />
-
             </RoleProtectedRoute>
           }
         />
@@ -197,9 +188,7 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
                 "admin",
               ]}
             >
-
               <EditCourse />
-
             </RoleProtectedRoute>
           }
         />
@@ -219,12 +208,11 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
                 "admin",
               ]}
             >
-
               <ManageVideos />
-
             </RoleProtectedRoute>
           }
         />
+
 
         {/* =================================================
             MY COURSES
@@ -234,6 +222,7 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/my-courses"
           element={<MyCourses />}
         />
+
 
         {/* =================================================
             ADMIN
@@ -245,13 +234,46 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/admin/users"
           element={
             <RoleProtectedRoute
-              allowedRoles={[
-                "admin",
-              ]}
+              allowedRoles={["admin"]}
             >
-
               <ManageUsers />
+            </RoleProtectedRoute>
+          }
+        />
 
+
+        {/* =================================================
+            ADMIN
+            MANAGE ENROLLMENTS
+            ADMIN ONLY
+        ================================================= */}
+
+        <Route
+          path="/admin/enrollments"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={["admin"]}
+            >
+              <ManageEnrollments />
+            </RoleProtectedRoute>
+          }
+        />
+
+
+        {/* =================================================
+            ADMIN
+            MANAGE COURSES
+            ADMIN ONLY
+            → Navbar included through MainLayout
+        ================================================= */}
+
+        <Route
+          path="/admin/courses"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={["admin"]}
+            >
+              <ManageCourses />
             </RoleProtectedRoute>
           }
         />
@@ -271,6 +293,5 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
     </Routes>
   );
 };
-
 
 export default AppRoutes;

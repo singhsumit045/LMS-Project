@@ -25,6 +25,34 @@ export class EnrollmentService {
   ) {}
 
   // =====================================================
+// ADMIN — REMOVE ENROLLMENT
+// DELETE /enrollments/admin/:id
+// =====================================================
+
+async removeEnrollmentForAdmin(enrollmentId: number) {
+  const enrollment =
+    await this.enrollmentRepository.findOne({
+      where: {
+        id: enrollmentId,
+      },
+    });
+
+  if (!enrollment) {
+    throw new NotFoundException(
+      'Enrollment not found',
+    );
+  }
+
+  await this.enrollmentRepository.remove(
+    enrollment,
+  );
+
+  return {
+    message: 'Enrollment removed successfully',
+  };
+}
+
+  // =====================================================
   // STUDENT ENROLL
   // POST /enrollments
   // =====================================================
@@ -140,6 +168,60 @@ export class EnrollmentService {
         price: Number(enrollment.course.price),
         category: enrollment.course.category,
       },
+    }));
+  }
+
+
+    // =====================================================
+  // ADMIN — GET ALL ENROLLMENTS
+  // GET /enrollments/admin
+  // =====================================================
+
+  async getAllEnrollmentsForAdmin() {
+    const enrollments =
+      await this.enrollmentRepository.find({
+        relations: {
+          user: true,
+          course: {
+            teacher: true,
+          },
+        },
+
+        order: {
+          enrolledAt: 'DESC',
+        },
+      });
+
+    return enrollments.map((enrollment) => ({
+      enrollmentId: enrollment.id,
+
+      student: {
+        id: enrollment.user.id,
+        name: enrollment.user.name,
+        email: enrollment.user.email,
+      },
+
+      course: {
+        id: enrollment.course.id,
+        title: enrollment.course.title,
+      },
+
+      teacher: enrollment.course.teacher
+        ? {
+            id: enrollment.course.teacher.id,
+            name: enrollment.course.teacher.name,
+          }
+        : null,
+
+      progress: enrollment.progress,
+
+      completed: enrollment.completed,
+
+      status: enrollment.completed
+        ? 'Completed'
+        : 'In Progress',
+
+      enrolledAt: enrollment.enrolledAt,
     }));
   }
 
@@ -270,6 +352,8 @@ export class EnrollmentService {
         students: [],
       });
     }
+
+
 
     // Add enrolled students
     for (const enrollment of enrollments) {

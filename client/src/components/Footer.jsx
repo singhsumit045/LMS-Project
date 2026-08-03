@@ -285,30 +285,52 @@ const Footer = () => {
               direction="row"
               spacing={1}
             >
+              {/* =========================
+                  GITHUB
+              ========================= */}
+
               <IconButton
-                aria-label="GitHub"
+                component="a"
+                href="https://github.com/singhsumit045"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub Profile"
                 sx={{
                   color: "inherit",
                   backgroundColor:
                     "rgba(255,255,255,0.1)",
+                  transition: "0.2s",
+
                   "&:hover": {
                     backgroundColor:
                       "rgba(255,255,255,0.2)",
+                    transform: "translateY(-3px)",
                   },
                 }}
               >
                 <GitHub />
               </IconButton>
 
+              {/* =========================
+                  LINKEDIN
+              ========================= */}
+
               <IconButton
-                aria-label="LinkedIn"
+                component="a"
+                href="https://www.linkedin.com/in/sumit-kumar-b9305738b/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn Profile"
                 sx={{
                   color: "inherit",
                   backgroundColor:
                     "rgba(255,255,255,0.1)",
+                  transition: "0.2s",
+
                   "&:hover": {
                     backgroundColor:
                       "rgba(255,255,255,0.2)",
+                    transform: "translateY(-3px)",
                   },
                 }}
               >

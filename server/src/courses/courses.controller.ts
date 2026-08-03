@@ -69,6 +69,17 @@ export class CoursesController {
   }
 
   // =========================
+// ADMIN — GET ALL COURSES
+// =========================
+
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
+@Get('admin')
+getAllCoursesForAdmin() {
+  return this.coursesService.getAllCoursesForAdmin();
+}
+
+  // =========================
   // GET COURSE BY ID
   // =========================
 

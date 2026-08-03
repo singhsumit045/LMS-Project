@@ -238,7 +238,7 @@ const AdminDashboard = () => {
                 "View and manage all courses created by teachers on the platform.",
             icon: <LibraryBooks />,
             color: "secondary.main",
-            action: () => navigate("/courses"),
+            action: () => navigate("/admin/courses"),
         },
 
         {

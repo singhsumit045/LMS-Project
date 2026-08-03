@@ -5,10 +5,14 @@ import {
   Body,
   Req,
   UseGuards,
+  Param,
+  Delete,
 } from '@nestjs/common';
 
 import { EnrollmentService } from './enrollments.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
 @Controller('enrollments')
 export class EnrollmentController {
@@ -58,4 +62,27 @@ export class EnrollmentController {
       req.user.id,
     );
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
+@Get('admin')
+getAllEnrollmentsForAdmin() {
+  return this.enrollmentService.getAllEnrollmentsForAdmin();
+}
+
+// =====================================================
+// ADMIN — REMOVE ENROLLMENT
+// DELETE /enrollments/admin/:id
+// =====================================================
+
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
+@Delete('admin/:id')
+removeEnrollmentForAdmin(
+  @Param('id') id: string,
+) {
+  return this.enrollmentService.removeEnrollmentForAdmin(
+    Number(id),
+  );
+}
 }
