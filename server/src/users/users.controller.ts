@@ -1,3 +1,4 @@
+
 import {
   Controller,
   Get,
@@ -27,51 +28,108 @@ export class UsersController {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
+  // =====================================================
+  // GET ALL USERS
+  // =====================================================
+
   @Get()
   findAll() {
     return this.usersService.findAll();
   }
+
+  // =====================================================
+  // GET USER BY ID
+  // =====================================================
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }
 
+  // =====================================================
+  // UPDATE USER PROFILE
+  // =====================================================
+
   @Patch(':id')
   update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.usersService.update(+id, updateUserDto);
+    return this.usersService.update(
+      +id,
+      updateUserDto,
+    );
   }
+
+  // =====================================================
+  // DELETE USER
+  // =====================================================
 
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
   }
 
-  // =========================
-  // UPLOAD PROFILE PICTURE
-  // =========================
+  // =====================================================
+  // UPLOAD / UPDATE PROFILE PICTURE
+  // =====================================================
 
   @Post('profile-picture')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file'),
+  )
   async uploadProfilePicture(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile()
+    file: Express.Multer.File,
+
     @Req() req: any,
   ) {
-    const result = await this.cloudinaryService.uploadImage(file);
+    // -----------------------------------------------------
+    // CHECK FILE
+    // -----------------------------------------------------
+
+    if (!file) {
+      return {
+        message: 'Profile picture is required',
+      };
+    }
+
+    // -----------------------------------------------------
+    // UPLOAD NEW IMAGE TO CLOUDINARY
+    // -----------------------------------------------------
+
+    const result =
+      await this.cloudinaryService.uploadImage(
+        file,
+      );
+
+    // -----------------------------------------------------
+    // SAVE NEW IMAGE
+    // AND DELETE OLD IMAGE
+    // -----------------------------------------------------
 
     const updatedUser =
       await this.usersService.updateProfileImage(
         req.user.id,
         result.secure_url as string,
+        result.public_id as string,
       );
 
+    // -----------------------------------------------------
+    // RESPONSE
+    // -----------------------------------------------------
+
     return {
-      message: 'Profile picture uploaded successfully',
-      profileImageUrl: updatedUser?.profileImageUrl,
+      message:
+        'Profile picture updated successfully',
+
+      profileImageUrl:
+        updatedUser?.profileImageUrl,
+
+      profileImagePublicId:
+        updatedUser?.profileImagePublicId,
     };
   }
 }
+

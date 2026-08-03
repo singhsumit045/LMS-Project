@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -14,13 +18,18 @@ export class VideosService {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
+  // =========================
+  // UPLOAD VIDEO
+  // =========================
+
   async uploadVideo(
     file: any,
     title: string,
     description: string,
     courseId: number,
   ) {
-    const result = await this.cloudinaryService.uploadVideo(file);
+    const result =
+      await this.cloudinaryService.uploadVideo(file);
 
     const video = this.videoRepository.create({
       title,
@@ -34,6 +43,10 @@ export class VideosService {
     return this.videoRepository.save(video);
   }
 
+  // =========================
+  // GET VIDEOS BY COURSE
+  // =========================
+
   async getVideosByCourse(courseId: number) {
     return this.videoRepository.find({
       where: {
@@ -44,4 +57,46 @@ export class VideosService {
       },
     });
   }
+
+  // =========================
+  // DELETE VIDEO
+  // =========================
+
+  async deleteVideo(id: number) {
+    const video =
+      await this.videoRepository.findOne({
+        where: {
+          id,
+        },
+      });
+
+    if (!video) {
+      throw new NotFoundException(
+        'Video not found.',
+      );
+    }
+
+    // =========================
+    // DELETE FROM CLOUDINARY
+    // =========================
+
+    if (video.publicId) {
+      await this.cloudinaryService.deleteFile(
+        video.publicId,
+        'video',
+      );
+    }
+
+    // =========================
+    // DELETE FROM DATABASE
+    // =========================
+
+    await this.videoRepository.delete(id);
+
+    return {
+      message:
+        'Video deleted successfully.',
+    };
+  }
 }
+

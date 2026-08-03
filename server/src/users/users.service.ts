@@ -1,10 +1,15 @@
 
 import { Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import { User } from './entities/user.entity';
 import { RegisterDto } from '../auth/dto/register.dto';
+
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -12,11 +17,13 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  // =========================
+  // =====================================================
   // CREATE USER
-  // =========================
+  // =====================================================
 
   async create(registerDto: RegisterDto) {
     const hashedPassword = await bcrypt.hash(
@@ -32,17 +39,17 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
-  // =========================
+  // =====================================================
   // GET ALL USERS
-  // =========================
+  // =====================================================
 
   async findAll() {
     return await this.userRepository.find();
   }
 
-  // =========================
+  // =====================================================
   // GET USER BY ID
-  // =========================
+  // =====================================================
 
   async findOne(id: number) {
     return await this.userRepository.findOne({
@@ -50,9 +57,9 @@ export class UsersService {
     });
   }
 
-  // =========================
+  // =====================================================
   // GET USER BY EMAIL
-  // =========================
+  // =====================================================
 
   async findByEmail(email: string) {
     return await this.userRepository.findOne({
@@ -60,9 +67,9 @@ export class UsersService {
     });
   }
 
-  // =========================
+  // =====================================================
   // UPDATE USER PROFILE
-  // =========================
+  // =====================================================
 
   async update(
     id: number,
@@ -76,9 +83,9 @@ export class UsersService {
     return await this.findOne(id);
   }
 
-  // =========================
+  // =====================================================
   // UPDATE PASSWORD
-  // =========================
+  // =====================================================
 
   async updatePassword(
     id: number,
@@ -91,11 +98,41 @@ export class UsersService {
     return await this.findOne(id);
   }
 
-  // =========================
+  // =====================================================
   // DELETE USER
-  // =========================
+  // =====================================================
 
   async remove(id: number) {
+    const user = await this.findOne(id);
+
+    if (!user) {
+      return {
+        message: 'User not found',
+      };
+    }
+
+    // -----------------------------------------------------
+    // DELETE PROFILE IMAGE FROM CLOUDINARY
+    // -----------------------------------------------------
+
+    if (user.profileImagePublicId) {
+      try {
+        await this.cloudinaryService.deleteFile(
+          user.profileImagePublicId,
+          'image',
+        );
+      } catch (error) {
+        console.error(
+          'Failed to delete profile image from Cloudinary:',
+          error,
+        );
+      }
+    }
+
+    // -----------------------------------------------------
+    // DELETE USER FROM DATABASE
+    // -----------------------------------------------------
+
     await this.userRepository.delete(id);
 
     return {
@@ -103,9 +140,9 @@ export class UsersService {
     };
   }
 
-  // =========================
+  // =====================================================
   // SAVE HASHED REFRESH TOKEN
-  // =========================
+  // =====================================================
 
   async updateRefreshToken(
     id: number,
@@ -116,9 +153,9 @@ export class UsersService {
     });
   }
 
-  // =========================
+  // =====================================================
   // REMOVE REFRESH TOKEN
-  // =========================
+  // =====================================================
 
   async removeRefreshToken(id: number) {
     await this.userRepository.update(id, {
@@ -126,24 +163,54 @@ export class UsersService {
     });
   }
 
-  // =========================
+  // =====================================================
   // UPDATE PROFILE IMAGE
-  // =========================
+  // =====================================================
 
   async updateProfileImage(
     id: number,
     profileImageUrl: string,
+    profileImagePublicId: string,
   ) {
+    const user = await this.findOne(id);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // -----------------------------------------------------
+    // DELETE OLD PROFILE IMAGE
+    // -----------------------------------------------------
+
+    if (user.profileImagePublicId) {
+      try {
+        await this.cloudinaryService.deleteFile(
+          user.profileImagePublicId,
+          'image',
+        );
+      } catch (error) {
+        console.error(
+          'Failed to delete old profile image:',
+          error,
+        );
+      }
+    }
+
+    // -----------------------------------------------------
+    // SAVE NEW PROFILE IMAGE
+    // -----------------------------------------------------
+
     await this.userRepository.update(id, {
       profileImageUrl,
+      profileImagePublicId,
     });
 
     return await this.findOne(id);
   }
 
-  // =========================
+  // =====================================================
   // UPDATE ONLINE STATUS
-  // =========================
+  // =====================================================
 
   async updateOnlineStatus(
     userId: number,

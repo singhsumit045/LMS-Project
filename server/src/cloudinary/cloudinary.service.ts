@@ -12,49 +12,147 @@ interface UploadedFile {
 export class CloudinaryService {
   constructor() {
     cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
+      cloud_name:
+        process.env.CLOUDINARY_CLOUD_NAME,
+
+      api_key:
+        process.env.CLOUDINARY_API_KEY,
+
+      api_secret:
+        process.env.CLOUDINARY_API_SECRET,
     });
   }
 
- async uploadImage(file: UploadedFile): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: 'learnhub/profiles',
-        resource_type: 'image',
-      },
-      (error, result) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(result);
-        }
+  // =====================================================
+  // UPLOAD IMAGE
+  // =====================================================
+
+  async uploadImage(
+    file: UploadedFile,
+  ): Promise<any> {
+    return new Promise(
+      (resolve, reject) => {
+        const uploadStream =
+          cloudinary.uploader.upload_stream(
+            {
+              folder:
+                'learnhub/profiles',
+              resource_type: 'image',
+            },
+
+            (error, result) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            },
+          );
+
+        uploadStream.end(file.buffer);
       },
     );
+  }
 
-    uploadStream.end(file.buffer);
-  });
-}
+  // =====================================================
+  // UPLOAD VIDEO
+  // =====================================================
 
-async uploadVideo(file: UploadedFile): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: 'learnhub/videos',
-        resource_type: 'video',
-      },
-      (error, result) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(result);
-        }
+  async uploadVideo(
+    file: UploadedFile,
+  ): Promise<any> {
+    return new Promise(
+      (resolve, reject) => {
+        const uploadStream =
+          cloudinary.uploader.upload_stream(
+            {
+              folder:
+                'learnhub/videos',
+              resource_type: 'video',
+            },
+
+            (error, result) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            },
+          );
+
+        uploadStream.end(file.buffer);
       },
     );
+  }
 
-    uploadStream.end(file.buffer);
-  });
-}
+  // =====================================================
+  // UPLOAD PDF NOTE
+  // =====================================================
+
+  async uploadNote(
+    file: UploadedFile,
+  ): Promise<any> {
+    return new Promise(
+      (resolve, reject) => {
+        const uploadStream =
+          cloudinary.uploader.upload_stream(
+            {
+              folder:
+                'learnhub/notes',
+
+              resource_type: 'raw',
+
+              // Keep original PDF extension
+              use_filename: true,
+
+              unique_filename: true,
+            },
+
+            (error, result) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            },
+          );
+
+        uploadStream.end(file.buffer);
+      },
+    );
+  }
+
+  // =====================================================
+  // DELETE FILE FROM CLOUDINARY
+  // =====================================================
+
+  async deleteFile(
+    publicId: string,
+
+    resourceType:
+      | 'image'
+      | 'video'
+      | 'raw' = 'image',
+  ): Promise<any> {
+    return new Promise(
+      (resolve, reject) => {
+        cloudinary.uploader.destroy(
+          publicId,
+
+          {
+            resource_type:
+              resourceType,
+          },
+
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          },
+        );
+      },
+    );
+  }
 }

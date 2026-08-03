@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -38,9 +37,9 @@ const ManageCourseContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // =========================
+  // =====================================================
   // FETCH COURSE
-  // =========================
+  // =====================================================
 
   useEffect(() => {
     fetchCourse();
@@ -66,9 +65,9 @@ const ManageCourseContent = () => {
     }
   };
 
-  // =========================
+  // =====================================================
   // LOADING
-  // =========================
+  // =====================================================
 
   if (loading) {
     return (
@@ -85,9 +84,9 @@ const ManageCourseContent = () => {
     );
   }
 
-  // =========================
+  // =====================================================
   // ERROR
-  // =========================
+  // =====================================================
 
   if (error || !course) {
     return (
@@ -120,9 +119,9 @@ const ManageCourseContent = () => {
     );
   }
 
-  // =========================
+  // =====================================================
   // CONTENT OPTIONS
-  // =========================
+  // =====================================================
 
   const contentOptions = [
     {
@@ -134,15 +133,17 @@ const ManageCourseContent = () => {
       color: "primary",
       available: true,
     },
+
     {
       title: "Notes",
       description:
         "Upload PDFs, documents and other learning materials.",
       icon: <Description />,
-      button: "Coming Soon",
+      button: "Manage Notes",
       color: "secondary",
-      available: false,
+      available: true,
     },
+
     {
       title: "Posts",
       description:
@@ -152,6 +153,7 @@ const ManageCourseContent = () => {
       color: "warning",
       available: false,
     },
+
     {
       title: "Exams",
       description:
@@ -162,6 +164,30 @@ const ManageCourseContent = () => {
       available: false,
     },
   ];
+
+  // =====================================================
+  // HANDLE CONTENT NAVIGATION
+  // =====================================================
+
+  const handleContentNavigation = (title) => {
+    if (title === "Videos") {
+      navigate(
+        `/courses/${course.id}/manage-videos`
+      );
+      return;
+    }
+
+    if (title === "Notes") {
+      navigate(
+        `/courses/${course.id}/manage-notes`
+      );
+      return;
+    }
+  };
+
+  // =====================================================
+  // PAGE
+  // =====================================================
 
   return (
     <Container
@@ -209,7 +235,9 @@ const ManageCourseContent = () => {
           container
           alignItems="stretch"
         >
-          {/* THUMBNAIL */}
+          {/* =================================================
+              THUMBNAIL
+          ================================================= */}
 
           <Grid
             size={{
@@ -277,7 +305,9 @@ const ManageCourseContent = () => {
             </Box>
           </Grid>
 
-          {/* COURSE INFORMATION */}
+          {/* =================================================
+              COURSE INFORMATION
+          ================================================= */}
 
           <Grid
             size={{
@@ -371,9 +401,7 @@ const ManageCourseContent = () => {
                     gap: 1,
                   }}
                 >
-                  <PlayCircle
-                    color="primary"
-                  />
+                  <PlayCircle color="primary" />
 
                   <Typography
                     variant="body2"
@@ -390,9 +418,7 @@ const ManageCourseContent = () => {
                     gap: 1,
                   }}
                 >
-                  <School
-                    color="primary"
-                  />
+                  <School color="primary" />
 
                   <Typography
                     variant="body2"
@@ -476,7 +502,9 @@ const ManageCourseContent = () => {
                   : {},
               }}
             >
-              {/* ICON */}
+              {/* =================================================
+                  ICON
+              ================================================= */}
 
               <Box
                 sx={{
@@ -487,7 +515,6 @@ const ManageCourseContent = () => {
                   alignItems: "center",
                   justifyContent: "center",
                   mb: 2.5,
-                  bgcolor: `${item.color}.lighter`,
                   color: `${item.color}.main`,
                   backgroundColor:
                     item.color === "primary"
@@ -502,7 +529,9 @@ const ManageCourseContent = () => {
                 {item.icon}
               </Box>
 
-              {/* TITLE */}
+              {/* =================================================
+                  TITLE
+              ================================================= */}
 
               <Box
                 sx={{
@@ -528,7 +557,9 @@ const ManageCourseContent = () => {
                 )}
               </Box>
 
-              {/* DESCRIPTION */}
+              {/* =================================================
+                  DESCRIPTION
+              ================================================= */}
 
               <Typography
                 color="text.secondary"
@@ -541,7 +572,9 @@ const ManageCourseContent = () => {
                 {item.description}
               </Typography>
 
-              {/* STATUS */}
+              {/* =================================================
+                  STATUS
+              ================================================= */}
 
               {!item.available && (
                 <Chip
@@ -554,7 +587,9 @@ const ManageCourseContent = () => {
                 />
               )}
 
-              {/* BUTTON */}
+              {/* =================================================
+                  BUTTON
+              ================================================= */}
 
               <Button
                 fullWidth
@@ -571,13 +606,11 @@ const ManageCourseContent = () => {
                     <Lock />
                   )
                 }
-                onClick={() => {
-                  if (item.title === "Videos") {
-                    navigate(
-                      `/courses/${course.id}/manage-videos`
-                    );
-                  }
-                }}
+                onClick={() =>
+                  handleContentNavigation(
+                    item.title
+                  )
+                }
                 sx={{
                   py: 1.2,
                   borderRadius: 2,
@@ -610,9 +643,7 @@ const ManageCourseContent = () => {
           backgroundColor: "action.hover",
         }}
       >
-        <Typography
-          fontWeight={700}
-        >
+        <Typography fontWeight={700}>
           💡 Content Management
         </Typography>
 
@@ -624,10 +655,9 @@ const ManageCourseContent = () => {
             lineHeight: 1.7,
           }}
         >
-          Start by adding video lessons to your course.
-          More content types such as notes, posts and
-          exams will be available here as they are added
-          to LearnHub.
+          You can now manage video lessons and notes
+          for this course. Posts and exams will be
+          available here in future updates.
         </Typography>
       </Paper>
     </Container>
@@ -635,4 +665,3 @@ const ManageCourseContent = () => {
 };
 
 export default ManageCourseContent;
-

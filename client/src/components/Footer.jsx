@@ -73,6 +73,7 @@ const Footer = () => {
                 mb: 2,
               }}
             >
+
               <Box
                 component="img"
                 src={logo}

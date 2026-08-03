@@ -11,6 +11,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { VideosModule } from './videos/videos.module';
 import { AdminModule } from './admin/admin.module';
 import { PresenceModule } from './presence/presence.module';
+import { NotesModule } from './notes/notes.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { PresenceModule } from './presence/presence.module';
     VideosModule,
     AdminModule,
     PresenceModule,
+    NotesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

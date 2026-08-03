@@ -39,7 +39,9 @@ import MyCourses from "../pages/MyCourses/MyCourse";
 
 import ManageCourseContent from "../pages/Courses/ManageCourseContent/ManageCourseContent";
 
-import ManageVideos from "../pages/ManageVideos/ManageVideos";
+import ManageVideos from "../pages/Courses/ManageVideos/ManageVideos";
+
+import ManageNotes from "../pages/Courses/ManageNotes/ManageNotes";
 
 // =========================
 // Admin
@@ -76,11 +78,9 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         element={<Register />}
       />
 
-
       {/* =====================================================
           PROTECTED ROUTES
           ALL INSIDE MAIN LAYOUT
-          → Navbar will appear automatically
       ===================================================== */}
 
       <Route
@@ -103,7 +103,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           element={<DashboardRouter />}
         />
 
-
         {/* =================================================
             PROFILE
         ================================================= */}
@@ -112,7 +111,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/profile"
           element={<Profile />}
         />
-
 
         {/* =================================================
             COURSES
@@ -123,7 +121,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           element={<CourseList />}
         />
 
-
         {/* =================================================
             COURSE DETAILS
         ================================================= */}
@@ -132,7 +129,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/:id"
           element={<CourseDetails />}
         />
-
 
         {/* =================================================
             CREATE COURSE
@@ -153,7 +149,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           }
         />
 
-
         {/* =================================================
             MANAGE COURSE CONTENT
             TEACHER + ADMIN
@@ -172,7 +167,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
             </RoleProtectedRoute>
           }
         />
-
 
         {/* =================================================
             EDIT COURSE
@@ -193,7 +187,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           }
         />
 
-
         {/* =================================================
             MANAGE VIDEOS
             TEACHER + ADMIN
@@ -213,6 +206,24 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           }
         />
 
+        {/* =================================================
+            MANAGE NOTES
+            TEACHER + ADMIN
+        ================================================= */}
+
+        <Route
+          path="/courses/:id/manage-notes"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
+            >
+              <ManageNotes />
+            </RoleProtectedRoute>
+          }
+        />
 
         {/* =================================================
             MY COURSES
@@ -223,11 +234,9 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           element={<MyCourses />}
         />
 
-
         {/* =================================================
             ADMIN
             MANAGE USERS
-            ADMIN ONLY
         ================================================= */}
 
         <Route
@@ -241,11 +250,9 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           }
         />
 
-
         {/* =================================================
             ADMIN
             MANAGE ENROLLMENTS
-            ADMIN ONLY
         ================================================= */}
 
         <Route
@@ -259,12 +266,9 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           }
         />
 
-
         {/* =================================================
             ADMIN
             MANAGE COURSES
-            ADMIN ONLY
-            → Navbar included through MainLayout
         ================================================= */}
 
         <Route
@@ -279,7 +283,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         />
 
       </Route>
-
 
       {/* =====================================================
           404
