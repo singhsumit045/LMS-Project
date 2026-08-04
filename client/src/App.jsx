@@ -4,44 +4,103 @@ import socket from "./services/socket";
 
 function App({ darkMode, toggleTheme }) {
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const accessToken =
+      localStorage.getItem("access_token");
 
-    console.log("🔑 Access Token:", token);
+    console.log(
+      "🔑 Access Token:",
+      accessToken ? "Available" : "Not Found"
+    );
 
-    if (!token) {
+    if (!accessToken) {
       console.log("❌ Access token not found");
       return;
     }
 
+    // ==========================================
+    // Send access_token to WebSocket
+    // ==========================================
+
     socket.auth = {
-      token,
+      access_token: accessToken,
     };
 
-    socket.connect();
+    // ==========================================
+    // Socket Events
+    // ==========================================
 
-    socket.on("connect", () => {
-      console.log("🟢 Socket connected:", socket.id);
-    });
+    const handleConnect = () => {
+      console.log(
+        "🟢 Socket connected:",
+        socket.id
+      );
+    };
 
-    socket.on("connect_error", (error) => {
-      console.error("❌ Socket connection error:", error.message);
-    });
+    const handleConnectError = (error) => {
+      console.error(
+        "❌ Socket connection error:",
+        error.message
+      );
+    };
 
-    socket.on("user-online", (data) => {
-      console.log("🟢 User online:", data);
-    });
+    const handleUserOnline = (data) => {
+      console.log(
+        "🟢 User online:",
+        data
+      );
+    };
 
-    socket.on("user-offline", (data) => {
-      console.log("⚪ User offline:", data);
-    });
+    const handleUserOffline = (data) => {
+      console.log(
+        "⚪ User offline:",
+        data
+      );
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on(
+      "connect_error",
+      handleConnectError
+    );
+    socket.on(
+      "user-online",
+      handleUserOnline
+    );
+    socket.on(
+      "user-offline",
+      handleUserOffline
+    );
+
+    // ==========================================
+    // Connect socket
+    // ==========================================
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    // ==========================================
+    // Cleanup
+    // ==========================================
 
     return () => {
-      socket.off("connect");
-      socket.off("connect_error");
-      socket.off("user-online");
-      socket.off("user-offline");
+      socket.off("connect", handleConnect);
+      socket.off(
+        "connect_error",
+        handleConnectError
+      );
+      socket.off(
+        "user-online",
+        handleUserOnline
+      );
+      socket.off(
+        "user-offline",
+        handleUserOffline
+      );
 
-      socket.disconnect();
+      if (socket.connected) {
+        socket.disconnect();
+      }
     };
   }, []);
 

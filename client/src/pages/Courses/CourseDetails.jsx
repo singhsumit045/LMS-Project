@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createEnrollment } from "../../services/enrollmentService";
 
@@ -80,6 +79,20 @@ const CourseDetails = () => {
   const [videos, setVideos] = useState([]);
   const [videosLoading, setVideosLoading] = useState(true);
   const [videosError, setVideosError] = useState("");
+
+  // =====================================================
+  // VIDEO PROGRESS STATE
+  // =====================================================
+
+  const [videoProgress, setVideoProgress] = useState({});
+  const [courseProgress, setCourseProgress] = useState({
+    progress: 0,
+    completedVideos: 0,
+    totalVideos: 0,
+    completed: false,
+  });
+  const [progressLoading, setProgressLoading] = useState(false);
+  const progressMilestones = useRef({});
 
   // =====================================================
   // NOTES STATE
@@ -181,6 +194,150 @@ const CourseDetails = () => {
       setNotesLoading(false);
     }
   };
+  
+  // =====================================================
+  // FETCH COURSE PROGRESS
+  // =====================================================
+
+  const fetchProgress = async (courseId, courseVideos) => {
+    if (user?.role !== "student" || !courseId) return;
+
+    try {
+      setProgressLoading(true);
+
+      const courseResponse = await api.get(
+        `/video-progress/course/${courseId}`
+      );
+
+      setCourseProgress(
+        courseResponse.data || {
+          progress: 0,
+          completedVideos: 0,
+          totalVideos: courseVideos.length,
+          completed: false,
+        }
+      );
+
+      if (Array.isArray(courseVideos) && courseVideos.length > 0) {
+        const results = await Promise.all(
+          courseVideos.map(async (video) => {
+            try {
+              const response = await api.get(
+                `/video-progress/video/${video.id}`
+              );
+
+              return [
+                video.id,
+                response.data || {
+                  watchedPercentage: 0,
+                  completed: false,
+                },
+              ];
+            } catch (error) {
+              console.log(
+                `Unable to fetch progress for video ${video.id}:`,
+                error
+              );
+
+              return [
+                video.id,
+                {
+                  watchedPercentage: 0,
+                  completed: false,
+                },
+              ];
+            }
+          })
+        );
+
+        setVideoProgress(Object.fromEntries(results));
+      }
+    } catch (error) {
+      // Not enrolled users should still be able to view the course.
+      console.log(
+        "Course progress not available:",
+        error.response?.data?.message || error.message
+      );
+
+      setCourseProgress({
+        progress: 0,
+        completedVideos: 0,
+        totalVideos: courseVideos.length,
+        completed: false,
+      });
+    } finally {
+      setProgressLoading(false);
+    }
+  };
+
+  // =====================================================
+  // SAVE VIDEO PROGRESS
+  // =====================================================
+
+  const handleVideoProgress = async (event, videoId) => {
+    if (user?.role !== "student") return;
+
+    const videoElement = event.currentTarget;
+
+    if (!videoElement.duration || !Number.isFinite(videoElement.duration)) {
+      return;
+    }
+
+    const percentage = Math.min(
+      100,
+      Math.max(
+        0,
+        (videoElement.currentTime / videoElement.duration) * 100
+      )
+    );
+
+    const roundedPercentage = Math.floor(percentage);
+
+    // Save only at 10% milestones to avoid sending a request on every
+    // video time update. The 90% milestone completes the video.
+    const milestone = Math.floor(roundedPercentage / 10) * 10;
+
+    if (milestone < 10) return;
+    if (progressMilestones.current[videoId] === milestone) return;
+
+    progressMilestones.current[videoId] = milestone;
+
+    try {
+      const response = await api.post(
+        `/video-progress/${videoId}`,
+        {
+          watchedPercentage: roundedPercentage,
+        }
+      );
+
+      const data = response.data;
+
+      setVideoProgress((prev) => ({
+        ...prev,
+        [videoId]: {
+          ...(prev[videoId] || {}),
+          watchedPercentage: data.watchedPercentage ?? roundedPercentage,
+          completed: data.videoCompleted ?? roundedPercentage >= 90,
+        },
+      }));
+
+      if (typeof data.courseProgress === "number") {
+        setCourseProgress((prev) => ({
+          ...prev,
+          progress: data.courseProgress,
+          completedVideos: data.completedVideos ?? prev.completedVideos,
+          totalVideos: data.totalVideos ?? prev.totalVideos,
+          completed: data.courseCompleted ?? data.courseProgress >= 100,
+        }));
+      }
+    } catch (error) {
+      // Do not disturb video playback if progress API fails.
+      console.log(
+        `Unable to save progress for video ${videoId}:`,
+        error.response?.data?.message || error.message
+      );
+    }
+  };
 
   // =====================================================
   // INITIAL LOAD
@@ -189,10 +346,23 @@ const CourseDetails = () => {
   useEffect(() => {
     if (!id) return;
 
-    fetchCourse();
-    fetchVideos();
-    fetchNotes();
+    const loadPage = async () => {
+      await Promise.all([
+        fetchCourse(),
+        fetchVideos(),
+        fetchNotes(),
+      ]);
+    };
+
+    loadPage();
   }, [id]);
+
+  // Fetch progress after videos are loaded.
+  useEffect(() => {
+    if (!id || user?.role !== "student" || videos.length === 0) return;
+
+    fetchProgress(id, videos);
+  }, [id, videos.length, user?.role]);
 
   // =====================================================
   // ENROLL
@@ -655,6 +825,68 @@ const CourseDetails = () => {
               </Box>
             </Box>
 
+            {user?.role === "student" && (
+              <Box
+                sx={{
+                  mb: 3,
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: "action.hover",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 1,
+                  }}
+                >
+                  <Typography fontWeight={700}>
+                    Your Course Progress
+                  </Typography>
+                  <Typography
+                    fontWeight={800}
+                    color="primary.main"
+                  >
+                    {Math.round(courseProgress.progress || 0)}%
+                  </Typography>
+                </Box>
+
+                <Box
+                  sx={{
+                    height: 9,
+                    borderRadius: 10,
+                    bgcolor: "divider",
+                    overflow: "hidden",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: `${Math.min(
+                        100,
+                        courseProgress.progress || 0
+                      )}%`,
+                      height: "100%",
+                      bgcolor: "primary.main",
+                      transition: "width 0.3s ease",
+                    }}
+                  />
+                </Box>
+
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", mt: 0.8 }}
+                >
+                  {courseProgress.completedVideos || 0} of {
+                    courseProgress.totalVideos || videos.length
+                  } videos completed
+                  {courseProgress.completed && " • Course Completed 🎉"}
+                </Typography>
+              </Box>
+            )}
+
             {videosLoading && (
               <Box
                 sx={{
@@ -722,6 +954,23 @@ const CourseDetails = () => {
                         <video
                           controls
                           preload="metadata"
+                          onLoadedMetadata={(event) => {
+                            const savedProgress =
+                              videoProgress[video.id]?.watchedPercentage || 0;
+
+                            if (
+                              savedProgress > 0 &&
+                              savedProgress < 100 &&
+                              event.currentTarget.duration
+                            ) {
+                              event.currentTarget.currentTime =
+                                (savedProgress / 100) *
+                                event.currentTarget.duration;
+                            }
+                          }}
+                          onTimeUpdate={(event) =>
+                            handleVideoProgress(event, video.id)
+                          }
                           style={{
                             display: "block",
                             width: "100%",
@@ -753,6 +1002,62 @@ const CourseDetails = () => {
                         >
                           {index + 1}. {video.title}
                         </Typography>
+
+                        {user?.role === "student" && (
+                          <Box sx={{ mt: 1.5 }}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                mb: 0.6,
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                Video Progress
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                fontWeight={700}
+                                color={
+                                  videoProgress[video.id]?.completed
+                                    ? "success.main"
+                                    : "text.secondary"
+                                }
+                              >
+                                {Math.round(
+                                  videoProgress[video.id]?.watchedPercentage || 0
+                                )}%
+                                {videoProgress[video.id]?.completed &&
+                                  " • Completed"}
+                              </Typography>
+                            </Box>
+                            <Box
+                              sx={{
+                                height: 7,
+                                borderRadius: 10,
+                                bgcolor: "action.hover",
+                                overflow: "hidden",
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  width: `${Math.min(
+                                    100,
+                                    videoProgress[video.id]?.watchedPercentage || 0
+                                  )}%`,
+                                  height: "100%",
+                                  bgcolor: videoProgress[video.id]?.completed
+                                    ? "success.main"
+                                    : "primary.main",
+                                  transition: "width 0.25s ease",
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        )}
 
                         {video.description && (
                           <Typography
@@ -1473,4 +1778,3 @@ const CourseDetails = () => {
 };
 
 export default CourseDetails;
-

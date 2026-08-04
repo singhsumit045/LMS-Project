@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -221,5 +220,23 @@ export class UsersService {
       lastSeen: new Date(),
     });
   }
-}
 
+  // =====================================================
+  // RESET ALL ONLINE STATUS
+  // =====================================================
+
+  async resetAllOnlineStatus() {
+    await this.userRepository
+      .createQueryBuilder()
+      .update(User)
+      .set({
+        isOnline: false,
+        lastSeen: new Date(),
+      })
+      .execute();
+
+    console.log(
+      '🔄 All users have been marked as OFFLINE',
+    );
+  }
+}
