@@ -14,6 +14,7 @@ import { PresenceModule } from './presence/presence.module';
 import { NotesModule } from './notes/notes.module';
 import { VideoProgressModule } from './video-progress/video-progress.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
+import { ExamsModule } from './exams/exams.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { AnnouncementsModule } from './announcements/announcements.module';
     NotesModule,
     VideoProgressModule,
     AnnouncementsModule,
+    ExamsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

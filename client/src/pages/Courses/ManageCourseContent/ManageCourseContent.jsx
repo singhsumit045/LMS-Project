@@ -23,7 +23,6 @@ import {
   Quiz,
   School,
   PlayCircle,
-  Lock,
   ArrowForward,
 } from "@mui/icons-material";
 
@@ -159,9 +158,9 @@ const ManageCourseContent = () => {
       description:
         "Create quizzes, exams and assessments for students.",
       icon: <Quiz />,
-      button: "Coming Soon",
+      button: "Manage Exams",
       color: "success",
-      available: false,
+      available: true,
     },
   ];
 
@@ -191,6 +190,17 @@ const ManageCourseContent = () => {
     if (title === "Posts") {
       navigate(
         `/courses/${course.id}/manage-announcements`
+      );
+      return;
+    }
+
+    // =================================================
+    // MANAGE EXAMS
+    // =================================================
+
+    if (title === "Exams") {
+      navigate(
+        `/courses/${course.id}/manage-exams`
       );
       return;
     }
@@ -502,15 +512,13 @@ const ManageCourseContent = () => {
                 transition:
                   "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
 
-                "&:hover": item.available
-                  ? {
-                      transform:
-                        "translateY(-5px)",
-                      boxShadow: 5,
-                      borderColor:
-                        `${item.color}.main`,
-                    }
-                  : {},
+                "&:hover": {
+                  transform:
+                    "translateY(-5px)",
+                  boxShadow: 5,
+                  borderColor:
+                    `${item.color}.main`,
+                },
               }}
             >
               {/* =================================================
@@ -559,13 +567,6 @@ const ManageCourseContent = () => {
                 >
                   {item.title}
                 </Typography>
-
-                {!item.available && (
-                  <Lock
-                    fontSize="small"
-                    color="disabled"
-                  />
-                )}
               </Box>
 
               {/* =================================================
@@ -584,39 +585,13 @@ const ManageCourseContent = () => {
               </Typography>
 
               {/* =================================================
-                  STATUS
-              ================================================= */}
-
-              {!item.available && (
-                <Chip
-                  label="Coming Soon"
-                  size="small"
-                  sx={{
-                    alignSelf: "flex-start",
-                    mb: 2,
-                  }}
-                />
-              )}
-
-              {/* =================================================
                   BUTTON
               ================================================= */}
 
               <Button
                 fullWidth
-                variant={
-                  item.available
-                    ? "contained"
-                    : "outlined"
-                }
-                disabled={!item.available}
-                endIcon={
-                  item.available ? (
-                    <ArrowForward />
-                  ) : (
-                    <Lock />
-                  )
-                }
+                variant="contained"
+                endIcon={<ArrowForward />}
                 onClick={() =>
                   handleContentNavigation(
                     item.title
@@ -666,9 +641,8 @@ const ManageCourseContent = () => {
             lineHeight: 1.7,
           }}
         >
-          You can now manage video lessons, notes and
-          announcements for this course. Exams will be
-          available here in future updates.
+          You can now manage video lessons, notes,
+          announcements and exams for this course.
         </Typography>
       </Paper>
     </Container>

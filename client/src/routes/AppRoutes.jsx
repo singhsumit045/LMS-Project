@@ -32,8 +32,8 @@ import NotFound from "../pages/NotFound/NotFound";
 
 import CourseList from "../pages/Courses/CourseList";
 import CreateCourse from "../pages/Courses/CreateCourse";
-import CourseDetails from "../pages/Courses/CourseDetails";
 import EditCourse from "../pages/Courses/EditCourse";
+import CourseDetails from "../pages/Courses/CourseDetails";
 
 import MyCourses from "../pages/MyCourses/MyCourse";
 
@@ -42,7 +42,12 @@ import ManageCourseContent from "../pages/Courses/ManageCourseContent/ManageCour
 import ManageVideos from "../pages/Courses/ManageVideos/ManageVideos";
 
 import ManageNotes from "../pages/Courses/ManageNotes/ManageNotes";
+
 import ManageAnnouncements from "../pages/Courses/ManageAnnouncements/ManageAnnouncements";
+
+// Actual file: ManageExam.jsx
+import ManageExams from "../pages/Courses/ManageExam/ManageExam";
+import ManageQuestions from "../pages/Courses/ManageExam/ManageQuestions";
 
 // =========================
 // Admin
@@ -121,10 +126,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses"
           element={<CourseList />}
         />
-
-        {/* =================================================
-            COURSE DETAILS
-        ================================================= */}
 
         <Route
           path="/courses/:id"
@@ -227,9 +228,9 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         />
 
         {/* =================================================
-    MANAGE ANNOUNCEMENTS
-    TEACHER + ADMIN
-================================================= */}
+            MANAGE ANNOUNCEMENTS
+            TEACHER + ADMIN
+        ================================================= */}
 
         <Route
           path="/courses/:id/manage-announcements"
@@ -246,6 +247,25 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         />
 
         {/* =================================================
+            MANAGE EXAMS
+            TEACHER + ADMIN
+        ================================================= */}
+        <Route
+          path="/courses/:id/manage-exams"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={["teacher", "admin"]}
+            >
+              <ManageExams />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/exams/:examId/questions"
+          element={<ManageQuestions />}
+        />
+
+        {/* =================================================
             MY COURSES
         ================================================= */}
 
@@ -255,8 +275,7 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         />
 
         {/* =================================================
-            ADMIN
-            MANAGE USERS
+            ADMIN - MANAGE USERS
         ================================================= */}
 
         <Route
@@ -271,8 +290,7 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         />
 
         {/* =================================================
-            ADMIN
-            MANAGE ENROLLMENTS
+            ADMIN - MANAGE ENROLLMENTS
         ================================================= */}
 
         <Route
@@ -287,8 +305,7 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         />
 
         {/* =================================================
-            ADMIN
-            MANAGE COURSES
+            ADMIN - MANAGE COURSES
         ================================================= */}
 
         <Route
