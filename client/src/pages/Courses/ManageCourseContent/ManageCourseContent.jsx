@@ -149,9 +149,9 @@ const ManageCourseContent = () => {
       description:
         "Create announcements, updates and important course posts.",
       icon: <Campaign />,
-      button: "Coming Soon",
+      button: "Manage Announcements",
       color: "warning",
-      available: false,
+      available: true,
     },
 
     {
@@ -180,6 +180,17 @@ const ManageCourseContent = () => {
     if (title === "Notes") {
       navigate(
         `/courses/${course.id}/manage-notes`
+      );
+      return;
+    }
+
+    // =================================================
+    // MANAGE ANNOUNCEMENTS
+    // =================================================
+
+    if (title === "Posts") {
+      navigate(
+        `/courses/${course.id}/manage-announcements`
       );
       return;
     }
@@ -655,8 +666,8 @@ const ManageCourseContent = () => {
             lineHeight: 1.7,
           }}
         >
-          You can now manage video lessons and notes
-          for this course. Posts and exams will be
+          You can now manage video lessons, notes and
+          announcements for this course. Exams will be
           available here in future updates.
         </Typography>
       </Paper>

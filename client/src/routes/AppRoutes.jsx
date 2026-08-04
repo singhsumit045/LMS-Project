@@ -42,6 +42,7 @@ import ManageCourseContent from "../pages/Courses/ManageCourseContent/ManageCour
 import ManageVideos from "../pages/Courses/ManageVideos/ManageVideos";
 
 import ManageNotes from "../pages/Courses/ManageNotes/ManageNotes";
+import ManageAnnouncements from "../pages/Courses/ManageAnnouncements/ManageAnnouncements";
 
 // =========================
 // Admin
@@ -221,6 +222,25 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
               ]}
             >
               <ManageNotes />
+            </RoleProtectedRoute>
+          }
+        />
+
+        {/* =================================================
+    MANAGE ANNOUNCEMENTS
+    TEACHER + ADMIN
+================================================= */}
+
+        <Route
+          path="/courses/:id/manage-announcements"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
+            >
+              <ManageAnnouncements />
             </RoleProtectedRoute>
           }
         />
