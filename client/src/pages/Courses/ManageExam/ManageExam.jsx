@@ -35,7 +35,7 @@ const initialForm = {
   duration: "",
   totalMarks: "",
   passingMarks: "",
-  published: false,
+ isPublished: false,
 };
 
 const ManageExams = () => {
@@ -104,10 +104,7 @@ const ManageExams = () => {
         exam.passingMarks ??
         exam.passingPercentage ??
         "",
-      published:
-        exam.published ??
-        exam.isPublished ??
-        false,
+     isPublished: exam.isPublished ?? false,
     });
 
     setOpen(true);
@@ -153,7 +150,7 @@ const ManageExams = () => {
   const handlePublishedChange = (event) => {
     setFormData((previous) => ({
       ...previous,
-      published: event.target.checked,
+      isPublished: event.target.checked,
     }));
   };
 
@@ -261,8 +258,8 @@ const ManageExams = () => {
         passingMarks:
           Number(formData.passingMarks),
 
-        published:
-          Boolean(formData.published),
+        isPublished:
+          Boolean(formData.isPublished),
 
         // IMPORTANT:
         // courseId comes from URL
@@ -796,7 +793,7 @@ const ManageExams = () => {
             }}
           >
             <Switch
-              checked={formData.published}
+              checked={formData.isPublished}
               onChange={
                 handlePublishedChange
               }

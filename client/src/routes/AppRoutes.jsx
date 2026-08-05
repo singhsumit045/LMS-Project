@@ -48,6 +48,7 @@ import ManageAnnouncements from "../pages/Courses/ManageAnnouncements/ManageAnno
 // Actual file: ManageExam.jsx
 import ManageExams from "../pages/Courses/ManageExam/ManageExam";
 import ManageQuestions from "../pages/Courses/ManageExam/ManageQuestions";
+import StudentExam from "../pages/Courses/ManageExam/StudentExam";
 
 // =========================
 // Admin
@@ -263,6 +264,11 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         <Route
           path="/exams/:examId/questions"
           element={<ManageQuestions />}
+        />
+
+        <Route
+          path="/exams/:examId/attempt"
+          element={<StudentExam />}
         />
 
         {/* =================================================

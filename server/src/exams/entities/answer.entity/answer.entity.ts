@@ -9,11 +9,13 @@ import {
 import { ExamAttempt } from '../exam-attempt.entity/exam-attempt.entity';
 import { Question } from '../question.entity/question.entity';
 import { Option } from '../option.entity/option.entity';
+
 @Entity()
 export class Answer {
   @PrimaryGeneratedColumn()
   id!: number;
 
+  // Exam Attempt
   @ManyToOne(() => ExamAttempt, (attempt) => attempt.answers, {
     onDelete: 'CASCADE',
   })
@@ -23,6 +25,7 @@ export class Answer {
   @Column()
   attemptId!: number;
 
+  // Question
   @ManyToOne(() => Question, {
     onDelete: 'CASCADE',
   })
@@ -32,19 +35,22 @@ export class Answer {
   @Column()
   questionId!: number;
 
+  // Selected Option
   @ManyToOne(() => Option, {
     nullable: true,
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'selectedOptionId' })
-  selectedOption!: Option;
+  selectedOption!: Option | null;
 
   @Column({ nullable: true })
-  selectedOptionId!: number;
+  selectedOptionId!: number | null;
 
+  // Answer correctness
   @Column({ default: false })
   isCorrect!: boolean;
 
+  // Marks obtained
   @Column({ default: 0 })
   marksObtained!: number;
 }

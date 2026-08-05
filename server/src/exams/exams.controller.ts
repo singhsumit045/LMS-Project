@@ -1,4 +1,3 @@
-
 import {
   Body,
   Controller,
@@ -37,6 +36,16 @@ import { UpdateQuestionDto } from './dto/update-question.dto';
 import { CreateOptionDto } from './dto/create-option.dto';
 import { UpdateOptionDto } from './dto/update-option.dto';
 
+// =====================================================
+// SUBMIT EXAM DTO
+// =====================================================
+
+import { SubmitExamDto } from './dto/submit-exam.dto';
+
+// =====================================================
+// AUTH GUARD
+// =====================================================
+
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('exams')
@@ -55,8 +64,7 @@ export class ExamsController {
     @Body() createExamDto: CreateExamDto,
     @Req() req: Request,
   ) {
-    const teacherId =
-      (req.user as any).id;
+    const teacherId = (req.user as any).id;
 
     return this.examsService.create(
       createExamDto,
@@ -82,6 +90,54 @@ export class ExamsController {
     @Param('id', ParseIntPipe) id: number,
   ) {
     return this.examsService.findOne(id);
+  }
+
+  // =====================================================
+  // START EXAM
+  // =====================================================
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':examId/start')
+  startExam(
+    @Param('examId', ParseIntPipe) examId: number,
+    @Req() req: Request,
+  ) {
+    const studentId = (req.user as any).id;
+
+    return this.examsService.startExam(
+      examId,
+      studentId,
+    );
+  }
+
+  // =====================================================
+  // SUBMIT EXAM
+  // =====================================================
+
+  @UseGuards(JwtAuthGuard)
+  @Post('attempts/:attemptId/submit')
+  submitExam(
+    @Param('attemptId', ParseIntPipe) attemptId: number,
+    @Body() submitExamDto: SubmitExamDto,
+  ) {
+    return this.examsService.submitExam(
+      attemptId,
+      submitExamDto,
+    );
+  }
+
+  // =====================================================
+  // GET EXAM RESULT
+  // =====================================================
+
+  @UseGuards(JwtAuthGuard)
+  @Get('attempts/:attemptId/result')
+  getExamResult(
+    @Param('attemptId', ParseIntPipe) attemptId: number,
+  ) {
+    return this.examsService.getExamResult(
+      attemptId,
+    );
   }
 
   // =====================================================
@@ -289,4 +345,3 @@ export class ExamsController {
     return this.examsService.remove(id);
   }
 }
-

@@ -1,7 +1,7 @@
-
 import {
   Injectable,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,6 +10,12 @@ import { Repository } from 'typeorm';
 import { Exam } from './entities/exam.entity';
 import { Question } from './entities/question.entity/question.entity';
 import { Option } from './entities/option.entity/option.entity';
+import {
+  ExamAttempt,
+} from './entities/exam-attempt.entity/exam-attempt.entity';
+import {
+  Answer,
+} from './entities/answer.entity/answer.entity';
 
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
@@ -19,6 +25,8 @@ import { UpdateQuestionDto } from './dto/update-question.dto';
 
 import { CreateOptionDto } from './dto/create-option.dto';
 import { UpdateOptionDto } from './dto/update-option.dto';
+
+import { SubmitExamDto } from './dto/submit-exam.dto';
 
 @Injectable()
 export class ExamsService {
@@ -31,6 +39,12 @@ export class ExamsService {
 
     @InjectRepository(Option)
     private readonly optionsRepository: Repository<Option>,
+
+    @InjectRepository(ExamAttempt)
+    private readonly examAttemptsRepository: Repository<ExamAttempt>,
+
+    @InjectRepository(Answer)
+    private readonly answersRepository: Repository<Answer>,
   ) {}
 
   // =====================================================
@@ -46,10 +60,15 @@ export class ExamsService {
       description: createExamDto.description,
       duration: createExamDto.duration,
       totalMarks: createExamDto.totalMarks,
+
       courseId: createExamDto.courseId,
       teacherId,
-      passingPercentage: createExamDto.passingMarks,
-      isPublished: createExamDto.published ?? false,
+
+      passingPercentage:
+        createExamDto.passingMarks,
+
+      isPublished:
+        createExamDto.published ?? false,
     });
 
     return await this.examsRepository.save(exam);
@@ -66,6 +85,7 @@ export class ExamsService {
           options: true,
         },
       },
+
       order: {
         createdAt: 'DESC',
       },
@@ -79,7 +99,10 @@ export class ExamsService {
   async findOne(id: number): Promise<Exam> {
     const exam =
       await this.examsRepository.findOne({
-        where: { id },
+        where: {
+          id,
+        },
+
         relations: {
           questions: {
             options: true,
@@ -106,9 +129,66 @@ export class ExamsService {
   ): Promise<Exam> {
     const exam = await this.findOne(id);
 
-    Object.assign(exam, updateExamDto);
+    // Title
+    if (updateExamDto.title !== undefined) {
+      exam.title =
+        updateExamDto.title;
+    }
 
-    return await this.examsRepository.save(exam);
+    // Description
+    if (
+      updateExamDto.description !== undefined
+    ) {
+      exam.description =
+        updateExamDto.description;
+    }
+
+    // Duration
+    if (
+      updateExamDto.duration !== undefined
+    ) {
+      exam.duration =
+        updateExamDto.duration;
+    }
+
+    // Total marks
+    if (
+      updateExamDto.totalMarks !== undefined
+    ) {
+      exam.totalMarks =
+        updateExamDto.totalMarks;
+    }
+
+    // Course
+    if (
+      updateExamDto.courseId !== undefined
+    ) {
+      exam.courseId =
+        updateExamDto.courseId;
+    }
+
+    // Passing percentage
+    if (
+      updateExamDto.passingMarks !== undefined
+    ) {
+      exam.passingPercentage =
+        updateExamDto.passingMarks;
+    }
+
+    // IMPORTANT
+    // DTO -> published
+    // Entity -> isPublished
+
+    if (
+      updateExamDto.published !== undefined
+    ) {
+      exam.isPublished =
+        updateExamDto.published;
+    }
+
+    return await this.examsRepository.save(
+      exam,
+    );
   }
 
   // =====================================================
@@ -137,7 +217,9 @@ export class ExamsService {
   ): Promise<Question> {
     const exam =
       await this.examsRepository.findOne({
-        where: { id: examId },
+        where: {
+          id: examId,
+        },
       });
 
     if (!exam) {
@@ -175,7 +257,9 @@ export class ExamsService {
   ): Promise<Question[]> {
     const exam =
       await this.examsRepository.findOne({
-        where: { id: examId },
+        where: {
+          id: examId,
+        },
       });
 
     if (!exam) {
@@ -188,9 +272,11 @@ export class ExamsService {
       where: {
         examId,
       },
+
       relations: {
         options: true,
       },
+
       order: {
         id: 'ASC',
       },
@@ -209,6 +295,7 @@ export class ExamsService {
         where: {
           id: questionId,
         },
+
         relations: {
           options: true,
         },
@@ -344,6 +431,7 @@ export class ExamsService {
       where: {
         questionId,
       },
+
       order: {
         id: 'ASC',
       },
@@ -409,5 +497,267 @@ export class ExamsService {
       message: 'Option deleted successfully',
     };
   }
-}
 
+  // =====================================================
+  // START EXAM
+  // =====================================================
+
+  async startExam(
+    examId: number,
+    studentId: number,
+  ): Promise<ExamAttempt> {
+    const exam =
+      await this.examsRepository.findOne({
+        where: {
+          id: examId,
+        },
+      });
+
+    if (!exam) {
+      throw new NotFoundException(
+        `Exam with ID ${examId} not found`,
+      );
+    }
+
+    // Student can only start published exam
+    if (!exam.isPublished) {
+      throw new BadRequestException(
+        'This exam is not published yet',
+      );
+    }
+
+    // Check existing unfinished attempt
+    const existingAttempt =
+      await this.examAttemptsRepository.findOne({
+        where: {
+          examId,
+          studentId,
+          submitted: false,
+        },
+      });
+
+    if (existingAttempt) {
+      return existingAttempt;
+    }
+
+    // Create new attempt
+    const attempt =
+      this.examAttemptsRepository.create({
+        examId,
+        studentId,
+
+        score: 0,
+        percentage: 0,
+
+        passed: false,
+        submitted: false,
+      });
+
+    return await this.examAttemptsRepository.save(
+      attempt,
+    );
+  }
+
+  // =====================================================
+  // SUBMIT EXAM
+  // =====================================================
+
+  async submitExam(
+    attemptId: number,
+    submitExamDto: SubmitExamDto,
+  ): Promise<ExamAttempt> {
+    // ---------------------------------------------------
+    // Find attempt
+    // ---------------------------------------------------
+
+    const attempt =
+      await this.examAttemptsRepository.findOne({
+        where: {
+          id: attemptId,
+        },
+
+        relations: {
+          exam: true,
+        },
+      });
+
+    if (!attempt) {
+      throw new NotFoundException(
+        `Exam attempt with ID ${attemptId} not found`,
+      );
+    }
+
+    // ---------------------------------------------------
+    // Already submitted?
+    // ---------------------------------------------------
+
+    if (attempt.submitted) {
+      throw new BadRequestException(
+        'Exam already submitted',
+      );
+    }
+
+    // ---------------------------------------------------
+    // Get ALL questions of this exam
+    // ---------------------------------------------------
+
+    const questions =
+      await this.questionsRepository.find({
+        where: {
+          examId: attempt.examId,
+        },
+
+        relations: {
+          options: true,
+        },
+
+        order: {
+          id: 'ASC',
+        },
+      });
+
+    if (questions.length === 0) {
+      throw new BadRequestException(
+        'This exam has no questions',
+      );
+    }
+
+    // ---------------------------------------------------
+    // Calculate actual total marks
+    // ---------------------------------------------------
+
+    let totalMarks = 0;
+
+    for (const question of questions) {
+      totalMarks += question.marks;
+    }
+
+    // ---------------------------------------------------
+    // Student submitted answers
+    // ---------------------------------------------------
+
+    let totalScore = 0;
+
+    for (const question of questions) {
+      // Find student's answer for this question
+      const answerData =
+        submitExamDto.answers.find(
+          (answer) =>
+            answer.questionId ===
+            question.id,
+        );
+
+      // If student did not answer
+      if (!answerData) {
+        continue;
+      }
+
+      // Find selected option
+      const selectedOption =
+        question.options.find(
+          (option) =>
+            option.id ===
+            answerData.selectedOptionId,
+        );
+
+      const isCorrect =
+        selectedOption?.isCorrect === true;
+
+      const marksObtained =
+        isCorrect
+          ? question.marks
+          : 0;
+
+      // Add score
+      if (isCorrect) {
+        totalScore += question.marks;
+      }
+
+      // -------------------------------------------------
+      // Save Answer
+      // -------------------------------------------------
+
+      const answer =
+        this.answersRepository.create({
+          attemptId: attempt.id,
+
+          questionId: question.id,
+
+          selectedOptionId:
+            selectedOption?.id ?? null,
+
+          isCorrect,
+
+          marksObtained,
+        });
+
+      await this.answersRepository.save(
+        answer,
+      );
+    }
+
+    // ---------------------------------------------------
+    // Calculate percentage
+    // ---------------------------------------------------
+
+    const percentage =
+      totalMarks > 0
+        ? (totalScore / totalMarks) * 100
+        : 0;
+
+    // ---------------------------------------------------
+    // Update attempt
+    // ---------------------------------------------------
+
+    attempt.score = totalScore;
+
+    attempt.percentage =
+      Number(percentage.toFixed(2));
+
+    attempt.passed =
+      percentage >=
+      attempt.exam.passingPercentage;
+
+    attempt.submitted = true;
+
+    // ---------------------------------------------------
+    // Save attempt
+    // ---------------------------------------------------
+
+    return await this.examAttemptsRepository.save(
+      attempt,
+    );
+  }
+
+  // =====================================================
+  // GET EXAM RESULT
+  // =====================================================
+
+  async getExamResult(
+    attemptId: number,
+  ): Promise<ExamAttempt> {
+    const attempt =
+      await this.examAttemptsRepository.findOne({
+        where: {
+          id: attemptId,
+        },
+
+        relations: {
+          exam: true,
+
+          answers: {
+            question: true,
+            selectedOption: true,
+          },
+        },
+      });
+
+    if (!attempt) {
+      throw new NotFoundException(
+        `Exam attempt with ID ${attemptId} not found`,
+      );
+    }
+
+    return attempt;
+  }
+}

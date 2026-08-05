@@ -1,6 +1,6 @@
-
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
 import { createEnrollment } from "../../services/enrollmentService";
 
 import {
@@ -21,6 +21,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Card,
 } from "@mui/material";
 
 import {
@@ -122,6 +123,14 @@ const CourseDetails = () => {
     useState(true);
   const [announcementsError, setAnnouncementsError] =
     useState("");
+
+  // =====================================================
+  // EXAM STATE
+  // =====================================================
+
+  const [exams, setExams] = useState([]);
+  const [examsLoading, setExamsLoading] = useState(true);
+  const [examsError, setExamsError] = useState("");
 
   // =====================================================
   // ROLE CHECK
@@ -255,11 +264,52 @@ const CourseDetails = () => {
   };
 
   // =====================================================
+  // FETCH EXAMS
+  // =====================================================
+
+  const fetchExams = async () => {
+    try {
+      setExamsLoading(true);
+      setExamsError("");
+
+      const response = await api.get("/exams");
+
+      console.log("Exams API response:", response.data);
+
+      const allExams = Array.isArray(response.data)
+        ? response.data
+        : [];
+
+      // Only exams belonging to current course
+      const courseExams = allExams.filter(
+        (exam) =>
+          Number(exam.courseId) === Number(id)
+      );
+
+      setExams(courseExams);
+    } catch (error) {
+      console.log("Fetch exams error:", error);
+
+      setExamsError(
+        error.response?.data?.message ||
+          "Unable to load exams."
+      );
+    } finally {
+      setExamsLoading(false);
+    }
+  };
+
+  // =====================================================
   // FETCH COURSE PROGRESS
   // =====================================================
 
-  const fetchProgress = async (courseId, courseVideos) => {
-    if (user?.role !== "student" || !courseId) return;
+  const fetchProgress = async (
+    courseId,
+    courseVideos
+  ) => {
+    if (user?.role !== "student" || !courseId) {
+      return;
+    }
 
     try {
       setProgressLoading(true);
@@ -312,12 +362,15 @@ const CourseDetails = () => {
           })
         );
 
-        setVideoProgress(Object.fromEntries(results));
+        setVideoProgress(
+          Object.fromEntries(results)
+        );
       }
     } catch (error) {
       console.log(
         "Course progress not available:",
-        error.response?.data?.message || error.message
+        error.response?.data?.message ||
+          error.message
       );
 
       setCourseProgress({
@@ -335,7 +388,10 @@ const CourseDetails = () => {
   // SAVE VIDEO PROGRESS
   // =====================================================
 
-  const handleVideoProgress = async (event, videoId) => {
+  const handleVideoProgress = async (
+    event,
+    videoId
+  ) => {
     if (user?.role !== "student") return;
 
     const videoElement = event.currentTarget;
@@ -351,26 +407,29 @@ const CourseDetails = () => {
       100,
       Math.max(
         0,
-        (videoElement.currentTime / videoElement.duration) *
+        (videoElement.currentTime /
+          videoElement.duration) *
           100
       )
     );
 
-    const roundedPercentage = Math.floor(percentage);
+    const roundedPercentage =
+      Math.floor(percentage);
 
-    // Save only at 10% milestones
     const milestone =
       Math.floor(roundedPercentage / 10) * 10;
 
     if (milestone < 10) return;
 
     if (
-      progressMilestones.current[videoId] === milestone
+      progressMilestones.current[videoId] ===
+      milestone
     ) {
       return;
     }
 
-    progressMilestones.current[videoId] = milestone;
+    progressMilestones.current[videoId] =
+      milestone;
 
     try {
       const response = await api.post(
@@ -395,7 +454,10 @@ const CourseDetails = () => {
         },
       }));
 
-      if (typeof data.courseProgress === "number") {
+      if (
+        typeof data.courseProgress ===
+        "number"
+      ) {
         setCourseProgress((prev) => ({
           ...prev,
           progress: data.courseProgress,
@@ -413,7 +475,8 @@ const CourseDetails = () => {
     } catch (error) {
       console.log(
         `Unable to save progress for video ${videoId}:`,
-        error.response?.data?.message || error.message
+        error.response?.data?.message ||
+          error.message
       );
     }
   };
@@ -431,6 +494,9 @@ const CourseDetails = () => {
         fetchVideos(),
         fetchNotes(),
         fetchAnnouncements(),
+
+        // ✅ IMPORTANT
+        fetchExams(),
       ]);
     };
 
@@ -489,26 +555,35 @@ const CourseDetails = () => {
       return;
     }
 
-    window.open(url, "_blank", "noopener,noreferrer");
+    window.open(
+      url,
+      "_blank",
+      "noopener,noreferrer"
+    );
   };
 
   // =====================================================
   // DOWNLOAD PDF
   // =====================================================
 
-  const handleDownloadNote = (url, title) => {
+  const handleDownloadNote = (
+    url,
+    title
+  ) => {
     if (!url) {
       alert("PDF URL is not available.");
       return;
     }
 
-    const link = document.createElement("a");
+    const link =
+      document.createElement("a");
 
     link.href = url;
     link.target = "_blank";
     link.rel = "noopener noreferrer";
 
-    link.download = `${title || "course-note"}.pdf`;
+    link.download =
+      `${title || "course-note"}.pdf`;
 
     document.body.appendChild(link);
 
@@ -560,7 +635,9 @@ const CourseDetails = () => {
 
         <Button
           startIcon={<ArrowBack />}
-          onClick={() => navigate("/courses")}
+          onClick={() =>
+            navigate("/courses")
+          }
           sx={{
             textTransform: "none",
           }}
@@ -584,11 +661,13 @@ const CourseDetails = () => {
     course.instructor?.role ||
     "Full Stack Developer";
 
-  const instructorInitial = instructorName
-    .charAt(0)
-    .toUpperCase();
+  const instructorInitial =
+    instructorName
+      .charAt(0)
+      .toUpperCase();
 
-  const thumbnail = course.thumbnail || "";
+  const thumbnail =
+    course.thumbnail || "";
 
   // =====================================================
   // PAGE
@@ -610,7 +689,9 @@ const CourseDetails = () => {
 
       <Button
         startIcon={<ArrowBack />}
-        onClick={() => navigate("/courses")}
+        onClick={() =>
+          navigate("/courses")
+        }
         sx={{
           mb: 3,
           textTransform: "none",
@@ -684,7 +765,10 @@ const CourseDetails = () => {
                 )}
 
                 <Chip
-                  label={course.level || "Beginner"}
+                  label={
+                    course.level ||
+                    "Beginner"
+                  }
                   variant="outlined"
                   sx={{
                     color: "white",
@@ -746,7 +830,8 @@ const CourseDetails = () => {
                   <AccessTime />
 
                   <Typography>
-                    {course.duration || "10 Hours"}
+                    {course.duration ||
+                      "10 Hours"}
                   </Typography>
                 </Box>
 
@@ -760,7 +845,9 @@ const CourseDetails = () => {
                   <Star />
 
                   <Typography>
-                    {course.rating || "4.8"} Rating
+                    {course.rating ||
+                      "4.8"}{" "}
+                    Rating
                   </Typography>
                 </Box>
 
@@ -930,7 +1017,8 @@ const CourseDetails = () => {
                 <Box
                   sx={{
                     display: "flex",
-                    justifyContent: "space-between",
+                    justifyContent:
+                      "space-between",
                     alignItems: "center",
                     mb: 1,
                   }}
@@ -944,7 +1032,8 @@ const CourseDetails = () => {
                     color="primary.main"
                   >
                     {Math.round(
-                      courseProgress.progress || 0
+                      courseProgress.progress ||
+                        0
                     )}
                     %
                   </Typography>
@@ -962,10 +1051,12 @@ const CourseDetails = () => {
                     sx={{
                       width: `${Math.min(
                         100,
-                        courseProgress.progress || 0
+                        courseProgress.progress ||
+                          0
                       )}%`,
                       height: "100%",
-                      bgcolor: "primary.main",
+                      bgcolor:
+                        "primary.main",
                       transition:
                         "width 0.3s ease",
                     }}
@@ -998,7 +1089,8 @@ const CourseDetails = () => {
               <Box
                 sx={{
                   display: "flex",
-                  justifyContent: "center",
+                  justifyContent:
+                    "center",
                   py: 5,
                 }}
               >
@@ -1008,16 +1100,17 @@ const CourseDetails = () => {
 
             {/* VIDEO ERROR */}
 
-            {!videosLoading && videosError && (
-              <Alert
-                severity="error"
-                sx={{
-                  borderRadius: 2,
-                }}
-              >
-                {videosError}
-              </Alert>
-            )}
+            {!videosLoading &&
+              videosError && (
+                <Alert
+                  severity="error"
+                  sx={{
+                    borderRadius: 2,
+                  }}
+                >
+                  {videosError}
+                </Alert>
+              )}
 
             {/* EMPTY VIDEOS */}
 
@@ -1030,8 +1123,8 @@ const CourseDetails = () => {
                     borderRadius: 2,
                   }}
                 >
-                  No videos have been added to this
-                  course yet.
+                  No videos have been added to
+                  this course yet.
                 </Alert>
               )}
 
@@ -1041,142 +1134,344 @@ const CourseDetails = () => {
               !videosError &&
               videos.length > 0 && (
                 <Stack spacing={1.5}>
-                  {videos.map((video, index) => {
-                    const isExpanded =
-                      expandedVideo === video.id;
+                  {videos.map(
+                    (video, index) => {
+                      const isExpanded =
+                        expandedVideo ===
+                        video.id;
 
-                    const watchedPercentage =
-                      videoProgress[video.id]
-                        ?.watchedPercentage || 0;
+                      const watchedPercentage =
+                        videoProgress[
+                          video.id
+                        ]?.watchedPercentage ||
+                        0;
 
-                    const isCompleted =
-                      videoProgress[video.id]
-                        ?.completed || false;
+                      const isCompleted =
+                        videoProgress[
+                          video.id
+                        ]?.completed ||
+                        false;
 
-                    return (
-                      <Accordion
-                        key={video.id}
-                        expanded={isExpanded}
-                        onChange={() =>
-                          setExpandedVideo(
+                      return (
+                        <Accordion
+                          key={video.id}
+                          expanded={
                             isExpanded
-                              ? null
-                              : video.id
-                          )
-                        }
-                        disableGutters
-                        elevation={0}
-                        sx={{
-                          border: "1px solid",
-                          borderColor: isExpanded
-                            ? "primary.main"
-                            : "divider",
-                          borderRadius:
-                            "12px !important",
-                          overflow: "hidden",
-                          "&:before": {
-                            display: "none",
-                          },
-                          transition:
-                            "all 0.2s ease",
-                        }}
-                      >
-                        <AccordionSummary
-                          expandIcon={
-                            <ExpandMore />
                           }
+                          onChange={() =>
+                            setExpandedVideo(
+                              isExpanded
+                                ? null
+                                : video.id
+                            )
+                          }
+                          disableGutters
+                          elevation={0}
                           sx={{
-                            minHeight: 70,
-                            px: {
-                              xs: 1.5,
-                              sm: 2,
+                            border: "1px solid",
+                            borderColor:
+                              isExpanded
+                                ? "primary.main"
+                                : "divider",
+                            borderRadius:
+                              "12px !important",
+                            overflow:
+                              "hidden",
+                            "&:before": {
+                              display:
+                                "none",
                             },
-                            "& .MuiAccordionSummary-content":
-                              {
-                                my: 1,
-                              },
                           }}
                         >
-                          <Box
+                          <AccordionSummary
+                            expandIcon={
+                              <ExpandMore />
+                            }
                             sx={{
-                              display: "flex",
-                              alignItems:
-                                "center",
-                              gap: 1.5,
-                              width: "100%",
-                              minWidth: 0,
+                              minHeight: 70,
+                              px: {
+                                xs: 1.5,
+                                sm: 2,
+                              },
+                              "& .MuiAccordionSummary-content":
+                                {
+                                  my: 1,
+                                },
                             }}
                           >
                             <Box
                               sx={{
-                                width: 42,
-                                height: 42,
-                                flexShrink: 0,
-                                borderRadius: 2,
-                                display: "flex",
+                                display:
+                                  "flex",
                                 alignItems:
                                   "center",
-                                justifyContent:
-                                  "center",
-                                bgcolor:
-                                  isCompleted
-                                    ? "success.main"
-                                    : "primary.main",
-                                color: "white",
-                              }}
-                            >
-                              {isCompleted ? (
-                                <CheckCircle />
-                              ) : (
-                                <Typography
-                                  fontWeight={800}
-                                >
-                                  {index + 1}
-                                </Typography>
-                              )}
-                            </Box>
-
-                            <Box
-                              sx={{
-                                flex: 1,
+                                gap: 1.5,
+                                width:
+                                  "100%",
                                 minWidth: 0,
                               }}
                             >
-                              <Typography
-                                fontWeight={700}
+                              <Box
                                 sx={{
-                                  overflow:
-                                    "hidden",
-                                  textOverflow:
-                                    "ellipsis",
-                                  whiteSpace: {
-                                    xs: "normal",
-                                    sm: "nowrap",
-                                  },
+                                  width: 42,
+                                  height: 42,
+                                  flexShrink: 0,
+                                  borderRadius: 2,
+                                  display:
+                                    "flex",
+                                  alignItems:
+                                    "center",
+                                  justifyContent:
+                                    "center",
+                                  bgcolor:
+                                    isCompleted
+                                      ? "success.main"
+                                      : "primary.main",
+                                  color: "white",
                                 }}
                               >
+                                {isCompleted ? (
+                                  <CheckCircle />
+                                ) : (
+                                  <Typography fontWeight={800}>
+                                    {index + 1}
+                                  </Typography>
+                                )}
+                              </Box>
+
+                              <Box
+                                sx={{
+                                  flex: 1,
+                                  minWidth: 0,
+                                }}
+                              >
+                                <Typography
+                                  fontWeight={700}
+                                  sx={{
+                                    overflow:
+                                      "hidden",
+                                    textOverflow:
+                                      "ellipsis",
+                                    whiteSpace: {
+                                      xs: "normal",
+                                      sm: "nowrap",
+                                    },
+                                  }}
+                                >
+                                  {video.title}
+                                </Typography>
+
+                                {user?.role ===
+                                  "student" && (
+                                  <Box
+                                    sx={{
+                                      display:
+                                        "flex",
+                                      alignItems:
+                                        "center",
+                                      gap: 1,
+                                      mt: 0.7,
+                                    }}
+                                  >
+                                    <Box
+                                      sx={{
+                                        width: {
+                                          xs: 80,
+                                          sm: 120,
+                                        },
+                                        height: 5,
+                                        borderRadius:
+                                          10,
+                                        bgcolor:
+                                          "action.hover",
+                                        overflow:
+                                          "hidden",
+                                      }}
+                                    >
+                                      <Box
+                                        sx={{
+                                          width: `${Math.min(
+                                            100,
+                                            watchedPercentage
+                                          )}%`,
+                                          height:
+                                            "100%",
+                                          bgcolor:
+                                            isCompleted
+                                              ? "success.main"
+                                              : "primary.main",
+                                        }}
+                                      />
+                                    </Box>
+
+                                    <Typography
+                                      variant="caption"
+                                      color={
+                                        isCompleted
+                                          ? "success.main"
+                                          : "text.secondary"
+                                      }
+                                      fontWeight={600}
+                                    >
+                                      {Math.round(
+                                        watchedPercentage
+                                      )}
+                                      %
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </Box>
+
+                              {user?.role ===
+                                "student" &&
+                                isCompleted && (
+                                  <Chip
+                                    label="Completed"
+                                    color="success"
+                                    size="small"
+                                    sx={{
+                                      display: {
+                                        xs: "none",
+                                        sm: "flex",
+                                      },
+                                    }}
+                                  />
+                                )}
+                            </Box>
+                          </AccordionSummary>
+
+                          <AccordionDetails
+                            sx={{
+                              p: {
+                                xs: 1.5,
+                                sm: 2,
+                                md: 2.5,
+                              },
+                              pt: 0,
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: "100%",
+                                backgroundColor:
+                                  "#000",
+                                borderRadius: 2,
+                                overflow:
+                                  "hidden",
+                                boxShadow: 3,
+                              }}
+                            >
+                              <video
+                                controls
+                                preload="metadata"
+                                onLoadedMetadata={(
+                                  event
+                                ) => {
+                                  const savedProgress =
+                                    videoProgress[
+                                      video.id
+                                    ]
+                                      ?.watchedPercentage ||
+                                    0;
+
+                                  if (
+                                    savedProgress >
+                                      0 &&
+                                    savedProgress <
+                                      100 &&
+                                    event
+                                      .currentTarget
+                                      .duration
+                                  ) {
+                                    event.currentTarget.currentTime =
+                                      (savedProgress /
+                                        100) *
+                                      event
+                                        .currentTarget
+                                        .duration;
+                                  }
+                                }}
+                                onTimeUpdate={(
+                                  event
+                                ) =>
+                                  handleVideoProgress(
+                                    event,
+                                    video.id
+                                  )
+                                }
+                                style={{
+                                  display:
+                                    "block",
+                                  width: "100%",
+                                  height:
+                                    "clamp(220px, 45vw, 480px)",
+                                  objectFit:
+                                    "contain",
+                                  backgroundColor:
+                                    "#000",
+                                }}
+                                src={
+                                  video.videoUrl
+                                }
+                              >
+                                Your browser does
+                                not support the video
+                                player.
+                              </video>
+                            </Box>
+
+                            <Box sx={{ pt: 2 }}>
+                              <Typography
+                                variant="h6"
+                                fontWeight={800}
+                                sx={{
+                                  lineHeight: 1.4,
+                                }}
+                              >
+                                {index + 1}.{" "}
                                 {video.title}
                               </Typography>
 
                               {user?.role ===
                                 "student" && (
-                                <Box
-                                  sx={{
-                                    display:
-                                      "flex",
-                                    alignItems:
-                                      "center",
-                                    gap: 1,
-                                    mt: 0.7,
-                                  }}
-                                >
+                                <Box sx={{ mt: 1.5 }}>
                                   <Box
                                     sx={{
-                                      width: {
-                                        xs: 80,
-                                        sm: 120,
-                                      },
-                                      height: 5,
+                                      display:
+                                        "flex",
+                                      justifyContent:
+                                        "space-between",
+                                      mb: 0.6,
+                                    }}
+                                  >
+                                    <Typography
+                                      variant="caption"
+                                      color="text.secondary"
+                                    >
+                                      Video Progress
+                                    </Typography>
+
+                                    <Typography
+                                      variant="caption"
+                                      fontWeight={700}
+                                      color={
+                                        isCompleted
+                                          ? "success.main"
+                                          : "text.secondary"
+                                      }
+                                    >
+                                      {Math.round(
+                                        watchedPercentage
+                                      )}
+                                      %
+                                      {isCompleted &&
+                                        " • Completed"}
+                                    </Typography>
+                                  </Box>
+
+                                  <Box
+                                    sx={{
+                                      height: 7,
                                       borderRadius:
                                         10,
                                       bgcolor:
@@ -1200,238 +1495,54 @@ const CourseDetails = () => {
                                       }}
                                     />
                                   </Box>
-
-                                  <Typography
-                                    variant="caption"
-                                    color={
-                                      isCompleted
-                                        ? "success.main"
-                                        : "text.secondary"
-                                    }
-                                    fontWeight={600}
-                                  >
-                                    {Math.round(
-                                      watchedPercentage
-                                    )}
-                                    %
-                                  </Typography>
                                 </Box>
+                              )}
+
+                              {video.description && (
+                                <Typography
+                                  color="text.secondary"
+                                  sx={{
+                                    mt: 1.2,
+                                    lineHeight: 1.7,
+                                  }}
+                                >
+                                  {
+                                    video.description
+                                  }
+                                </Typography>
+                              )}
+
+                              {video.duration && (
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                  sx={{
+                                    mt: 1,
+                                  }}
+                                >
+                                  Duration:{" "}
+                                  {Math.floor(
+                                    video.duration /
+                                      60
+                                  )}
+                                  :
+                                  {String(
+                                    Math.floor(
+                                      video.duration %
+                                        60
+                                    )
+                                  ).padStart(
+                                    2,
+                                    "0"
+                                  )}
+                                </Typography>
                               )}
                             </Box>
-
-                            {user?.role ===
-                              "student" &&
-                              isCompleted && (
-                                <Chip
-                                  label="Completed"
-                                  color="success"
-                                  size="small"
-                                  sx={{
-                                    display: {
-                                      xs: "none",
-                                      sm: "flex",
-                                    },
-                                  }}
-                                />
-                              )}
-                          </Box>
-                        </AccordionSummary>
-
-                        <AccordionDetails
-                          sx={{
-                            p: {
-                              xs: 1.5,
-                              sm: 2,
-                              md: 2.5,
-                            },
-                            pt: 0,
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              width: "100%",
-                              backgroundColor:
-                                "#000",
-                              borderRadius: 2,
-                              overflow: "hidden",
-                              boxShadow: 3,
-                            }}
-                          >
-                            <video
-                              controls
-                              preload="metadata"
-                              onLoadedMetadata={(
-                                event
-                              ) => {
-                                const savedProgress =
-                                  videoProgress[
-                                    video.id
-                                  ]
-                                    ?.watchedPercentage ||
-                                  0;
-
-                                if (
-                                  savedProgress >
-                                    0 &&
-                                  savedProgress < 100 &&
-                                  event.currentTarget
-                                    .duration
-                                ) {
-                                  event.currentTarget.currentTime =
-                                    (savedProgress /
-                                      100) *
-                                    event
-                                      .currentTarget
-                                      .duration;
-                                }
-                              }}
-                              onTimeUpdate={(
-                                event
-                              ) =>
-                                handleVideoProgress(
-                                  event,
-                                  video.id
-                                )
-                              }
-                              style={{
-                                display:
-                                  "block",
-                                width: "100%",
-                                height:
-                                  "clamp(220px, 45vw, 480px)",
-                                objectFit:
-                                  "contain",
-                                backgroundColor:
-                                  "#000",
-                              }}
-                              src={video.videoUrl}
-                            >
-                              Your browser does not
-                              support the video player.
-                            </video>
-                          </Box>
-
-                          <Box sx={{ pt: 2 }}>
-                            <Typography
-                              variant="h6"
-                              fontWeight={800}
-                              sx={{
-                                lineHeight: 1.4,
-                              }}
-                            >
-                              {index + 1}.{" "}
-                              {video.title}
-                            </Typography>
-
-                            {user?.role ===
-                              "student" && (
-                              <Box sx={{ mt: 1.5 }}>
-                                <Box
-                                  sx={{
-                                    display:
-                                      "flex",
-                                    justifyContent:
-                                      "space-between",
-                                    mb: 0.6,
-                                  }}
-                                >
-                                  <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                  >
-                                    Video Progress
-                                  </Typography>
-
-                                  <Typography
-                                    variant="caption"
-                                    fontWeight={700}
-                                    color={
-                                      isCompleted
-                                        ? "success.main"
-                                        : "text.secondary"
-                                    }
-                                  >
-                                    {Math.round(
-                                      watchedPercentage
-                                    )}
-                                    %
-                                    {isCompleted &&
-                                      " • Completed"}
-                                  </Typography>
-                                </Box>
-
-                                <Box
-                                  sx={{
-                                    height: 7,
-                                    borderRadius:
-                                      10,
-                                    bgcolor:
-                                      "action.hover",
-                                    overflow:
-                                      "hidden",
-                                  }}
-                                >
-                                  <Box
-                                    sx={{
-                                      width: `${Math.min(
-                                        100,
-                                        watchedPercentage
-                                      )}%`,
-                                      height:
-                                        "100%",
-                                      bgcolor:
-                                        isCompleted
-                                          ? "success.main"
-                                          : "primary.main",
-                                      transition:
-                                        "width 0.25s ease",
-                                    }}
-                                  />
-                                </Box>
-                              </Box>
-                            )}
-
-                            {video.description && (
-                              <Typography
-                                color="text.secondary"
-                                sx={{
-                                  mt: 1.2,
-                                  lineHeight: 1.7,
-                                }}
-                              >
-                                {
-                                  video.description
-                                }
-                              </Typography>
-                            )}
-
-                            {video.duration && (
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{
-                                  mt: 1,
-                                }}
-                              >
-                                Duration:{" "}
-                                {Math.floor(
-                                  video.duration /
-                                    60
-                                )}
-                                :
-                                {String(
-                                  Math.floor(
-                                    video.duration %
-                                      60
-                                  )
-                                ).padStart(2, "0")}
-                              </Typography>
-                            )}
-                          </Box>
-                        </AccordionDetails>
-                      </Accordion>
-                    );
-                  })}
+                          </AccordionDetails>
+                        </Accordion>
+                      );
+                    }
+                  )}
                 </Stack>
               )}
           </Paper>
@@ -1453,13 +1564,12 @@ const CourseDetails = () => {
               mb: 4,
             }}
           >
-            {/* ANNOUNCEMENT HEADER */}
-
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-between",
+                justifyContent:
+                  "space-between",
                 gap: 2,
                 mb: 3,
               }}
@@ -1477,10 +1587,14 @@ const CourseDetails = () => {
                     height: 48,
                     borderRadius: 2,
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    bgcolor: "primary.main",
-                    color: "primary.contrastText",
+                    alignItems:
+                      "center",
+                    justifyContent:
+                      "center",
+                    bgcolor:
+                      "primary.main",
+                    color:
+                      "primary.contrastText",
                   }}
                 >
                   <AnnouncementIcon />
@@ -1523,21 +1637,18 @@ const CourseDetails = () => {
 
             <Divider sx={{ mb: 3 }} />
 
-            {/* ANNOUNCEMENT LOADING */}
-
             {announcementsLoading && (
               <Box
                 sx={{
                   display: "flex",
-                  justifyContent: "center",
+                  justifyContent:
+                    "center",
                   py: 5,
                 }}
               >
                 <CircularProgress />
               </Box>
             )}
-
-            {/* ANNOUNCEMENT ERROR */}
 
             {!announcementsLoading &&
               announcementsError && (
@@ -1550,8 +1661,6 @@ const CourseDetails = () => {
                   {announcementsError}
                 </Alert>
               )}
-
-            {/* EMPTY ANNOUNCEMENTS */}
 
             {!announcementsLoading &&
               !announcementsError &&
@@ -1589,8 +1698,6 @@ const CourseDetails = () => {
                 </Box>
               )}
 
-            {/* ANNOUNCEMENT LIST */}
-
             {!announcementsLoading &&
               !announcementsError &&
               announcements.length > 0 && (
@@ -1621,8 +1728,6 @@ const CourseDetails = () => {
                             sm: "center",
                           }}
                         >
-                          {/* ANNOUNCEMENT ICON */}
-
                           <Box
                             sx={{
                               width: 48,
@@ -1642,8 +1747,6 @@ const CourseDetails = () => {
                             <AnnouncementIcon />
                           </Box>
 
-                          {/* ANNOUNCEMENT CONTENT */}
-
                           <Box
                             sx={{
                               flex: 1,
@@ -1653,12 +1756,10 @@ const CourseDetails = () => {
                             <Typography
                               variant="h6"
                               fontWeight={800}
-                              sx={{
-                                wordBreak:
-                                  "break-word",
-                              }}
                             >
-                              {announcement.title}
+                              {
+                                announcement.title
+                              }
                             </Typography>
 
                             <Typography
@@ -1668,11 +1769,11 @@ const CourseDetails = () => {
                                 lineHeight: 1.7,
                                 whiteSpace:
                                   "pre-wrap",
-                                wordBreak:
-                                  "break-word",
                               }}
                             >
-                              {announcement.message}
+                              {
+                                announcement.message
+                              }
                             </Typography>
 
                             <Typography
@@ -1683,8 +1784,8 @@ const CourseDetails = () => {
                                 mt: 1,
                               }}
                             >
-                              {announcement.teacher
-                                ?.name
+                              {announcement
+                                .teacher?.name
                                 ? `Posted by ${announcement.teacher.name} • `
                                 : ""}
                               {announcement.createdAt
@@ -1703,6 +1804,237 @@ const CourseDetails = () => {
           </Paper>
 
           {/* =================================================
+              EXAMS
+          ================================================= */}
+
+          {user?.role === "student" && (
+            <Paper
+              elevation={0}
+              sx={{
+                p: {
+                  xs: 2.5,
+                  md: 4,
+                },
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider",
+                mb: 4,
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                  mb: 3,
+                }}
+              >
+                <Description
+                  color="primary"
+                  sx={{
+                    fontSize: 32,
+                  }}
+                />
+
+                <Box>
+                  <Typography
+                    variant="h5"
+                    fontWeight={800}
+                  >
+                    Course Exams
+                  </Typography>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                  >
+                    Complete all course videos to
+                    unlock the exam.
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* EXAM LOADING */}
+
+              {examsLoading && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent:
+                      "center",
+                    py: 4,
+                  }}
+                >
+                  <CircularProgress />
+                </Box>
+              )}
+
+              {/* EXAM ERROR */}
+
+              {!examsLoading &&
+                examsError && (
+                  <Alert severity="error">
+                    {examsError}
+                  </Alert>
+                )}
+
+              {/* NO EXAMS */}
+
+              {!examsLoading &&
+                !examsError &&
+                exams.length === 0 && (
+                  <Alert severity="info">
+                    No exam is available for this
+                    course yet.
+                  </Alert>
+                )}
+
+              {/* EXAM LIST */}
+
+              {!examsLoading &&
+                !examsError &&
+                exams.map((exam) => {
+                  const courseCompleted =
+                    Number(
+                      courseProgress.progress ||
+                        0
+                    ) >= 100;
+
+                  const isPublished =
+                    exam.isPublished ??
+                    exam.published ??
+                    false;
+
+                  return (
+                    <Card
+                      key={exam.id}
+                      variant="outlined"
+                      sx={{
+                        borderRadius: 3,
+                        mb: 2,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          p: {
+                            xs: 2,
+                            sm: 2.5,
+                          },
+                          display: "flex",
+                          flexDirection: {
+                            xs: "column",
+                            sm: "row",
+                          },
+                          justifyContent:
+                            "space-between",
+                          alignItems: {
+                            xs: "stretch",
+                            sm: "center",
+                          },
+                          gap: 2,
+                        }}
+                      >
+                        <Box>
+                          <Typography
+                            variant="h6"
+                            fontWeight={800}
+                          >
+                            {exam.title}
+                          </Typography>
+
+                          {exam.description && (
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{
+                                mt: 0.5,
+                              }}
+                            >
+                              {
+                                exam.description
+                              }
+                            </Typography>
+                          )}
+
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            flexWrap="wrap"
+                            useFlexGap
+                            sx={{
+                              mt: 1.5,
+                            }}
+                          >
+                            <Chip
+                              label={`${exam.duration || 30} min`}
+                              size="small"
+                            />
+
+                            <Chip
+                              label={`${exam.totalMarks || 0} Marks`}
+                              size="small"
+                            />
+
+                            <Chip
+                              label={`Pass: ${
+                                exam.passingPercentage ||
+                                40
+                              }%`}
+                              size="small"
+                            />
+                          </Stack>
+                        </Box>
+
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection:
+                              "column",
+                            alignItems: {
+                              xs: "stretch",
+                              sm: "flex-end",
+                            },
+                            gap: 1,
+                          }}
+                        >
+                          {!isPublished ? (
+                            <Chip
+                              label="Not Published"
+                              color="warning"
+                              size="small"
+                            />
+                          ) : !courseCompleted ? (
+                            <Chip
+                              label="Complete course to unlock"
+                              color="default"
+                              size="small"
+                            />
+                          ) : (
+                            <Button
+                              variant="contained"
+                              onClick={() =>
+                                navigate(
+                                  `/exams/${exam.id}/attempt`
+                                )
+                              }
+                              sx={{
+                                textTransform:
+                                  "none",
+                                fontWeight: 700,
+                              }}
+                            >
+                              Start Exam
+                            </Button>
+                          )}
+                        </Box>
+                      </Box>
+                    </Card>
+                  );
+                })}
+            </Paper>
+          )}
+
+          {/* =================================================
               NOTES
           ================================================= */}
 
@@ -1719,13 +2051,12 @@ const CourseDetails = () => {
               mb: 4,
             }}
           >
-            {/* NOTES HEADER */}
-
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-between",
+                justifyContent:
+                  "space-between",
                 gap: 2,
                 mb: 3,
               }}
@@ -1744,9 +2075,11 @@ const CourseDetails = () => {
                     borderRadius: 2,
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
+                    justifyContent:
+                      "center",
                     bgcolor: "primary.main",
-                    color: "primary.contrastText",
+                    color:
+                      "primary.contrastText",
                   }}
                 >
                   <Description />
@@ -1782,13 +2115,12 @@ const CourseDetails = () => {
 
             <Divider sx={{ mb: 3 }} />
 
-            {/* NOTES LOADING */}
-
             {notesLoading && (
               <Box
                 sx={{
                   display: "flex",
-                  justifyContent: "center",
+                  justifyContent:
+                    "center",
                   py: 5,
                 }}
               >
@@ -1796,20 +2128,17 @@ const CourseDetails = () => {
               </Box>
             )}
 
-            {/* NOTES ERROR */}
-
-            {!notesLoading && notesError && (
-              <Alert
-                severity="error"
-                sx={{
-                  borderRadius: 2,
-                }}
-              >
-                {notesError}
-              </Alert>
-            )}
-
-            {/* EMPTY */}
+            {!notesLoading &&
+              notesError && (
+                <Alert
+                  severity="error"
+                  sx={{
+                    borderRadius: 2,
+                  }}
+                >
+                  {notesError}
+                </Alert>
+              )}
 
             {!notesLoading &&
               !notesError &&
@@ -1847,8 +2176,6 @@ const CourseDetails = () => {
                 </Box>
               )}
 
-            {/* NOTES LIST */}
-
             {!notesLoading &&
               !notesError &&
               notes.length > 0 && (
@@ -1863,15 +2190,6 @@ const CourseDetails = () => {
                           sm: 2.5,
                         },
                         borderRadius: 3,
-                        transition:
-                          "all 0.2s ease",
-                        "&:hover": {
-                          transform:
-                            "translateY(-2px)",
-                          boxShadow: 3,
-                          borderColor:
-                            "primary.main",
-                        },
                       }}
                     >
                       <Stack
@@ -1885,8 +2203,6 @@ const CourseDetails = () => {
                           sm: "center",
                         }}
                       >
-                        {/* PDF ICON */}
-
                         <Box
                           sx={{
                             width: 58,
@@ -1909,8 +2225,6 @@ const CourseDetails = () => {
                           />
                         </Box>
 
-                        {/* NOTE DETAILS */}
-
                         <Box
                           sx={{
                             flex: 1,
@@ -1920,10 +2234,6 @@ const CourseDetails = () => {
                           <Typography
                             variant="h6"
                             fontWeight={800}
-                            sx={{
-                              wordBreak:
-                                "break-word",
-                            }}
                           >
                             {note.title ||
                               "Untitled Note"}
@@ -1936,13 +2246,6 @@ const CourseDetails = () => {
                               sx={{
                                 mt: 0.5,
                                 lineHeight: 1.6,
-                                display:
-                                  "-webkit-box",
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient:
-                                  "vertical",
-                                overflow:
-                                  "hidden",
                               }}
                             >
                               {note.content}
@@ -1961,21 +2264,9 @@ const CourseDetails = () => {
                           </Typography>
                         </Box>
 
-                        {/* ACTIONS */}
-
                         <Stack
                           direction="row"
                           spacing={1}
-                          sx={{
-                            alignSelf: {
-                              xs: "stretch",
-                              sm: "center",
-                            },
-                            justifyContent: {
-                              xs: "flex-end",
-                              sm: "initial",
-                            },
-                          }}
                         >
                           <Tooltip title="View PDF">
                             <IconButton
@@ -2279,8 +2570,8 @@ const CourseDetails = () => {
                   {enrolling
                     ? "Enrolling..."
                     : enrolled
-                    ? "Enrolled ✓"
-                    : "Enroll Now"}
+                      ? "Enrolled ✓"
+                      : "Enroll Now"}
                 </Button>
 
                 {enrollError && (
@@ -2294,9 +2585,7 @@ const CourseDetails = () => {
                     {Array.isArray(
                       enrollError
                     )
-                      ? enrollError.join(
-                          ", "
-                        )
+                      ? enrollError.join(", ")
                       : enrollError}
                   </Alert>
                 )}
@@ -2372,8 +2661,7 @@ const CourseDetails = () => {
                   sx={{
                     display: "flex",
                     gap: 1.5,
-                    alignItems:
-                      "center",
+                    alignItems: "center",
                   }}
                 >
                   <CheckCircle color="success" />
@@ -2392,4 +2680,3 @@ const CourseDetails = () => {
 };
 
 export default CourseDetails;
-

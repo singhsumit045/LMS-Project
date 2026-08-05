@@ -15,7 +15,7 @@ export class CreateQuestionDto {
   @IsInt()
   @Min(1)
   marks!: number;
-
+  
   @IsOptional()
   @IsString()
   questionType?: string;
