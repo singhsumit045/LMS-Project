@@ -1,3 +1,4 @@
+
 import {
   Injectable,
   NotFoundException,
@@ -18,6 +19,8 @@ import {
 import {
   Answer,
 } from './entities/answer.entity/answer.entity';
+
+import { Certificate } from '../certificates/entities/certificate.entity';
 
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
@@ -47,7 +50,123 @@ export class ExamsService {
 
     @InjectRepository(Answer)
     private readonly answersRepository: Repository<Answer>,
+
+    @InjectRepository(Certificate)
+    private readonly certificatesRepository: Repository<Certificate>,
   ) {}
+
+  // =====================================================
+  // ENSURE CERTIFICATE
+  // =====================================================
+  // Ye method new + old passed attempts dono ke liye
+  // certificate create/retrieve karega.
+  // =====================================================
+
+  private async ensureCertificateForAttempt(
+    attempt: ExamAttempt,
+  ): Promise<Certificate | null> {
+    // Sirf passed attempt ke liye certificate
+    if (!attempt.passed) {
+      return null;
+    }
+
+    // ---------------------------------------------------
+    // Existing certificate check
+    // ---------------------------------------------------
+
+    const existingCertificate =
+      await this.certificatesRepository.findOne({
+        where: {
+          studentId: attempt.studentId,
+          attemptId: attempt.id,
+        },
+        relations: {
+          student: true,
+          exam: true,
+          course: true,
+        },
+      });
+
+    if (existingCertificate) {
+      return existingCertificate;
+    }
+
+    // ---------------------------------------------------
+    // Exam relation available hona chahiye
+    // ---------------------------------------------------
+
+    if (!attempt.exam) {
+      const exam =
+        await this.examsRepository.findOne({
+          where: {
+            id: attempt.examId,
+          },
+        });
+
+      if (!exam) {
+        throw new NotFoundException(
+          `Exam with ID ${attempt.examId} not found`,
+        );
+      }
+
+      attempt.exam = exam;
+    }
+
+    // ---------------------------------------------------
+    // Certificate Number
+    // ---------------------------------------------------
+
+    const certificateNumber =
+      `LH-CERT-${Date.now()}-${attempt.id}`;
+
+    // ---------------------------------------------------
+    // Create Certificate
+    // ---------------------------------------------------
+
+    const certificate =
+      this.certificatesRepository.create({
+        certificateNumber,
+
+        studentId: attempt.studentId,
+
+        examId: attempt.examId,
+
+        attemptId: attempt.id,
+
+        courseId: attempt.exam.courseId,
+
+        score: Number(attempt.score || 0),
+
+        percentage: Number(
+          attempt.percentage || 0,
+        ),
+      });
+
+    const savedCertificate =
+      await this.certificatesRepository.save(
+        certificate,
+      );
+
+    console.log(
+      'Certificate created:',
+      savedCertificate.certificateNumber,
+    );
+
+    // ---------------------------------------------------
+    // Return complete certificate
+    // ---------------------------------------------------
+
+    return await this.certificatesRepository.findOne({
+      where: {
+        id: savedCertificate.id,
+      },
+      relations: {
+        student: true,
+        exam: true,
+        course: true,
+      },
+    });
+  }
 
   // =====================================================
   // CREATE EXAM
@@ -57,41 +176,37 @@ export class ExamsService {
     createExamDto: CreateExamDto,
     teacherId: number,
   ): Promise<Exam> {
-    const exam = this.examsRepository.create({
-      title: createExamDto.title,
+    const exam =
+      this.examsRepository.create({
+        title: createExamDto.title,
 
-      description:
-        createExamDto.description,
+        description:
+          createExamDto.description,
 
-      duration:
-        createExamDto.duration,
+        duration:
+          createExamDto.duration,
 
-      totalMarks:
-        createExamDto.totalMarks,
+        totalMarks:
+          createExamDto.totalMarks,
 
-      courseId:
-        createExamDto.courseId,
+        courseId:
+          createExamDto.courseId,
 
-      teacherId,
+        teacherId,
 
-      passingPercentage:
-        createExamDto.passingMarks,
+        passingPercentage:
+          createExamDto.passingMarks,
 
-      // IMPORTANT
-      // Frontend sends isPublished
-      isPublished:
-        createExamDto.isPublished ?? false,
+        isPublished:
+          createExamDto.isPublished ?? false,
+      });
+
+    console.log('Creating Exam:', {
+      title: exam.title,
+      courseId: exam.courseId,
+      teacherId: exam.teacherId,
+      isPublished: exam.isPublished,
     });
-
-    console.log(
-      'Creating Exam:',
-      {
-        title: exam.title,
-        courseId: exam.courseId,
-        teacherId: exam.teacherId,
-        isPublished: exam.isPublished,
-      },
-    );
 
     return await this.examsRepository.save(
       exam,
@@ -142,15 +257,6 @@ export class ExamsService {
       );
     }
 
-    console.log(
-      'Exam fetched:',
-      {
-        id: exam.id,
-        title: exam.title,
-        isPublished: exam.isPublished,
-      },
-    );
-
     return exam;
   }
 
@@ -165,20 +271,12 @@ export class ExamsService {
     const exam =
       await this.findOne(id);
 
-    // ---------------------------------------------------
-    // TITLE
-    // ---------------------------------------------------
-
     if (
       updateExamDto.title !== undefined
     ) {
       exam.title =
         updateExamDto.title;
     }
-
-    // ---------------------------------------------------
-    // DESCRIPTION
-    // ---------------------------------------------------
 
     if (
       updateExamDto.description !==
@@ -188,10 +286,6 @@ export class ExamsService {
         updateExamDto.description;
     }
 
-    // ---------------------------------------------------
-    // DURATION
-    // ---------------------------------------------------
-
     if (
       updateExamDto.duration !==
       undefined
@@ -199,10 +293,6 @@ export class ExamsService {
       exam.duration =
         updateExamDto.duration;
     }
-
-    // ---------------------------------------------------
-    // TOTAL MARKS
-    // ---------------------------------------------------
 
     if (
       updateExamDto.totalMarks !==
@@ -212,10 +302,6 @@ export class ExamsService {
         updateExamDto.totalMarks;
     }
 
-    // ---------------------------------------------------
-    // COURSE
-    // ---------------------------------------------------
-
     if (
       updateExamDto.courseId !==
       undefined
@@ -223,10 +309,6 @@ export class ExamsService {
       exam.courseId =
         updateExamDto.courseId;
     }
-
-    // ---------------------------------------------------
-    // PASSING MARKS
-    // ---------------------------------------------------
 
     if (
       updateExamDto.passingMarks !==
@@ -236,10 +318,6 @@ export class ExamsService {
         updateExamDto.passingMarks;
     }
 
-    // ---------------------------------------------------
-    // PUBLISHED
-    // ---------------------------------------------------
-
     if (
       updateExamDto.isPublished !==
       undefined
@@ -247,15 +325,6 @@ export class ExamsService {
       exam.isPublished =
         updateExamDto.isPublished;
     }
-
-    console.log(
-      'Updating Exam:',
-      {
-        id: exam.id,
-        title: exam.title,
-        isPublished: exam.isPublished,
-      },
-    );
 
     return await this.examsRepository.save(
       exam,
@@ -272,13 +341,10 @@ export class ExamsService {
     const exam =
       await this.findOne(id);
 
-    await this.examsRepository.remove(
-      exam,
-    );
+    await this.examsRepository.remove(exam);
 
     return {
-      message:
-        'Exam deleted successfully',
+      message: 'Exam deleted successfully',
     };
   }
 
@@ -441,8 +507,7 @@ export class ExamsService {
     );
 
     return {
-      message:
-        'Question deleted successfully',
+      message: 'Question deleted successfully',
     };
   }
 
@@ -570,13 +635,13 @@ export class ExamsService {
     );
 
     return {
-      message:
-        'Option deleted successfully',
+      message: 'Option deleted successfully',
     };
   }
 
   // =====================================================
   // START EXAM
+  // MAXIMUM 5 ATTEMPTS
   // =====================================================
 
   async startExam(
@@ -596,19 +661,11 @@ export class ExamsService {
       );
     }
 
-    // ---------------------------------------------------
-    // ONLY PUBLISHED EXAM CAN BE STARTED
-    // ---------------------------------------------------
-
     if (!exam.isPublished) {
       throw new BadRequestException(
         'This exam is not published yet',
       );
     }
-
-    // ---------------------------------------------------
-    // CHECK EXISTING UNFINISHED ATTEMPT
-    // ---------------------------------------------------
 
     const existingAttempt =
       await this.examAttemptsRepository.findOne({
@@ -623,21 +680,28 @@ export class ExamsService {
       return existingAttempt;
     }
 
-    // ---------------------------------------------------
-    // CREATE NEW ATTEMPT
-    // ---------------------------------------------------
+    const submittedAttempts =
+      await this.examAttemptsRepository.count({
+        where: {
+          examId,
+          studentId,
+          submitted: true,
+        },
+      });
+
+    if (submittedAttempts >= 5) {
+      throw new BadRequestException(
+        'You have reached the maximum limit of 5 attempts for this exam.',
+      );
+    }
 
     const attempt =
       this.examAttemptsRepository.create({
         examId,
         studentId,
-
         score: 0,
-
         percentage: 0,
-
         passed: false,
-
         submitted: false,
       });
 
@@ -671,19 +735,11 @@ export class ExamsService {
       );
     }
 
-    // ---------------------------------------------------
-    // ALREADY SUBMITTED
-    // ---------------------------------------------------
-
     if (attempt.submitted) {
       throw new BadRequestException(
         'Exam already submitted',
       );
     }
-
-    // ---------------------------------------------------
-    // GET QUESTIONS
-    // ---------------------------------------------------
 
     const questions =
       await this.questionsRepository.find({
@@ -706,36 +762,24 @@ export class ExamsService {
       );
     }
 
-    // ---------------------------------------------------
-    // TOTAL MARKS
-    // ---------------------------------------------------
-
     let totalMarks = 0;
-
-    for (const question of questions) {
-      totalMarks += question.marks;
-    }
-
-    // ---------------------------------------------------
-    // CALCULATE SCORE
-    // ---------------------------------------------------
-
     let totalScore = 0;
 
     for (const question of questions) {
+      totalMarks += Number(
+        question.marks || 0,
+      );
+
       const answerData =
         submitExamDto.answers.find(
           (answer) =>
-            answer.questionId ===
-            question.id,
+            answer.questionId === question.id,
         );
 
-      // No answer
       if (!answerData) {
         continue;
       }
 
-      // Find selected option
       const selectedOption =
         question.options.find(
           (option) =>
@@ -748,25 +792,23 @@ export class ExamsService {
 
       const marksObtained =
         isCorrect
-          ? question.marks
+          ? Number(question.marks)
           : 0;
 
       if (isCorrect) {
-        totalScore += question.marks;
+        totalScore += Number(
+          question.marks,
+        );
       }
 
-      // Save answer
       const answer =
         this.answersRepository.create({
-          attemptId:
-            attempt.id,
+          attemptId: attempt.id,
 
-          questionId:
-            question.id,
+          questionId: question.id,
 
           selectedOptionId:
-            selectedOption?.id ??
-            null,
+            selectedOption?.id ?? null,
 
           isCorrect,
 
@@ -778,19 +820,10 @@ export class ExamsService {
       );
     }
 
-    // ---------------------------------------------------
-    // PERCENTAGE
-    // ---------------------------------------------------
-
     const percentage =
       totalMarks > 0
-        ? (totalScore / totalMarks) *
-          100
+        ? (totalScore / totalMarks) * 100
         : 0;
-
-    // ---------------------------------------------------
-    // UPDATE ATTEMPT
-    // ---------------------------------------------------
 
     attempt.score =
       totalScore;
@@ -802,23 +835,37 @@ export class ExamsService {
 
     attempt.passed =
       percentage >=
-      attempt.exam.passingPercentage;
+      Number(
+        attempt.exam.passingPercentage,
+      );
 
-    attempt.submitted =
-      true;
+    attempt.submitted = true;
 
-    return await this.examAttemptsRepository.save(
-      attempt,
-    );
+    const savedAttempt =
+      await this.examAttemptsRepository.save(
+        attempt,
+      );
+
+    // ===================================================
+    // CREATE CERTIFICATE FOR PASSED ATTEMPT
+    // ===================================================
+
+    if (savedAttempt.passed) {
+      await this.ensureCertificateForAttempt(
+        savedAttempt,
+      );
+    }
+
+    return savedAttempt;
   }
 
   // =====================================================
-  // GET EXAM RESULT
+  // GET EXAM RESULT BY ATTEMPT ID
   // =====================================================
 
   async getExamResult(
     attemptId: number,
-  ): Promise<ExamAttempt> {
+  ): Promise<any> {
     const attempt =
       await this.examAttemptsRepository.findOne({
         where: {
@@ -842,7 +889,303 @@ export class ExamsService {
       );
     }
 
-    return attempt;
+    // ===================================================
+    // IMPORTANT:
+    // OLD PASSED ATTEMPT KA CERTIFICATE YAHAN CREATE HOGA
+    // ===================================================
+
+    const certificate =
+      await this.ensureCertificateForAttempt(
+        attempt,
+      );
+
+    const questions =
+      await this.questionsRepository.find({
+        where: {
+          examId: attempt.examId,
+        },
+
+        relations: {
+          options: true,
+        },
+
+        order: {
+          id: 'ASC',
+        },
+      });
+
+    const totalQuestions =
+      questions.length;
+
+    const attemptedQuestions =
+      attempt.answers?.length ?? 0;
+
+    const correctAnswers =
+      attempt.answers?.filter(
+        (answer) =>
+          answer.isCorrect === true,
+      ).length ?? 0;
+
+    const wrongAnswers =
+      attempt.answers?.filter(
+        (answer) =>
+          answer.isCorrect === false,
+      ).length ?? 0;
+
+    const totalMarks =
+      questions.reduce(
+        (total, question) =>
+          total +
+          Number(question.marks || 0),
+        0,
+      );
+
+    const obtainedMarks =
+      Number(attempt.score || 0);
+
+    const percentage =
+      totalMarks > 0
+        ? Number(
+            (
+              (obtainedMarks /
+                totalMarks) *
+              100
+            ).toFixed(2),
+          )
+        : 0;
+
+    return {
+      id: attempt.id,
+
+      attemptId: attempt.id,
+
+      examId: attempt.examId,
+
+      studentId: attempt.studentId,
+
+      exam: attempt.exam,
+
+      // =================================================
+      // CERTIFICATE DATA
+      // =================================================
+
+      certificateId:
+        certificate?.id ?? null,
+
+      certificateNumber:
+        certificate?.certificateNumber ??
+        null,
+
+      certificate: certificate
+        ? {
+            id: certificate.id,
+            certificateNumber:
+              certificate.certificateNumber,
+            score: certificate.score,
+            percentage:
+              certificate.percentage,
+            issuedAt:
+              certificate.issuedAt,
+          }
+        : null,
+
+      totalQuestions,
+
+      attemptedQuestions,
+
+      correctAnswers,
+
+      wrongAnswers,
+
+      totalMarks,
+
+      obtainedMarks,
+
+      score: obtainedMarks,
+
+      percentage,
+
+      passingPercentage:
+        attempt.exam?.passingPercentage ??
+        40,
+
+      passed: attempt.passed,
+
+      submitted: attempt.submitted,
+
+      createdAt: attempt.createdAt,
+
+      answers: attempt.answers,
+    };
+  }
+
+  // =====================================================
+  // GET LAST SUBMITTED RESULT FOR STUDENT
+  // =====================================================
+
+  async getLastResult(
+    examId: number,
+    studentId: number,
+  ): Promise<any> {
+    const attempt =
+      await this.examAttemptsRepository.findOne({
+        where: {
+          examId,
+
+          studentId,
+
+          submitted: true,
+        },
+
+        relations: {
+          exam: true,
+
+          answers: {
+            question: true,
+
+            selectedOption: true,
+          },
+        },
+
+        order: {
+          createdAt: 'DESC',
+        },
+      });
+
+    if (!attempt) {
+      throw new NotFoundException(
+        'No submitted exam result found.',
+      );
+    }
+
+    // ===================================================
+    // IMPORTANT:
+    // OLD PASSED ATTEMPT KA CERTIFICATE YAHAN CREATE HOGA
+    // ===================================================
+
+    const certificate =
+      await this.ensureCertificateForAttempt(
+        attempt,
+      );
+
+    const questions =
+      await this.questionsRepository.find({
+        where: {
+          examId,
+        },
+
+        relations: {
+          options: true,
+        },
+
+        order: {
+          id: 'ASC',
+        },
+      });
+
+    const totalQuestions =
+      questions.length;
+
+    const attemptedQuestions =
+      attempt.answers?.length ?? 0;
+
+    const correctAnswers =
+      attempt.answers?.filter(
+        (answer) =>
+          answer.isCorrect === true,
+      ).length ?? 0;
+
+    const wrongAnswers =
+      attempt.answers?.filter(
+        (answer) =>
+          answer.isCorrect === false,
+      ).length ?? 0;
+
+    const totalMarks =
+      questions.reduce(
+        (total, question) =>
+          total +
+          Number(question.marks || 0),
+        0,
+      );
+
+    const obtainedMarks =
+      Number(attempt.score || 0);
+
+    const percentage =
+      totalMarks > 0
+        ? Number(
+            (
+              (obtainedMarks /
+                totalMarks) *
+              100
+            ).toFixed(2),
+          )
+        : 0;
+
+    return {
+      id: attempt.id,
+
+      attemptId: attempt.id,
+
+      examId: attempt.examId,
+
+      studentId: attempt.studentId,
+
+      exam: attempt.exam,
+
+      // =================================================
+      // CERTIFICATE DATA
+      // =================================================
+
+      certificateId:
+        certificate?.id ?? null,
+
+      certificateNumber:
+        certificate?.certificateNumber ??
+        null,
+
+      certificate: certificate
+        ? {
+            id: certificate.id,
+            certificateNumber:
+              certificate.certificateNumber,
+            score: certificate.score,
+            percentage:
+              certificate.percentage,
+            issuedAt:
+              certificate.issuedAt,
+          }
+        : null,
+
+      totalQuestions,
+
+      attemptedQuestions,
+
+      correctAnswers,
+
+      wrongAnswers,
+
+      totalMarks,
+
+      obtainedMarks,
+
+      score: obtainedMarks,
+
+      percentage,
+
+      passingPercentage:
+        attempt.exam?.passingPercentage ??
+        40,
+
+      passed: attempt.passed,
+
+      submitted: attempt.submitted,
+
+      createdAt: attempt.createdAt,
+
+      answers: attempt.answers,
+    };
   }
 
   // =====================================================
@@ -873,3 +1216,4 @@ export class ExamsService {
     });
   }
 }
+

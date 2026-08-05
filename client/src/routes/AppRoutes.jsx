@@ -56,6 +56,9 @@ import StudentExam from "../pages/Courses/ManageExam/StudentExam";
 import ExamResult from "../pages/Courses/ManageExam/ExamResult";
 import StudentExamResult from "../pages/Courses/ManageExam/StudentExamResult";
 
+
+import CertificateDetails from "../pages/Courses/Certificates/CertificateDetails";
+
 // =========================
 // Admin
 // =========================
@@ -322,6 +325,16 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/my-courses"
           element={<MyCourses />}
         />
+
+
+        <Route
+  path="/certificate/:certificateId"
+  element={
+    <ProtectedRoute>
+      <CertificateDetails />
+    </ProtectedRoute>
+  }
+/>
 
         {/* =================================================
             ADMIN - MANAGE USERS

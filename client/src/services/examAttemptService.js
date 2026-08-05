@@ -1,27 +1,61 @@
+
 import api from "./api";
 
-// Start Exam
+// =====================================================
+// START EXAM
+// =====================================================
+
 export const startExam = async (examId) => {
-  const response = await api.post(`/exams/${examId}/start`);
+  const response = await api.post(
+    `/exams/${examId}/start`
+  );
+
   return response.data;
 };
 
-// Submit Exam
-export const submitExam = async (attemptId, answers) => {
+// =====================================================
+// SUBMIT EXAM
+// =====================================================
+
+export const submitExam = async (
+  attemptId,
+  answers
+) => {
   const response = await api.post(
     `/exams/attempts/${attemptId}/submit`,
     {
       answers,
     }
   );
+
   return response.data;
 };
 
-// Get Exam Result
-export const getExamResult = async (attemptId) => {
+// =====================================================
+// GET EXAM RESULT BY ATTEMPT ID
+// =====================================================
+
+export const getExamResult = async (
+  attemptId
+) => {
   const response = await api.get(
     `/exams/attempts/${attemptId}/result`
   );
 
   return response.data;
 };
+
+// =====================================================
+// GET LAST RESULT OF CURRENT STUDENT
+// =====================================================
+
+export const getLastResult = async (
+  examId
+) => {
+  const response = await api.get(
+    `/exams/${examId}/last-result`
+  );
+
+  return response.data;
+};
+

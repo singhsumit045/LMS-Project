@@ -1,3 +1,4 @@
+
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -10,6 +11,9 @@ import { Option } from './entities/option.entity/option.entity';
 import { ExamAttempt } from './entities/exam-attempt.entity/exam-attempt.entity';
 import { Answer } from './entities/answer.entity/answer.entity';
 
+// Certificate Entity
+import { Certificate } from '../certificates/entities/certificate.entity';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -18,6 +22,10 @@ import { Answer } from './entities/answer.entity/answer.entity';
       Option,
       ExamAttempt,
       Answer,
+
+      // IMPORTANT:
+      // ExamsService me CertificateRepository use ho raha hai
+      Certificate,
     ]),
   ],
 
@@ -28,3 +36,4 @@ import { Answer } from './entities/answer.entity/answer.entity';
   exports: [ExamsService],
 })
 export class ExamsModule {}
+

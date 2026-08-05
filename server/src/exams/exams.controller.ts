@@ -15,36 +15,17 @@ import type { Request } from 'express';
 
 import { ExamsService } from './exams.service';
 
-// =====================================================
-// EXAM DTOs
-// =====================================================
-
+// DTOs
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
-
-// =====================================================
-// QUESTION DTOs
-// =====================================================
 
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 
-// =====================================================
-// OPTION DTOs
-// =====================================================
-
 import { CreateOptionDto } from './dto/create-option.dto';
 import { UpdateOptionDto } from './dto/update-option.dto';
 
-// =====================================================
-// SUBMIT EXAM DTO
-// =====================================================
-
 import { SubmitExamDto } from './dto/submit-exam.dto';
-
-// =====================================================
-// AUTH GUARD
-// =====================================================
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -82,7 +63,9 @@ export class ExamsController {
   }
 
   // =====================================================
-  // GET TEACHER EXAM RESULTS
+  // GET TEACHER RESULTS
+  // IMPORTANT:
+  // This route must come BEFORE /:id
   // =====================================================
 
   @UseGuards(JwtAuthGuard)
@@ -98,12 +81,39 @@ export class ExamsController {
   }
 
   // =====================================================
+  // GET LAST RESULT OF CURRENT STUDENT
+  // =====================================================
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':examId/last-result')
+  getLastResult(
+    @Param(
+      'examId',
+      ParseIntPipe,
+    )
+    examId: number,
+
+    @Req() req: Request,
+  ) {
+    const studentId = (req.user as any).id;
+
+    return this.examsService.getLastResult(
+      examId,
+      studentId,
+    );
+  }
+
+  // =====================================================
   // GET EXAM BY ID
   // =====================================================
 
   @Get(':id')
   findOne(
-    @Param('id', ParseIntPipe) id: number,
+    @Param(
+      'id',
+      ParseIntPipe,
+    )
+    id: number,
   ) {
     return this.examsService.findOne(id);
   }
@@ -123,8 +133,7 @@ export class ExamsController {
 
     @Req() req: Request,
   ) {
-    const studentId =
-      (req.user as any).id;
+    const studentId = (req.user as any).id;
 
     return this.examsService.startExam(
       examId,
@@ -155,7 +164,7 @@ export class ExamsController {
   }
 
   // =====================================================
-  // GET EXAM RESULT
+  // GET EXAM RESULT BY ATTEMPT ID
   // =====================================================
 
   @UseGuards(JwtAuthGuard)
