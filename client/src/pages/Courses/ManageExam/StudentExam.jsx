@@ -1,748 +1,621 @@
+    import { useEffect, useState } from "react";
+    import { useNavigate, useParams } from "react-router-dom";
 
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+    import {
+    Box,
+    Button,
+    Card,
+    CardContent,
+    CircularProgress,
+    Divider,
+    FormControl,
+    FormControlLabel,
+    Radio,
+    RadioGroup,
+    Typography,
+    Alert,
+    } from "@mui/material";
 
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CircularProgress,
-  Divider,
-  FormControl,
-  FormControlLabel,
-  Radio,
-  RadioGroup,
-  Typography,
-  Alert,
-} from "@mui/material";
+    import api from "../../../services/api";
 
-import api from "../../../services/api";
+    import {
+    startExam,
+    submitExam,
+    getExamResult,
+    } from "../../../services/examAttemptService";
 
-import {
-  startExam,
-  submitExam,
-  getExamResult,
-} from "../../../services/examAttemptService";
+    const StudentExam = () => {
+    const { examId } = useParams();
+    const navigate = useNavigate();
 
-const StudentExam = () => {
-  const { examId } = useParams();
-  const navigate = useNavigate();
+    // =====================================================
+    // STATE
+    // =====================================================
 
-  // =====================================================
-  // STATE
-  // =====================================================
+    const [exam, setExam] = useState(null);
 
-  const [exam, setExam] = useState(null);
+    const [attemptId, setAttemptId] = useState(null);
 
-  const [attemptId, setAttemptId] = useState(null);
+    const [answers, setAnswers] = useState({});
 
-  const [answers, setAnswers] = useState({});
+    const [examStarted, setExamStarted] = useState(false);
 
-  const [examStarted, setExamStarted] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-  const [loading, setLoading] = useState(true);
+    const [starting, setStarting] = useState(false);
 
-  const [starting, setStarting] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
-  const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState("");
 
-  const [error, setError] = useState("");
+    // =====================================================
+    // LOAD EXAM
+    // =====================================================
 
-  const [result, setResult] = useState(null);
-
-  // =====================================================
-  // LOAD EXAM
-  // =====================================================
-
-  useEffect(() => {
+    useEffect(() => {
     const loadExam = async () => {
-      try {
-        setLoading(true);
-        setError("");
+    try {
+    setLoading(true);
+    setError("");
 
-        // -------------------------------------------------
-        // GET EXAM
-        // -------------------------------------------------
 
-        const response = await api.get(`/exams/${examId}`);
+        const response = await api.get(
+        `/exams/${examId}`
+        );
 
         const examData = response.data;
 
         console.log("Exam Data:", examData);
 
-        // -------------------------------------------------
-        // CHECK EXAM
-        // -------------------------------------------------
-
         if (!examData) {
-          setError("Exam not found.");
-          return;
+        setError("Exam not found.");
+        return;
         }
-
-        // -------------------------------------------------
-        // CHECK PUBLISHED STATUS
-        // -------------------------------------------------
 
         if (!examData.isPublished) {
-          setExam(examData);
-
-          setError(
-            "This exam is not published yet."
-          );
-
-          return;
-        }
-
-        // -------------------------------------------------
-        // SAVE EXAM
-        // -------------------------------------------------
-
         setExam(examData);
 
-        // IMPORTANT:
-        // Exam is NOT started here.
-        //
-        // Student must click Start Exam button.
-      } catch (err) {
+        setError(
+            "This exam is not published yet."
+        );
+
+        return;
+        }
+
+        setExam(examData);
+    } catch (err) {
         console.error(
-          "Failed to load exam:",
-          err
+        "Failed to load exam:",
+        err
         );
 
         setError(
-          err.response?.data?.message ||
+        err.response?.data?.message ||
             err.message ||
             "Unable to load exam."
         );
-      } finally {
+    } finally {
         setLoading(false);
-      }
+    }
     };
 
     if (examId) {
-      loadExam();
+    loadExam();
     }
-  }, [examId]);
 
-  // =====================================================
-  // START EXAM
-  // =====================================================
 
-  const handleStartExam = async () => {
+    }, [examId]);
+
+    // =====================================================
+    // START EXAM
+    // =====================================================
+
+    const handleStartExam = async () => {
     try {
-      setStarting(true);
-      setError("");
+    setStarting(true);
+    setError("");
 
-      console.log(
+
+    console.log(
         "Starting Exam:",
         examId
-      );
+    );
 
-      const attempt = await startExam(examId);
+    const attempt = await startExam(examId);
 
-      console.log(
+    console.log(
         "Exam Attempt:",
         attempt
-      );
+    );
 
-      // Support both:
-      //
-      // { id: 1 }
-      //
-      // OR
-      //
-      // { attemptId: 1 }
-
-      const newAttemptId =
+    const newAttemptId =
         attempt?.id ??
         attempt?.attemptId;
 
-      if (!newAttemptId) {
+    if (!newAttemptId) {
         throw new Error(
-          "Exam attempt ID was not returned by server."
+        "Exam attempt ID was not returned by server."
         );
-      }
+    }
 
-      setAttemptId(newAttemptId);
+    setAttemptId(newAttemptId);
 
-      // Now exam has started
-      setExamStarted(true);
+    setExamStarted(true);
 
-      console.log(
+    console.log(
         "Exam Started. Attempt ID:",
         newAttemptId
-      );
+    );
     } catch (err) {
-      console.error(
+    console.error(
         "Failed to start exam:",
         err
-      );
+    );
 
-      setError(
+    setError(
         err.response?.data?.message ||
-          err.message ||
-          "Unable to start exam."
-      );
+        err.message ||
+        "Unable to start exam."
+    );
     } finally {
-      setStarting(false);
+    setStarting(false);
     }
-  };
 
-  // =====================================================
-  // SELECT ANSWER
-  // =====================================================
 
-  const handleAnswerChange = (
+    };
+
+    // =====================================================
+    // SELECT ANSWER
+    // =====================================================
+
+    const handleAnswerChange = (
     questionId,
     selectedOptionId
-  ) => {
+    ) => {
     setAnswers((previous) => ({
-      ...previous,
+    ...previous,
 
-      [questionId]: Number(
+
+    [questionId]: Number(
         selectedOptionId
-      ),
+    ),
     }));
-  };
 
-  // =====================================================
-  // SUBMIT EXAM
-  // =====================================================
 
-  const handleSubmit = async () => {
+    };
+
+    // =====================================================
+    // SUBMIT EXAM
+    // =====================================================
+
+    const handleSubmit = async () => {
     if (!attemptId) {
-      setError(
-        "Exam attempt not found."
-      );
+    setError(
+    "Exam attempt not found."
+    );
 
-      return;
+    return;
     }
 
     try {
-      setSubmitting(true);
-      setError("");
+    setSubmitting(true);
+    setError("");
 
-      // -------------------------------------------------
-      // CONVERT ANSWERS OBJECT INTO ARRAY
-      // -------------------------------------------------
+    // -------------------------------------------------
+    // CONVERT ANSWERS OBJECT INTO ARRAY
+    // -------------------------------------------------
 
-      const formattedAnswers =
+    const formattedAnswers =
         Object.entries(answers).map(
-          ([questionId, selectedOptionId]) => ({
+        ([questionId, selectedOptionId]) => ({
             questionId: Number(questionId),
 
             selectedOptionId:
-              Number(selectedOptionId),
-          })
+            Number(selectedOptionId),
+        })
         );
 
-      console.log(
+    console.log(
         "Submitting Answers:",
         formattedAnswers
-      );
+    );
 
-      // -------------------------------------------------
-      // SUBMIT ANSWERS
-      // -------------------------------------------------
+    // -------------------------------------------------
+    // SUBMIT ANSWERS
+    // -------------------------------------------------
 
-      await submitExam(
+    await submitExam(
         attemptId,
         formattedAnswers
-      );
+    );
 
-      console.log(
+    console.log(
         "Answers submitted successfully."
-      );
+    );
 
-      // -------------------------------------------------
-      // GET RESULT
-      // -------------------------------------------------
+    // -------------------------------------------------
+    // VERIFY RESULT
+    // -------------------------------------------------
 
-      const resultResponse =
-        await getExamResult(
-          attemptId
-        );
+    const resultResponse =
+        await getExamResult(attemptId);
 
-      console.log(
+    console.log(
         "Exam Result:",
         resultResponse
-      );
+    );
 
-      setResult(resultResponse);
+    // -------------------------------------------------
+    // REDIRECT TO RESULT PAGE
+    // -------------------------------------------------
+
+navigate(`/exams/attempts/${attemptId}/result`);
     } catch (err) {
-      console.error(
+    console.error(
         "Failed to submit exam:",
         err
-      );
+    );
 
-      setError(
+    setError(
         err.response?.data?.message ||
-          err.message ||
-          "Failed to submit exam."
-      );
+        err.message ||
+        "Failed to submit exam."
+    );
     } finally {
-      setSubmitting(false);
+    setSubmitting(false);
     }
-  };
 
-  // =====================================================
-  // LOADING
-  // =====================================================
 
-  if (loading) {
+    };
+
+    // =====================================================
+    // LOADING
+    // =====================================================
+
+    if (loading) {
     return (
-      <Box
-        sx={{
-          minHeight: "70vh",
-
-          display: "flex",
-
-          alignItems: "center",
-
-          justifyContent: "center",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  // =====================================================
-  // EXAM NOT FOUND
-  // =====================================================
-
-  if (!exam) {
-    return (
-      <Box
-        sx={{
-          maxWidth: 900,
-
-          mx: "auto",
-
-          p: 3,
-        }}
-      >
-        <Alert severity="warning">
-          Exam not found.
-        </Alert>
-
-        <Button
-          variant="outlined"
-          sx={{
-            mt: 2,
-          }}
-          onClick={() =>
-            navigate("/my-courses")
-          }
-        >
-          Back to My Courses
-        </Button>
-      </Box>
-    );
-  }
-
-  // =====================================================
-  // NOT PUBLISHED
-  // =====================================================
-
-  if (!exam.isPublished) {
-    return (
-      <Box
-        sx={{
-          maxWidth: 900,
-
-          mx: "auto",
-
-          p: 3,
-        }}
-      >
-        <Alert severity="warning">
-          This exam is not published yet.
-        </Alert>
-
-        <Button
-          variant="outlined"
-          sx={{
-            mt: 2,
-          }}
-          onClick={() =>
-            navigate("/my-courses")
-          }
-        >
-          Back to My Courses
-        </Button>
-      </Box>
-    );
-  }
-
-  // =====================================================
-  // RESULT SCREEN
-  // =====================================================
-
-  if (result) {
-    return (
-      <Box
-        sx={{
-          maxWidth: 700,
-
-          mx: "auto",
-
-          p: 3,
-        }}
-      >
-        <Card>
-          <CardContent
-            sx={{
-              textAlign: "center",
-
-              py: 5,
-            }}
-          >
-            <Typography
-              variant="h4"
-              fontWeight={700}
-              gutterBottom
-            >
-              Exam Completed 🎉
-            </Typography>
-
-            <Divider
-              sx={{
-                my: 3,
-              }}
-            />
-
-            <Typography
-              variant="h6"
-              sx={{
-                mb: 2,
-              }}
-            >
-              Score:{" "}
-              {result.score ?? 0}
-            </Typography>
-
-            <Typography
-              variant="h6"
-              sx={{
-                mb: 2,
-              }}
-            >
-              Percentage:{" "}
-              {result.percentage ?? 0}%
-            </Typography>
-
-            <Typography
-              variant="h6"
-              sx={{
-                mb: 3,
-
-                fontWeight: 700,
-              }}
-            >
-              Status:{" "}
-              {result.passed
-                ? "PASSED ✅"
-                : "FAILED ❌"}
-            </Typography>
-
-            <Button
-              variant="contained"
-              onClick={() =>
-                navigate("/my-courses")
-              }
-            >
-              Back to My Courses
-            </Button>
-          </CardContent>
-        </Card>
-      </Box>
-    );
-  }
-
-  // =====================================================
-  // MAIN UI
-  // =====================================================
-
-  return (
     <Box
-      sx={{
-        maxWidth: 1000,
+    sx={{
+    minHeight: "70vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    }}
+    > <CircularProgress /> </Box>
+    );
+    }
 
-        mx: "auto",
+    // =====================================================
+    // EXAM NOT FOUND
+    // =====================================================
 
-        p: {
-          xs: 2,
+    if (!exam) {
+    return (
+    <Box
+    sx={{
+    maxWidth: 900,
+    mx: "auto",
+    p: 3,
+    }}
+    > <Alert severity="warning">
+    Exam not found. </Alert>
 
-          sm: 3,
-        },
-      }}
-    >
-      {/* =================================================
-          EXAM HEADER
-      ================================================= */}
 
-      <Card
+        <Button
+        variant="outlined"
         sx={{
-          mb: 3,
+            mt: 2,
         }}
-      >
+        onClick={() =>
+            navigate("/my-courses")
+        }
+        >
+        Back to My Courses
+        </Button>
+    </Box>
+    );
+
+
+    }
+
+    // =====================================================
+    // NOT PUBLISHED
+    // =====================================================
+
+    if (!exam.isPublished) {
+    return (
+    <Box
+    sx={{
+    maxWidth: 900,
+    mx: "auto",
+    p: 3,
+    }}
+    > <Alert severity="warning">
+    This exam is not published yet. </Alert>
+
+
+        <Button
+        variant="outlined"
+        sx={{
+            mt: 2,
+        }}
+        onClick={() =>
+            navigate("/my-courses")
+        }
+        >
+        Back to My Courses
+        </Button>
+    </Box>
+    );
+
+
+    }
+
+    // =====================================================
+    // MAIN UI
+    // =====================================================
+
+    return (
+    <Box
+    sx={{
+    maxWidth: 1000,
+    mx: "auto",
+    p: {
+    xs: 2,
+    sm: 3,
+    },
+    }}
+    >
+    {/* =================================================
+    EXAM HEADER
+    ================================================= */}
+
+
+    <Card
+        sx={{
+        mb: 3,
+        }}
+    >
         <CardContent>
-          <Typography
+        <Typography
             variant="h4"
             fontWeight={700}
             gutterBottom
-          >
+        >
             {exam.title}
-          </Typography>
+        </Typography>
 
-          {exam.description && (
+        {exam.description && (
             <Typography
-              variant="body1"
-              color="text.secondary"
-              sx={{
-                mb: 2,
-              }}
-            >
-              {exam.description}
-            </Typography>
-          )}
-
-          <Box
+            variant="body1"
+            color="text.secondary"
             sx={{
-              display: "flex",
-
-              gap: 3,
-
-              flexWrap: "wrap",
-
-              mb: examStarted ? 0 : 3,
+                mb: 2,
             }}
-          >
-            <Typography>
-              <strong>
-                Duration:
-              </strong>{" "}
-              {exam.duration} minutes
-            </Typography>
-
-            <Typography>
-              <strong>
-                Total Marks:
-              </strong>{" "}
-              {exam.totalMarks}
-            </Typography>
-
-            <Typography>
-              <strong>
-                Passing:
-              </strong>{" "}
-              {exam.passingPercentage}%
-            </Typography>
-          </Box>
-
-          {/* =============================================
-              START EXAM BUTTON
-          ============================================= */}
-
-          {!examStarted && (
-            <Box
-              sx={{
-                display: "flex",
-
-                justifyContent: "center",
-
-                mt: 3,
-              }}
             >
-              <Button
+            {exam.description}
+            </Typography>
+        )}
+
+        <Box
+            sx={{
+            display: "flex",
+            gap: 3,
+            flexWrap: "wrap",
+            mb: examStarted ? 0 : 3,
+            }}
+        >
+            <Typography>
+            <strong>
+                Duration:
+            </strong>{" "}
+            {exam.duration} minutes
+            </Typography>
+
+            <Typography>
+            <strong>
+                Total Marks:
+            </strong>{" "}
+            {exam.totalMarks}
+            </Typography>
+
+            <Typography>
+            <strong>
+                Passing:
+            </strong>{" "}
+            {exam.passingPercentage}%
+            </Typography>
+        </Box>
+
+        {/* =============================================
+            START EXAM BUTTON
+        ============================================= */}
+
+        {!examStarted && (
+            <Box
+            sx={{
+                display: "flex",
+                justifyContent: "center",
+                mt: 3,
+            }}
+            >
+            <Button
                 variant="contained"
                 size="large"
                 onClick={handleStartExam}
                 disabled={starting}
                 sx={{
-                  minWidth: 200,
+                minWidth: 200,
                 }}
-              >
+            >
                 {starting ? (
-                  <CircularProgress
+                <CircularProgress
                     size={24}
                     color="inherit"
-                  />
+                />
                 ) : (
-                  "Start Exam"
+                "Start Exam"
                 )}
-              </Button>
+            </Button>
             </Box>
-          )}
+        )}
         </CardContent>
-      </Card>
+    </Card>
 
-      {/* =================================================
-          ERROR
-      ================================================= */}
+    {/* =================================================
+        ERROR
+    ================================================= */}
 
-      {error && (
+    {error && (
         <Alert
-          severity="error"
-          sx={{
+        severity="error"
+        sx={{
             mb: 3,
-          }}
+        }}
         >
-          {error}
+        {error}
         </Alert>
-      )}
+    )}
 
-      {/* =================================================
-          QUESTIONS
-          ONLY SHOW AFTER START EXAM
-      ================================================= */}
+    {/* =================================================
+        QUESTIONS
+    ================================================= */}
 
-      {examStarted && (
+    {examStarted && (
         <>
-          {exam.questions &&
-          exam.questions.length > 0 ? (
+        {exam.questions &&
+        exam.questions.length > 0 ? (
             exam.questions.map(
-              (question, index) => (
+            (question, index) => (
                 <Card
-                  key={question.id}
-                  sx={{
+                key={question.id}
+                sx={{
                     mb: 3,
-                  }}
+                }}
                 >
-                  <CardContent>
+                <CardContent>
                     <Typography
-                      variant="h6"
-                      fontWeight={600}
-                      sx={{
+                    variant="h6"
+                    fontWeight={600}
+                    sx={{
                         mb: 2,
-                      }}
+                    }}
                     >
-                      {index + 1}.{" "}
-                      {
-                        question.questionText
-                      }
+                    {index + 1}.{" "}
+                    {question.questionText}
                     </Typography>
 
                     <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
                         mb: 2,
-                      }}
+                    }}
                     >
-                      Marks:{" "}
-                      {question.marks}
+                    Marks:{" "}
+                    {question.marks}
                     </Typography>
 
                     <FormControl fullWidth>
-                      <RadioGroup
+                    <RadioGroup
                         value={
-                          answers[
+                        answers[
                             question.id
-                          ] ?? ""
+                        ] ?? ""
                         }
-                        onChange={(
-                          event
-                        ) =>
-                          handleAnswerChange(
+                        onChange={(event) =>
+                        handleAnswerChange(
                             question.id,
-
-                            event.target
-                              .value
-                          )
+                            event.target.value
+                        )
                         }
-                      >
+                    >
                         {question.options &&
                         question.options.length >
-                          0 ? (
-                          question.options.map(
+                        0 ? (
+                        question.options.map(
                             (option) => (
-                              <FormControlLabel
+                            <FormControlLabel
                                 key={
-                                  option.id
+                                option.id
                                 }
                                 value={String(
-                                  option.id
+                                option.id
                                 )}
                                 control={
-                                  <Radio />
+                                <Radio />
                                 }
                                 label={
-                                  option.optionText
+                                option.optionText
                                 }
-                              />
+                            />
                             )
-                          )
+                        )
                         ) : (
-                          <Alert severity="warning">
+                        <Alert severity="warning">
                             No options available
                             for this question.
-                          </Alert>
+                        </Alert>
                         )}
-                      </RadioGroup>
+                    </RadioGroup>
                     </FormControl>
-                  </CardContent>
+                </CardContent>
                 </Card>
-              )
             )
-          ) : (
+            )
+        ) : (
             <Alert
-              severity="info"
-              sx={{
+            severity="info"
+            sx={{
                 mb: 3,
-              }}
+            }}
             >
-              No questions available
-              for this exam yet.
+            No questions available
+            for this exam yet.
             </Alert>
-          )}
+        )}
 
-          {/* =============================================
-              SUBMIT EXAM
-          ============================================= */}
+        {/* =============================================
+            SUBMIT EXAM
+        ============================================= */}
 
-          {exam.questions?.length >
-            0 && (
+        {exam.questions?.length > 0 && (
             <Box
-              sx={{
+            sx={{
                 display: "flex",
-
-                justifyContent:
-                  "center",
-
+                justifyContent: "center",
                 pb: 5,
-              }}
+            }}
             >
-              <Button
+            <Button
                 variant="contained"
                 size="large"
                 onClick={handleSubmit}
                 disabled={
-                  submitting ||
-                  !attemptId
+                submitting ||
+                !attemptId
                 }
                 sx={{
-                  minWidth: 200,
+                minWidth: 200,
                 }}
-              >
+            >
                 {submitting ? (
-                  <CircularProgress
+                <CircularProgress
                     size={24}
                     color="inherit"
-                  />
+                />
                 ) : (
-                  "Submit Exam"
+                "Submit Exam"
                 )}
-              </Button>
+            </Button>
             </Box>
-          )}
+        )}
         </>
-      )}
+    )}
     </Box>
-  );
-};
 
-export default StudentExam;
 
+    );
+    };
+
+    export default StudentExam;

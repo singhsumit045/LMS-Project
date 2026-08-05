@@ -82,6 +82,22 @@ export class ExamsController {
   }
 
   // =====================================================
+  // GET TEACHER EXAM RESULTS
+  // =====================================================
+
+  @UseGuards(JwtAuthGuard)
+  @Get('teacher/results')
+  getTeacherResults(
+    @Req() req: Request,
+  ) {
+    const teacherId = (req.user as any).id;
+
+    return this.examsService.getExamResultsForTeacher(
+      teacherId,
+    );
+  }
+
+  // =====================================================
   // GET EXAM BY ID
   // =====================================================
 
@@ -99,10 +115,16 @@ export class ExamsController {
   @UseGuards(JwtAuthGuard)
   @Post(':examId/start')
   startExam(
-    @Param('examId', ParseIntPipe) examId: number,
+    @Param(
+      'examId',
+      ParseIntPipe,
+    )
+    examId: number,
+
     @Req() req: Request,
   ) {
-    const studentId = (req.user as any).id;
+    const studentId =
+      (req.user as any).id;
 
     return this.examsService.startExam(
       examId,
@@ -117,8 +139,14 @@ export class ExamsController {
   @UseGuards(JwtAuthGuard)
   @Post('attempts/:attemptId/submit')
   submitExam(
-    @Param('attemptId', ParseIntPipe) attemptId: number,
-    @Body() submitExamDto: SubmitExamDto,
+    @Param(
+      'attemptId',
+      ParseIntPipe,
+    )
+    attemptId: number,
+
+    @Body()
+    submitExamDto: SubmitExamDto,
   ) {
     return this.examsService.submitExam(
       attemptId,
@@ -133,7 +161,11 @@ export class ExamsController {
   @UseGuards(JwtAuthGuard)
   @Get('attempts/:attemptId/result')
   getExamResult(
-    @Param('attemptId', ParseIntPipe) attemptId: number,
+    @Param(
+      'attemptId',
+      ParseIntPipe,
+    )
+    attemptId: number,
   ) {
     return this.examsService.getExamResult(
       attemptId,
@@ -322,7 +354,11 @@ export class ExamsController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param(
+      'id',
+      ParseIntPipe,
+    )
+    id: number,
 
     @Body()
     updateExamDto: UpdateExamDto,
@@ -340,7 +376,11 @@ export class ExamsController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(
-    @Param('id', ParseIntPipe) id: number,
+    @Param(
+      'id',
+      ParseIntPipe,
+    )
+    id: number,
   ) {
     return this.examsService.remove(id);
   }

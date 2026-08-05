@@ -10,9 +10,11 @@ import { Repository } from 'typeorm';
 import { Exam } from './entities/exam.entity';
 import { Question } from './entities/question.entity/question.entity';
 import { Option } from './entities/option.entity/option.entity';
+
 import {
   ExamAttempt,
 } from './entities/exam-attempt.entity/exam-attempt.entity';
+
 import {
   Answer,
 } from './entities/answer.entity/answer.entity';
@@ -57,21 +59,43 @@ export class ExamsService {
   ): Promise<Exam> {
     const exam = this.examsRepository.create({
       title: createExamDto.title,
-      description: createExamDto.description,
-      duration: createExamDto.duration,
-      totalMarks: createExamDto.totalMarks,
 
-      courseId: createExamDto.courseId,
+      description:
+        createExamDto.description,
+
+      duration:
+        createExamDto.duration,
+
+      totalMarks:
+        createExamDto.totalMarks,
+
+      courseId:
+        createExamDto.courseId,
+
       teacherId,
 
       passingPercentage:
         createExamDto.passingMarks,
 
+      // IMPORTANT
+      // Frontend sends isPublished
       isPublished:
-        createExamDto.published ?? false,
+        createExamDto.isPublished ?? false,
     });
 
-    return await this.examsRepository.save(exam);
+    console.log(
+      'Creating Exam:',
+      {
+        title: exam.title,
+        courseId: exam.courseId,
+        teacherId: exam.teacherId,
+        isPublished: exam.isPublished,
+      },
+    );
+
+    return await this.examsRepository.save(
+      exam,
+    );
   }
 
   // =====================================================
@@ -96,7 +120,9 @@ export class ExamsService {
   // GET EXAM BY ID
   // =====================================================
 
-  async findOne(id: number): Promise<Exam> {
+  async findOne(
+    id: number,
+  ): Promise<Exam> {
     const exam =
       await this.examsRepository.findOne({
         where: {
@@ -116,6 +142,15 @@ export class ExamsService {
       );
     }
 
+    console.log(
+      'Exam fetched:',
+      {
+        id: exam.id,
+        title: exam.title,
+        isPublished: exam.isPublished,
+      },
+    );
+
     return exam;
   }
 
@@ -127,64 +162,100 @@ export class ExamsService {
     id: number,
     updateExamDto: UpdateExamDto,
   ): Promise<Exam> {
-    const exam = await this.findOne(id);
+    const exam =
+      await this.findOne(id);
 
-    // Title
-    if (updateExamDto.title !== undefined) {
+    // ---------------------------------------------------
+    // TITLE
+    // ---------------------------------------------------
+
+    if (
+      updateExamDto.title !== undefined
+    ) {
       exam.title =
         updateExamDto.title;
     }
 
-    // Description
+    // ---------------------------------------------------
+    // DESCRIPTION
+    // ---------------------------------------------------
+
     if (
-      updateExamDto.description !== undefined
+      updateExamDto.description !==
+      undefined
     ) {
       exam.description =
         updateExamDto.description;
     }
 
-    // Duration
+    // ---------------------------------------------------
+    // DURATION
+    // ---------------------------------------------------
+
     if (
-      updateExamDto.duration !== undefined
+      updateExamDto.duration !==
+      undefined
     ) {
       exam.duration =
         updateExamDto.duration;
     }
 
-    // Total marks
+    // ---------------------------------------------------
+    // TOTAL MARKS
+    // ---------------------------------------------------
+
     if (
-      updateExamDto.totalMarks !== undefined
+      updateExamDto.totalMarks !==
+      undefined
     ) {
       exam.totalMarks =
         updateExamDto.totalMarks;
     }
 
-    // Course
+    // ---------------------------------------------------
+    // COURSE
+    // ---------------------------------------------------
+
     if (
-      updateExamDto.courseId !== undefined
+      updateExamDto.courseId !==
+      undefined
     ) {
       exam.courseId =
         updateExamDto.courseId;
     }
 
-    // Passing percentage
+    // ---------------------------------------------------
+    // PASSING MARKS
+    // ---------------------------------------------------
+
     if (
-      updateExamDto.passingMarks !== undefined
+      updateExamDto.passingMarks !==
+      undefined
     ) {
       exam.passingPercentage =
         updateExamDto.passingMarks;
     }
 
-    // IMPORTANT
-    // DTO -> published
-    // Entity -> isPublished
+    // ---------------------------------------------------
+    // PUBLISHED
+    // ---------------------------------------------------
 
     if (
-      updateExamDto.published !== undefined
+      updateExamDto.isPublished !==
+      undefined
     ) {
       exam.isPublished =
-        updateExamDto.published;
+        updateExamDto.isPublished;
     }
+
+    console.log(
+      'Updating Exam:',
+      {
+        id: exam.id,
+        title: exam.title,
+        isPublished: exam.isPublished,
+      },
+    );
 
     return await this.examsRepository.save(
       exam,
@@ -198,12 +269,16 @@ export class ExamsService {
   async remove(
     id: number,
   ): Promise<{ message: string }> {
-    const exam = await this.findOne(id);
+    const exam =
+      await this.findOne(id);
 
-    await this.examsRepository.remove(exam);
+    await this.examsRepository.remove(
+      exam,
+    );
 
     return {
-      message: 'Exam deleted successfully',
+      message:
+        'Exam deleted successfully',
     };
   }
 
@@ -366,7 +441,8 @@ export class ExamsService {
     );
 
     return {
-      message: 'Question deleted successfully',
+      message:
+        'Question deleted successfully',
     };
   }
 
@@ -494,7 +570,8 @@ export class ExamsService {
     );
 
     return {
-      message: 'Option deleted successfully',
+      message:
+        'Option deleted successfully',
     };
   }
 
@@ -519,14 +596,20 @@ export class ExamsService {
       );
     }
 
-    // Student can only start published exam
+    // ---------------------------------------------------
+    // ONLY PUBLISHED EXAM CAN BE STARTED
+    // ---------------------------------------------------
+
     if (!exam.isPublished) {
       throw new BadRequestException(
         'This exam is not published yet',
       );
     }
 
-    // Check existing unfinished attempt
+    // ---------------------------------------------------
+    // CHECK EXISTING UNFINISHED ATTEMPT
+    // ---------------------------------------------------
+
     const existingAttempt =
       await this.examAttemptsRepository.findOne({
         where: {
@@ -540,16 +623,21 @@ export class ExamsService {
       return existingAttempt;
     }
 
-    // Create new attempt
+    // ---------------------------------------------------
+    // CREATE NEW ATTEMPT
+    // ---------------------------------------------------
+
     const attempt =
       this.examAttemptsRepository.create({
         examId,
         studentId,
 
         score: 0,
+
         percentage: 0,
 
         passed: false,
+
         submitted: false,
       });
 
@@ -566,10 +654,6 @@ export class ExamsService {
     attemptId: number,
     submitExamDto: SubmitExamDto,
   ): Promise<ExamAttempt> {
-    // ---------------------------------------------------
-    // Find attempt
-    // ---------------------------------------------------
-
     const attempt =
       await this.examAttemptsRepository.findOne({
         where: {
@@ -588,7 +672,7 @@ export class ExamsService {
     }
 
     // ---------------------------------------------------
-    // Already submitted?
+    // ALREADY SUBMITTED
     // ---------------------------------------------------
 
     if (attempt.submitted) {
@@ -598,7 +682,7 @@ export class ExamsService {
     }
 
     // ---------------------------------------------------
-    // Get ALL questions of this exam
+    // GET QUESTIONS
     // ---------------------------------------------------
 
     const questions =
@@ -623,7 +707,7 @@ export class ExamsService {
     }
 
     // ---------------------------------------------------
-    // Calculate actual total marks
+    // TOTAL MARKS
     // ---------------------------------------------------
 
     let totalMarks = 0;
@@ -633,13 +717,12 @@ export class ExamsService {
     }
 
     // ---------------------------------------------------
-    // Student submitted answers
+    // CALCULATE SCORE
     // ---------------------------------------------------
 
     let totalScore = 0;
 
     for (const question of questions) {
-      // Find student's answer for this question
       const answerData =
         submitExamDto.answers.find(
           (answer) =>
@@ -647,7 +730,7 @@ export class ExamsService {
             question.id,
         );
 
-      // If student did not answer
+      // No answer
       if (!answerData) {
         continue;
       }
@@ -668,23 +751,22 @@ export class ExamsService {
           ? question.marks
           : 0;
 
-      // Add score
       if (isCorrect) {
         totalScore += question.marks;
       }
 
-      // -------------------------------------------------
-      // Save Answer
-      // -------------------------------------------------
-
+      // Save answer
       const answer =
         this.answersRepository.create({
-          attemptId: attempt.id,
+          attemptId:
+            attempt.id,
 
-          questionId: question.id,
+          questionId:
+            question.id,
 
           selectedOptionId:
-            selectedOption?.id ?? null,
+            selectedOption?.id ??
+            null,
 
           isCorrect,
 
@@ -697,32 +779,33 @@ export class ExamsService {
     }
 
     // ---------------------------------------------------
-    // Calculate percentage
+    // PERCENTAGE
     // ---------------------------------------------------
 
     const percentage =
       totalMarks > 0
-        ? (totalScore / totalMarks) * 100
+        ? (totalScore / totalMarks) *
+          100
         : 0;
 
     // ---------------------------------------------------
-    // Update attempt
+    // UPDATE ATTEMPT
     // ---------------------------------------------------
 
-    attempt.score = totalScore;
+    attempt.score =
+      totalScore;
 
     attempt.percentage =
-      Number(percentage.toFixed(2));
+      Number(
+        percentage.toFixed(2),
+      );
 
     attempt.passed =
       percentage >=
       attempt.exam.passingPercentage;
 
-    attempt.submitted = true;
-
-    // ---------------------------------------------------
-    // Save attempt
-    // ---------------------------------------------------
+    attempt.submitted =
+      true;
 
     return await this.examAttemptsRepository.save(
       attempt,
@@ -747,6 +830,7 @@ export class ExamsService {
 
           answers: {
             question: true,
+
             selectedOption: true,
           },
         },
@@ -759,5 +843,33 @@ export class ExamsService {
     }
 
     return attempt;
+  }
+
+  // =====================================================
+  // GET ALL EXAM RESULTS FOR TEACHER
+  // =====================================================
+
+  async getExamResultsForTeacher(
+    teacherId: number,
+  ): Promise<ExamAttempt[]> {
+    return await this.examAttemptsRepository.find({
+      where: {
+        exam: {
+          teacherId,
+        },
+
+        submitted: true,
+      },
+
+      relations: {
+        student: true,
+
+        exam: true,
+      },
+
+      order: {
+        createdAt: 'DESC',
+      },
+    });
   }
 }

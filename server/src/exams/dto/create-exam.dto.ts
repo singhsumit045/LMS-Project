@@ -34,5 +34,5 @@ export class CreateExamDto {
 
   @IsOptional()
   @IsBoolean()
-  published?: boolean;
+  isPublished?: boolean;
 }

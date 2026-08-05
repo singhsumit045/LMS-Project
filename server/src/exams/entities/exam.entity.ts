@@ -34,7 +34,7 @@ export class Exam {
   @Column({ default: 40 })
   passingPercentage!: number;
 
-  @Column({ default: true })
+  @Column({ default: false})
   isPublished!: boolean;
 
   // Teacher who created the exam

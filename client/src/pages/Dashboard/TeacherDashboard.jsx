@@ -1,3 +1,4 @@
+
 import {
     Container,
     Box,
@@ -21,6 +22,7 @@ import {
     Edit,
     Settings,
     ArrowForward,
+    Assessment,
 } from "@mui/icons-material";
 
 import { useEffect, useState } from "react";
@@ -59,10 +61,17 @@ const TeacherDashboard = () => {
             );
 
             setDashboard({
-                totalCourses: response.data?.totalCourses || 0,
-                totalStudents: response.data?.totalStudents || 0,
-                students: response.data?.students || [],
-                courses: response.data?.courses || [],
+                totalCourses:
+                    response.data?.totalCourses || 0,
+
+                totalStudents:
+                    response.data?.totalStudents || 0,
+
+                students:
+                    response.data?.students || [],
+
+                courses:
+                    response.data?.courses || [],
             });
         } catch (error) {
             console.error(
@@ -264,7 +273,9 @@ const TeacherDashboard = () => {
                     },
                 }}
             >
-                {/* TOTAL COURSES */}
+                {/* =================================================
+                    TOTAL COURSES
+                ================================================= */}
 
                 <Grid
                     size={{
@@ -352,7 +363,9 @@ const TeacherDashboard = () => {
                     </Paper>
                 </Grid>
 
-                {/* TOTAL STUDENTS */}
+                {/* =================================================
+                    TOTAL STUDENTS
+                ================================================= */}
 
                 <Grid
                     size={{
@@ -440,7 +453,9 @@ const TeacherDashboard = () => {
                     </Paper>
                 </Grid>
 
-                {/* TOTAL ENROLLMENTS */}
+                {/* =================================================
+                    TOTAL ENROLLMENTS
+                ================================================= */}
 
                 <Grid
                     size={{
@@ -523,6 +538,116 @@ const TeacherDashboard = () => {
                                 <School />
                             </Avatar>
                         </Box>
+                    </Paper>
+                </Grid>
+
+                {/* =================================================
+                    EXAM RESULTS
+                ================================================= */}
+
+                <Grid
+                    size={{
+                        xs: 12,
+                        sm: 6,
+                        md: 4,
+                    }}
+                >
+                    <Paper
+                        elevation={0}
+                        onClick={() =>
+                            navigate(
+                                "/teacher/exam-results"
+                            )
+                        }
+                        sx={{
+                            p: {
+                                xs: 2.2,
+                                sm: 2.5,
+                                md: 3,
+                            },
+                            borderRadius: 3,
+                            border: "1px solid",
+                            borderColor: "divider",
+                            height: "100%",
+                            cursor: "pointer",
+                            transition:
+                                "all 0.25s ease",
+                            "&:hover": {
+                                transform:
+                                    "translateY(-3px)",
+                                boxShadow:
+                                    "0 10px 25px rgba(0,0,0,0.08)",
+                                borderColor:
+                                    "primary.main",
+                            },
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                display: "flex",
+                                justifyContent:
+                                    "space-between",
+                                alignItems: "center",
+                                gap: 2,
+                            }}
+                        >
+                            <Box>
+                                <Typography
+                                    color="text.secondary"
+                                    fontSize={{
+                                        xs: "0.85rem",
+                                        sm: "0.9rem",
+                                    }}
+                                >
+                                    Exam Results
+                                </Typography>
+
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    sx={{
+                                        mt: 0.5,
+                                    }}
+                                >
+                                    View student
+                                    performance
+                                </Typography>
+                            </Box>
+
+                            <Avatar
+                                sx={{
+                                    width: {
+                                        xs: 45,
+                                        sm: 52,
+                                    },
+                                    height: {
+                                        xs: 45,
+                                        sm: 52,
+                                    },
+                                    bgcolor:
+                                        "info.main",
+                                }}
+                            >
+                                <Assessment />
+                            </Avatar>
+                        </Box>
+
+                        <Button
+                            variant="text"
+                            size="small"
+                            endIcon={
+                                <ArrowForward />
+                            }
+                            sx={{
+                                mt: 1.5,
+                                textTransform:
+                                    "none",
+                                fontWeight: 600,
+                                p: 0,
+                            }}
+                        >
+                            View Results
+                        </Button>
                     </Paper>
                 </Grid>
             </Grid>
@@ -1268,3 +1393,4 @@ const TeacherDashboard = () => {
 };
 
 export default TeacherDashboard;
+

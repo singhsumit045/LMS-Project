@@ -1,3 +1,4 @@
+
 import { Routes, Route } from "react-router-dom";
 
 // =========================
@@ -45,10 +46,15 @@ import ManageNotes from "../pages/Courses/ManageNotes/ManageNotes";
 
 import ManageAnnouncements from "../pages/Courses/ManageAnnouncements/ManageAnnouncements";
 
-// Actual file: ManageExam.jsx
+// =========================
+// EXAM
+// =========================
+
 import ManageExams from "../pages/Courses/ManageExam/ManageExam";
 import ManageQuestions from "../pages/Courses/ManageExam/ManageQuestions";
 import StudentExam from "../pages/Courses/ManageExam/StudentExam";
+import ExamResult from "../pages/Courses/ManageExam/ExamResult";
+import StudentExamResult from "../pages/Courses/ManageExam/StudentExamResult";
 
 // =========================
 // Admin
@@ -251,24 +257,61 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
             MANAGE EXAMS
             TEACHER + ADMIN
         ================================================= */}
+
         <Route
           path="/courses/:id/manage-exams"
           element={
             <RoleProtectedRoute
-              allowedRoles={["teacher", "admin"]}
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
             >
               <ManageExams />
             </RoleProtectedRoute>
           }
         />
+
+        {/* =================================================
+            MANAGE QUESTIONS
+        ================================================= */}
+
         <Route
           path="/exams/:examId/questions"
           element={<ManageQuestions />}
         />
 
+        {/* =================================================
+            STUDENT EXAM ATTEMPT
+        ================================================= */}
+
         <Route
           path="/exams/:examId/attempt"
           element={<StudentExam />}
+        />
+
+        {/* =================================================
+    STUDENT EXAM RESULT
+================================================= */}
+
+        <Route
+          path="/exams/attempts/:attemptId/result"
+          element={<StudentExamResult />}
+        />
+
+        {/* =================================================
+            TEACHER EXAM RESULTS
+        ================================================= */}
+
+        <Route
+          path="/teacher/exam-results"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={["teacher"]}
+            >
+              <ExamResult />
+            </RoleProtectedRoute>
+          }
         />
 
         {/* =================================================
@@ -341,3 +384,4 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
 };
 
 export default AppRoutes;
+
