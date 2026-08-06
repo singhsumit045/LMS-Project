@@ -6,9 +6,11 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 
 import { User } from '../../users/entities/user.entity';
+import { Rating } from 'src/ratings/entities/rating.entity';
 
 @Entity()
 export class Course {
@@ -59,4 +61,7 @@ export class Course {
 
   @UpdateDateColumn()
   updatedAt!: Date;
+
+  @OneToMany(() => Rating, (rating) => rating.course)
+ratings!: Rating[];
 }

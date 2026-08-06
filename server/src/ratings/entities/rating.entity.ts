@@ -4,42 +4,41 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
-  Unique,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 import { User } from '../../users/entities/user.entity';
 import { Course } from '../../courses/entities/course.entity';
 
 @Entity()
-@Unique(['user', 'course'])
-export class Enrollment {
+export class Rating {
   @PrimaryGeneratedColumn()
   id!: number;
 
   @Column({
-    type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP',
+    type: 'int',
   })
-  enrolledAt!: Date;
+  rating!: number;
 
-  @Column({
-    default: 0,
-  })
-  progress!: number;
-
-  @Column({
-    default: false,
-  })
-  completed!: boolean;
+@Column({
+  type: 'text',
+  nullable: true,
+})
+review!: string | null;
 
   // Student
   @ManyToOne(() => User, {
     onDelete: 'CASCADE',
+
   })
   @JoinColumn({
-    name: 'userId',
+    name: 'studentId',
   })
-  user!: User;
+  student!: User;
+
+  @Column()
+  studentId!: number;
 
   // Course
   @ManyToOne(() => Course, {
@@ -49,4 +48,13 @@ export class Enrollment {
     name: 'courseId',
   })
   course!: Course;
-} 
+
+  @Column()
+  courseId!: number;
+
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
+}

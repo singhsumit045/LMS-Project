@@ -16,6 +16,7 @@ import { VideoProgressModule } from './video-progress/video-progress.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { ExamsModule } from './exams/exams.module';
 import { CertificatesModule } from './certificates/certificates.module';
+import { RatingsModule } from './ratings/ratings.module';
 
 @Module({
   imports: [
@@ -32,7 +33,7 @@ import { CertificatesModule } from './certificates/certificates.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       autoLoadEntities: true,
-      synchronize: false,
+      synchronize: true,
     }),
 
     AuthModule,
@@ -47,6 +48,7 @@ import { CertificatesModule } from './certificates/certificates.module';
     AnnouncementsModule,
     ExamsModule,
     CertificatesModule,
+    RatingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

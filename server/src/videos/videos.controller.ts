@@ -9,12 +9,15 @@ import {
   Body,
   ParseIntPipe,
   Param,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import Multer from 'multer';
 
 import { FileInterceptor } from '@nestjs/platform-express';
 
 import { VideosService } from './videos.service';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('videos')
 export class VideosController {
@@ -62,6 +65,28 @@ export class VideosController {
       courseId,
     );
   }
+
+  // =========================
+// CHECK VIDEO ACCESS
+// =========================
+
+@Get(':id/access')
+@UseGuards(JwtAuthGuard)
+async checkVideoAccess(
+  @Param('id', ParseIntPipe)
+  id: number,
+
+  @Req()
+  req,
+) {
+
+  const userId = req.user.id;
+
+  return this.videosService.checkVideoAccess(
+    userId,
+    id,
+  );
+}
 
   // =========================
   // DELETE VIDEO

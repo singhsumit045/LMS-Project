@@ -1,7 +1,9 @@
+import { Rating } from 'src/ratings/entities/rating.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  OneToMany,
 } from 'typeorm';
 
 
@@ -123,6 +125,9 @@ export class User {
     nullable: true,
   })
   lastSeen!: Date | null;
+
+  @OneToMany(() => Rating, (rating) => rating.student)
+ratings!: Rating[];
 
 
 }

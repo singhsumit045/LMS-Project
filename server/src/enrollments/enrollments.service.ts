@@ -126,6 +126,31 @@ async removeEnrollmentForAdmin(enrollmentId: number) {
     };
   }
 
+
+
+  // =====================================================
+// CHECK USER ENROLLMENT
+// =====================================================
+
+async checkEnrollment(
+  userId: number,
+  courseId: number,
+) {
+  const enrollment =
+    await this.enrollmentRepository.findOne({
+      where: {
+        user: {
+          id: userId,
+        },
+        course: {
+          id: courseId,
+        },
+      },
+    });
+
+  return !!enrollment;
+}
+
   // =====================================================
   // STUDENT MY COURSES
   // GET /enrollments/my-courses

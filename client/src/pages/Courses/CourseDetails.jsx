@@ -4,6 +4,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { createEnrollment } from "../../services/enrollmentService";
 
 import {
+  createRating,
+  getCourseRatings,
+  getAverageRating,
+} from "../../services/ratingService";
+
+import {
   Container,
   Grid,
   Paper,
@@ -133,6 +139,30 @@ const CourseDetails = () => {
   const [examsError, setExamsError] = useState("");
 
   // =====================================================
+  // RATING STATE
+  // =====================================================
+
+  const [ratings, setRatings] = useState([]);
+
+  const [userRated, setUserRated] = useState(false);
+  const [myRating, setMyRating] = useState(null);
+
+  const [averageRating, setAverageRating] =
+    useState(0);
+
+  const [ratingValue, setRatingValue] =
+    useState(0);
+
+  const [reviewText, setReviewText] =
+    useState("");
+
+  const [ratingLoading, setRatingLoading] =
+    useState(false);
+
+  const [ratingError, setRatingError] =
+    useState("");
+
+  // =====================================================
   // ROLE CHECK
   // =====================================================
 
@@ -164,7 +194,7 @@ const CourseDetails = () => {
 
       setError(
         error.response?.data?.message ||
-          "Unable to load course details."
+        "Unable to load course details."
       );
     } finally {
       setLoading(false);
@@ -190,7 +220,7 @@ const CourseDetails = () => {
 
       setVideosError(
         error.response?.data?.message ||
-          "Unable to load course videos."
+        "Unable to load course videos."
       );
     } finally {
       setVideosLoading(false);
@@ -218,7 +248,7 @@ const CourseDetails = () => {
 
       setNotesError(
         error.response?.data?.message ||
-          "Unable to load course notes."
+        "Unable to load course notes."
       );
     } finally {
       setNotesLoading(false);
@@ -256,7 +286,7 @@ const CourseDetails = () => {
 
       setAnnouncementsError(
         error.response?.data?.message ||
-          "Unable to load announcements."
+        "Unable to load announcements."
       );
     } finally {
       setAnnouncementsLoading(false);
@@ -292,11 +322,76 @@ const CourseDetails = () => {
 
       setExamsError(
         error.response?.data?.message ||
-          "Unable to load exams."
+        "Unable to load exams."
       );
     } finally {
       setExamsLoading(false);
     }
+  };
+
+
+  // =====================================================
+  // FETCH RATINGS
+  // =====================================================
+
+  const fetchRatings = async () => {
+
+    try {
+
+      const ratingsResponse =
+        await getCourseRatings(id);
+
+
+      setRatings(
+        Array.isArray(
+          ratingsResponse.data
+        )
+          ? ratingsResponse.data
+          : []
+      );
+      const allRatings = Array.isArray(ratingsResponse.data)
+        ? ratingsResponse.data
+        : [];
+
+      setRatings(allRatings);
+
+
+      const currentUserRating = allRatings.find(
+        (item) =>
+          Number(item.user?.id) === Number(user?.id)
+      );
+
+
+      if (currentUserRating) {
+        setUserRated(true);
+        setMyRating(currentUserRating);
+      } else {
+        setUserRated(false);
+        setMyRating(null);
+      }
+
+
+      const averageResponse =
+        await getAverageRating(id);
+
+
+      setAverageRating(
+        Number(
+          averageResponse.data.average ||
+          0
+        )
+      );
+
+
+    } catch (error) {
+
+      console.log(
+        "Rating fetch error:",
+        error
+      );
+
+    }
+
   };
 
   // =====================================================
@@ -370,7 +465,7 @@ const CourseDetails = () => {
       console.log(
         "Course progress not available:",
         error.response?.data?.message ||
-          error.message
+        error.message
       );
 
       setCourseProgress({
@@ -409,7 +504,7 @@ const CourseDetails = () => {
         0,
         (videoElement.currentTime /
           videoElement.duration) *
-          100
+        100
       )
     );
 
@@ -476,7 +571,7 @@ const CourseDetails = () => {
       console.log(
         `Unable to save progress for video ${videoId}:`,
         error.response?.data?.message ||
-          error.message
+        error.message
       );
     }
   };
@@ -497,6 +592,8 @@ const CourseDetails = () => {
 
         // ✅ IMPORTANT
         fetchExams(),
+        fetchRatings(),
+
       ]);
     };
 
@@ -519,6 +616,56 @@ const CourseDetails = () => {
     fetchProgress(id, videos);
   }, [id, videos.length, user?.role]);
 
+
+
+
+  // =====================================================
+  // CHECK VIDEO ACCESS
+  // =====================================================
+
+  const handleVideoOpen = async (videoId) => {
+    try {
+
+      // teacher/admin ke liye direct access
+      if (
+        user?.role === "teacher" ||
+        user?.role === "admin"
+      ) {
+        setExpandedVideo(videoId);
+        return;
+      }
+
+
+      const response = await api.get(
+        `/videos/${videoId}/access`
+      );
+
+
+      if (response.data.allowed) {
+
+        setExpandedVideo(videoId);
+
+      } else {
+
+        alert(
+          "Please enroll in this course first"
+        );
+
+      }
+    } catch (error) {
+
+      console.log(
+        "Video access error:",
+        error
+      );
+
+      alert(
+        error.response?.data?.message ||
+        "You don't have access to this video"
+      );
+
+    }
+  };
   // =====================================================
   // ENROLL
   // =====================================================
@@ -538,11 +685,80 @@ const CourseDetails = () => {
 
       setEnrollError(
         error.response?.data?.message ||
-          "Failed to enroll in this course."
+        "Failed to enroll in this course."
       );
     } finally {
       setEnrolling(false);
     }
+  };
+
+  // =====================================================
+  // SUBMIT RATING
+  // =====================================================
+
+  const handleRatingSubmit = async () => {
+
+    if (userRated) {
+      alert("You have already rated this course");
+      return;
+    }
+
+    if (ratingValue === 0) {
+
+      alert(
+        "Please select rating"
+      );
+
+      return;
+    }
+
+
+    try {
+
+      setRatingLoading(true);
+
+
+      await createRating({
+
+        courseId: Number(id),
+
+        rating: ratingValue,
+
+        review: reviewText,
+
+      });
+
+
+      setRatingValue(0);
+
+      setReviewText("");
+
+
+      await fetchRatings();
+
+
+      alert(
+        "Rating submitted successfully"
+      );
+
+
+    }
+    catch (error) {
+
+      console.log(
+        error
+      );
+
+
+      setRatingError(
+        error.response?.data?.message ||
+        "Unable to submit rating"
+      );
+    }
+    finally {
+      setRatingLoading(false);
+    }
+
   };
 
   // =====================================================
@@ -1033,7 +1249,7 @@ const CourseDetails = () => {
                   >
                     {Math.round(
                       courseProgress.progress ||
-                        0
+                      0
                     )}
                     %
                   </Typography>
@@ -1052,7 +1268,7 @@ const CourseDetails = () => {
                       width: `${Math.min(
                         100,
                         courseProgress.progress ||
-                          0
+                        0
                       )}%`,
                       height: "100%",
                       bgcolor:
@@ -1158,13 +1374,16 @@ const CourseDetails = () => {
                           expanded={
                             isExpanded
                           }
-                          onChange={() =>
-                            setExpandedVideo(
-                              isExpanded
-                                ? null
-                                : video.id
-                            )
-                          }
+                          onChange={() => {
+
+                            if (isExpanded) {
+                              setExpandedVideo(null);
+                            }
+                            else {
+                              handleVideoOpen(video.id);
+                            }
+
+                          }}
                           disableGutters
                           elevation={0}
                           sx={{
@@ -1194,9 +1413,9 @@ const CourseDetails = () => {
                                 sm: 2,
                               },
                               "& .MuiAccordionSummary-content":
-                                {
-                                  my: 1,
-                                },
+                              {
+                                my: 1,
+                              },
                             }}
                           >
                             <Box
@@ -1263,63 +1482,63 @@ const CourseDetails = () => {
 
                                 {user?.role ===
                                   "student" && (
-                                  <Box
-                                    sx={{
-                                      display:
-                                        "flex",
-                                      alignItems:
-                                        "center",
-                                      gap: 1,
-                                      mt: 0.7,
-                                    }}
-                                  >
                                     <Box
                                       sx={{
-                                        width: {
-                                          xs: 80,
-                                          sm: 120,
-                                        },
-                                        height: 5,
-                                        borderRadius:
-                                          10,
-                                        bgcolor:
-                                          "action.hover",
-                                        overflow:
-                                          "hidden",
+                                        display:
+                                          "flex",
+                                        alignItems:
+                                          "center",
+                                        gap: 1,
+                                        mt: 0.7,
                                       }}
                                     >
                                       <Box
                                         sx={{
-                                          width: `${Math.min(
-                                            100,
-                                            watchedPercentage
-                                          )}%`,
-                                          height:
-                                            "100%",
+                                          width: {
+                                            xs: 80,
+                                            sm: 120,
+                                          },
+                                          height: 5,
+                                          borderRadius:
+                                            10,
                                           bgcolor:
-                                            isCompleted
-                                              ? "success.main"
-                                              : "primary.main",
+                                            "action.hover",
+                                          overflow:
+                                            "hidden",
                                         }}
-                                      />
-                                    </Box>
+                                      >
+                                        <Box
+                                          sx={{
+                                            width: `${Math.min(
+                                              100,
+                                              watchedPercentage
+                                            )}%`,
+                                            height:
+                                              "100%",
+                                            bgcolor:
+                                              isCompleted
+                                                ? "success.main"
+                                                : "primary.main",
+                                          }}
+                                        />
+                                      </Box>
 
-                                    <Typography
-                                      variant="caption"
-                                      color={
-                                        isCompleted
-                                          ? "success.main"
-                                          : "text.secondary"
-                                      }
-                                      fontWeight={600}
-                                    >
-                                      {Math.round(
-                                        watchedPercentage
-                                      )}
-                                      %
-                                    </Typography>
-                                  </Box>
-                                )}
+                                      <Typography
+                                        variant="caption"
+                                        color={
+                                          isCompleted
+                                            ? "success.main"
+                                            : "text.secondary"
+                                        }
+                                        fontWeight={600}
+                                      >
+                                        {Math.round(
+                                          watchedPercentage
+                                        )}
+                                        %
+                                      </Typography>
+                                    </Box>
+                                  )}
                               </Box>
 
                               {user?.role ===
@@ -1376,9 +1595,9 @@ const CourseDetails = () => {
 
                                   if (
                                     savedProgress >
-                                      0 &&
+                                    0 &&
                                     savedProgress <
-                                      100 &&
+                                    100 &&
                                     event
                                       .currentTarget
                                       .duration
@@ -1434,69 +1653,69 @@ const CourseDetails = () => {
 
                               {user?.role ===
                                 "student" && (
-                                <Box sx={{ mt: 1.5 }}>
-                                  <Box
-                                    sx={{
-                                      display:
-                                        "flex",
-                                      justifyContent:
-                                        "space-between",
-                                      mb: 0.6,
-                                    }}
-                                  >
-                                    <Typography
-                                      variant="caption"
-                                      color="text.secondary"
-                                    >
-                                      Video Progress
-                                    </Typography>
-
-                                    <Typography
-                                      variant="caption"
-                                      fontWeight={700}
-                                      color={
-                                        isCompleted
-                                          ? "success.main"
-                                          : "text.secondary"
-                                      }
-                                    >
-                                      {Math.round(
-                                        watchedPercentage
-                                      )}
-                                      %
-                                      {isCompleted &&
-                                        " • Completed"}
-                                    </Typography>
-                                  </Box>
-
-                                  <Box
-                                    sx={{
-                                      height: 7,
-                                      borderRadius:
-                                        10,
-                                      bgcolor:
-                                        "action.hover",
-                                      overflow:
-                                        "hidden",
-                                    }}
-                                  >
+                                  <Box sx={{ mt: 1.5 }}>
                                     <Box
                                       sx={{
-                                        width: `${Math.min(
-                                          100,
-                                          watchedPercentage
-                                        )}%`,
-                                        height:
-                                          "100%",
-                                        bgcolor:
+                                        display:
+                                          "flex",
+                                        justifyContent:
+                                          "space-between",
+                                        mb: 0.6,
+                                      }}
+                                    >
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                      >
+                                        Video Progress
+                                      </Typography>
+
+                                      <Typography
+                                        variant="caption"
+                                        fontWeight={700}
+                                        color={
                                           isCompleted
                                             ? "success.main"
-                                            : "primary.main",
+                                            : "text.secondary"
+                                        }
+                                      >
+                                        {Math.round(
+                                          watchedPercentage
+                                        )}
+                                        %
+                                        {isCompleted &&
+                                          " • Completed"}
+                                      </Typography>
+                                    </Box>
+
+                                    <Box
+                                      sx={{
+                                        height: 7,
+                                        borderRadius:
+                                          10,
+                                        bgcolor:
+                                          "action.hover",
+                                        overflow:
+                                          "hidden",
                                       }}
-                                    />
+                                    >
+                                      <Box
+                                        sx={{
+                                          width: `${Math.min(
+                                            100,
+                                            watchedPercentage
+                                          )}%`,
+                                          height:
+                                            "100%",
+                                          bgcolor:
+                                            isCompleted
+                                              ? "success.main"
+                                              : "primary.main",
+                                        }}
+                                      />
+                                    </Box>
                                   </Box>
-                                </Box>
-                              )}
+                                )}
 
                               {video.description && (
                                 <Typography
@@ -1523,13 +1742,13 @@ const CourseDetails = () => {
                                   Duration:{" "}
                                   {Math.floor(
                                     video.duration /
-                                      60
+                                    60
                                   )}
                                   :
                                   {String(
                                     Math.floor(
                                       video.duration %
-                                        60
+                                      60
                                     )
                                   ).padStart(
                                     2,
@@ -1619,11 +1838,10 @@ const CourseDetails = () => {
               </Box>
 
               <Chip
-                label={`${announcements.length} ${
-                  announcements.length === 1
-                    ? "Announcement"
-                    : "Announcements"
-                }`}
+                label={`${announcements.length} ${announcements.length === 1
+                  ? "Announcement"
+                  : "Announcements"
+                  }`}
                 color="primary"
                 variant="outlined"
                 sx={{
@@ -1790,8 +2008,8 @@ const CourseDetails = () => {
                                 : ""}
                               {announcement.createdAt
                                 ? new Date(
-                                    announcement.createdAt
-                                  ).toLocaleString()
+                                  announcement.createdAt
+                                ).toLocaleString()
                                 : "Recently published"}
                             </Typography>
                           </Box>
@@ -1897,7 +2115,7 @@ const CourseDetails = () => {
                   const courseCompleted =
                     Number(
                       courseProgress.progress ||
-                        0
+                      0
                     ) >= 100;
 
                   const isPublished =
@@ -1976,10 +2194,9 @@ const CourseDetails = () => {
                             />
 
                             <Chip
-                              label={`Pass: ${
-                                exam.passingPercentage ||
+                              label={`Pass: ${exam.passingPercentage ||
                                 40
-                              }%`}
+                                }%`}
                               size="small"
                             />
                           </Stack>
@@ -2103,11 +2320,10 @@ const CourseDetails = () => {
               </Box>
 
               <Chip
-                label={`${notes.length} ${
-                  notes.length === 1
-                    ? "Note"
-                    : "Notes"
-                }`}
+                label={`${notes.length} ${notes.length === 1
+                  ? "Note"
+                  : "Notes"
+                  }`}
                 color="primary"
                 variant="outlined"
               />
@@ -2300,6 +2516,254 @@ const CourseDetails = () => {
                   ))}
                 </Stack>
               )}
+          </Paper>
+
+          {/* =================================================
+    RATINGS
+================================================= */}
+
+
+          <Paper
+
+            elevation={0}
+
+            sx={{
+
+              p: {
+                xs: 2.5,
+                md: 4
+              },
+
+              borderRadius: 3,
+
+              border: "1px solid",
+
+              borderColor: "divider",
+
+              mb: 4
+
+            }}
+
+          >
+
+
+            <Typography
+              variant="h5"
+              fontWeight={800}
+              mb={2}
+            >
+              Course Reviews
+            </Typography>
+
+
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                mb: 3
+              }}
+            >
+
+
+              <Typography
+                variant="h3"
+                fontWeight={800}
+                color="primary"
+              >
+
+                {averageRating.toFixed(1)}
+
+              </Typography>
+
+
+              <Typography
+                fontSize={35}
+                color="warning.main"
+              >
+                ★★★★★
+              </Typography>
+
+
+            </Box>
+
+
+
+            {user?.role === "student" && !userRated && (
+
+              <Box>
+
+
+                <Typography
+                  fontWeight={700}
+                  mb={1}
+                >
+                  Give Your Rating
+                </Typography>
+
+
+
+                <Box>
+
+                  {[1, 2, 3, 4, 5].map((star) => (
+
+                    <Button
+
+                      key={star}
+
+                      onClick={() => setRatingValue(star)}
+
+                      sx={{
+                        fontSize: 30,
+                        minWidth: 40,
+                        color:
+                          star <= ratingValue
+                            ? "#ffb400"
+                            : "grey"
+                      }}
+
+                    >
+                      ★
+                    </Button>
+
+                  ))}
+
+                </Box>
+
+
+
+                <textarea
+
+                  value={reviewText}
+
+                  onChange={(e) =>
+                    setReviewText(
+                      e.target.value
+                    )
+                  }
+
+                  placeholder="Write your review..."
+
+                  style={{
+
+                    width: "100%",
+
+                    minHeight: "100px",
+
+                    padding: "12px",
+
+                    marginTop: "15px"
+
+                  }}
+
+                />
+
+
+
+                <Button
+
+                  variant="contained"
+
+                  sx={{
+                    mt: 2
+                  }}
+
+                  disabled={ratingLoading}
+
+                  onClick={
+                    handleRatingSubmit
+                  }
+
+                >
+
+                  Submit Review
+
+                </Button>
+
+
+              </Box>
+
+            )}
+
+
+
+            <Divider
+              sx={{
+                my: 3
+              }}
+
+
+            />
+
+            {userRated && (
+              <Box sx={{ mb: 3 }}>
+                <Typography fontWeight={700}>
+                  You already rated this course
+                </Typography>
+
+                <Typography
+                  color="warning.main"
+                  fontSize={25}
+                >
+                  {"★".repeat(myRating?.rating || 0)}
+                </Typography>
+
+                <Typography color="text.secondary">
+                  {myRating?.review}
+                </Typography>
+              </Box>
+            )}
+            <Stack spacing={2}>
+
+              {ratings.map((item) => (
+
+                <Paper
+
+                  key={item.id}
+
+                  variant="outlined"
+
+                  sx={{
+                    p: 2,
+                    borderRadius: 2
+                  }}
+
+                >
+
+
+                  <Typography
+                    fontWeight={700}
+                  >
+                    {
+                      item.user?.name ||
+                      "Student"
+                    }
+                  </Typography>
+
+
+                  <Typography
+                    color="warning.main"
+                    fontSize={22}
+                  >
+                    {"★".repeat(item.rating)}
+                  </Typography>
+
+
+                  <Typography
+                    color="text.secondary"
+                  >
+                    {item.review}
+                  </Typography>
+
+
+                </Paper>
+
+
+              ))}
+
+            </Stack>
+
           </Paper>
 
           {/* =================================================
