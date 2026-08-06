@@ -254,7 +254,9 @@ const ManageCourseContent = () => {
       >
         <Grid
           container
-          alignItems="stretch"
+          sx={{
+            alignItems: "stretch",
+          }}
         >
           {/* =================================================
               THUMBNAIL
@@ -351,10 +353,11 @@ const ManageCourseContent = () => {
               <Stack
                 direction="row"
                 spacing={1}
-                flexWrap="wrap"
+                
                 useFlexGap
                 sx={{
                   mb: 2,
+                  flexWrap: "wrap",
                 }}
               >
                 {course.category && (

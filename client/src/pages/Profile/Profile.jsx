@@ -10,6 +10,9 @@ import {
 } from "../../services/authService";
 
 import {
+  uploadSignature,
+} from "../../services/signatureService";
+import {
   Box,
   Container,
   Paper,
@@ -94,6 +97,18 @@ function Profile() {
   const [showConfirmPassword, setShowConfirmPassword] =
     useState(false);
 
+  // =========================
+  // TEACHER SIGNATURE
+  // =========================
+
+  const [signatureFile, setSignatureFile] =
+    useState(null);
+
+  const [signaturePreview, setSignaturePreview] =
+    useState("");
+
+  const [uploadingSignature, setUploadingSignature] =
+    useState(false);
   // =========================
   // LOAD PROFILE
   // =========================
@@ -217,7 +232,7 @@ function Profile() {
         Array.isArray(message)
           ? message.join(", ")
           : message ||
-              "Unable to upload profile picture."
+          "Unable to upload profile picture."
       );
     } finally {
       setUploadingImage(false);
@@ -225,6 +240,158 @@ function Profile() {
       // Allow selecting same image again
       event.target.value = "";
     }
+  };
+
+
+  // =========================
+  // SIGNATURE FILE CHANGE
+  // =========================
+
+  const handleSignatureChange = (event) => {
+
+    const file =
+      event.target.files?.[0];
+
+    if (!file) return;
+
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
+
+
+    if (!allowedTypes.includes(file.type)) {
+
+      setError(
+        "Please select JPG, PNG or WEBP signature image."
+      );
+
+      setSuccess("");
+
+      event.target.value = "";
+
+      return;
+
+    }
+
+
+    if (file.size > 2 * 1024 * 1024) {
+
+      setError(
+        "Signature image must be less than 2 MB."
+      );
+
+      setSuccess("");
+
+      event.target.value = "";
+
+      return;
+
+    }
+
+
+    setSignatureFile(file);
+
+
+    setSignaturePreview(
+      URL.createObjectURL(file)
+    );
+
+
+  };
+
+
+
+
+
+  // =========================
+  // UPLOAD SIGNATURE
+  // =========================
+
+  const handleSignatureUpload = async () => {
+
+
+    if (!signatureFile) {
+
+      setError(
+        "Please select signature image."
+      );
+
+      return;
+
+    }
+
+
+
+    try {
+
+
+      setUploadingSignature(true);
+
+      setError("");
+      setSuccess("");
+
+
+
+      const response =
+        await uploadSignature(
+          signatureFile
+        );
+
+
+
+      const updatedUser = {
+
+        ...user,
+
+        signatureUrl:
+          response.signatureUrl,
+
+        signaturePublicId:
+          response.signaturePublicId,
+
+      };
+
+
+
+      setUser(updatedUser);
+
+
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(updatedUser)
+      );
+
+
+
+      setSuccess(
+        "Signature uploaded successfully."
+      );
+
+
+
+    } catch (error) {
+
+
+      console.log(error);
+
+
+      setError(
+        error.response?.data?.message ||
+        "Unable to upload signature."
+      );
+
+
+    } finally {
+
+      setUploadingSignature(false);
+
+    }
+
+
   };
 
   // =========================
@@ -315,7 +482,7 @@ function Profile() {
         Array.isArray(message)
           ? message.join(", ")
           : message ||
-              "Unable to update profile."
+          "Unable to update profile."
       );
     } finally {
       setSaving(false);
@@ -462,7 +629,7 @@ function Profile() {
         Array.isArray(message)
           ? message.join(", ")
           : message ||
-              "Unable to change password."
+          "Unable to change password."
       );
     } finally {
       setChangingPassword(false);
@@ -942,9 +1109,9 @@ function Profile() {
               label={
                 user.role
                   ? user.role
-                      .charAt(0)
-                      .toUpperCase() +
-                    user.role.slice(1)
+                    .charAt(0)
+                    .toUpperCase() +
+                  user.role.slice(1)
                   : "User"
               }
               color="primary"
@@ -1107,6 +1274,146 @@ function Profile() {
           </Grid>
         </Paper>
 
+
+        {/* =========================
+    TEACHER SIGNATURE
+========================= */}
+
+        {user.role === "teacher" && (
+
+          <Paper
+            elevation={0}
+            sx={{
+              mt: 3,
+              p: {
+                xs: 3,
+                sm: 4,
+              },
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              backgroundColor: "background.paper",
+            }}
+          >
+
+
+            <Typography
+              variant="h6"
+              fontWeight={700}
+            >
+              Teacher Signature
+            </Typography>
+
+
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                mt: 1,
+              }}
+            >
+              Upload your signature for course certificates.
+            </Typography>
+
+
+
+            <Box mt={3}>
+
+              <input
+
+                type="file"
+
+                accept="image/jpeg,image/png,image/webp"
+
+                onChange={handleSignatureChange}
+
+              />
+
+            </Box>
+
+
+
+
+
+            {signaturePreview && (
+
+              <Box
+                mt={3}
+              >
+
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                >
+                  Preview
+                </Typography>
+
+
+                <Box
+                  mt={1}
+                  sx={{
+                    p: 2,
+                    border: "1px dashed",
+                    borderColor: "divider",
+                    width: "fit-content",
+                    borderRadius: 2,
+                  }}
+                >
+
+                  <img
+
+                    src={signaturePreview}
+
+                    alt="signature"
+
+                    width="220"
+
+                  />
+
+                </Box>
+
+
+              </Box>
+
+            )}
+
+
+
+
+
+            <Button
+
+              variant="contained"
+
+              onClick={
+                handleSignatureUpload
+              }
+
+              disabled={
+                uploadingSignature
+              }
+
+              sx={{
+
+                mt: 3,
+
+                textTransform: "none",
+
+                borderRadius: 2,
+              }}
+            >
+              {
+                uploadingSignature
+
+                  ?
+                  "Uploading..."
+
+                  :
+                  "Upload Signature"
+              }
+            </Button>
+          </Paper>
+        )}
         {/* =========================
             SECURITY
         ========================= */}

@@ -24,7 +24,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 import {
   createExam,
-  getAllExams,
+  getTeacherExams,
   updateExam,
   deleteExam,
 } from "../../../services/examService";
@@ -59,7 +59,7 @@ const ManageExams = () => {
     try {
       setLoading(true);
 
-      const data = await getAllExams();
+      const data = await getTeacherExams();
 
       setExams(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -740,7 +740,7 @@ const ManageExams = () => {
             value={formData.duration}
             onChange={handleChange}
             margin="normal"
-            inputProps={{
+            slotProps={{
               min: 1,
             }}
           />
@@ -758,7 +758,7 @@ const ManageExams = () => {
             value={formData.totalMarks}
             onChange={handleChange}
             margin="normal"
-            inputProps={{
+            slotProps={{
               min: 0,
             }}
           />
@@ -776,7 +776,7 @@ const ManageExams = () => {
             value={formData.passingMarks}
             onChange={handleChange}
             margin="normal"
-            inputProps={{
+            slotProps={{
               min: 0,
             }}
           />

@@ -231,6 +231,32 @@ export class ExamsService {
     });
   }
 
+
+  // =====================================================
+// GET TEACHER EXAMS
+// =====================================================
+
+async getTeacherExams(
+  teacherId: number,
+): Promise<Exam[]> {
+  return await this.examsRepository.find({
+    where: {
+      teacherId,
+    },
+
+    relations: {
+      questions: {
+        options: true,
+      },
+      course: true,
+    },
+
+    order: {
+      createdAt: 'DESC',
+    },
+  });
+}
+
   // =====================================================
   // GET EXAM BY ID
   // =====================================================

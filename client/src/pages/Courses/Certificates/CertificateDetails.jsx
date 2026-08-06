@@ -15,6 +15,11 @@ import {
     Print,
 } from "@mui/icons-material";
 
+import { QRCodeCanvas } from "qrcode.react";
+
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -60,7 +65,7 @@ const CertificateDetails = () => {
 
                 setError(
                     err.response?.data?.message ||
-                        "Unable to load certificate."
+                    "Unable to load certificate."
                 );
             } finally {
                 setLoading(false);
@@ -78,6 +83,52 @@ const CertificateDetails = () => {
 
     const handlePrint = () => {
         window.print();
+    };
+
+
+    const handleDownload = async () => {
+        const certificateElement =
+            document.querySelector(".certificate-paper");
+
+        const canvas = await html2canvas(
+            certificateElement,
+            {
+                scale: 2,
+                useCORS: true,
+            }
+        );
+
+        const imgData =
+            canvas.toDataURL("image/png");
+
+
+        const pdf = new jsPDF(
+            "landscape",
+            "mm",
+            "a4"
+        );
+
+
+        const width =
+            pdf.internal.pageSize.getWidth();
+
+        const height =
+            pdf.internal.pageSize.getHeight();
+
+
+        pdf.addImage(
+            imgData,
+            "PNG",
+            0,
+            0,
+            width,
+            height
+        );
+
+
+        pdf.save(
+            `LearnHub-Certificate-${studentName}.pdf`
+        );
     };
 
     // =====================================================
@@ -179,11 +230,15 @@ const CertificateDetails = () => {
         new Date().toISOString();
 
     const teacherName =
-        certificate.teacher?.name ||
         certificate.teacherName ||
-        certificate.exam?.teacher?.name ||
+        certificate.course?.teacher?.name ||
         "Instructor";
 
+
+    const teacherSignature =
+        certificate.teacherSignature ||
+        certificate.course?.teacher?.signatureUrl ||
+        null;
     const formattedDate =
         new Date(issueDate).toLocaleDateString(
             "en-IN",
@@ -334,7 +389,7 @@ const CertificateDetails = () => {
                         <Button
                             variant="outlined"
                             startIcon={<Print />}
-                            onClick={handlePrint}
+                            onClick={handleDownload}
                         >
                             Print
                         </Button>
@@ -342,7 +397,7 @@ const CertificateDetails = () => {
                         <Button
                             variant="contained"
                             startIcon={<Download />}
-                            onClick={handlePrint}
+                            onClick={handleDownload}
                         >
                             Download Certificate
                         </Button>
@@ -835,6 +890,8 @@ const CertificateDetails = () => {
                         >
                             {/* INSTRUCTOR */}
 
+                            {/* INSTRUCTOR */}
+
                             <Box
                                 sx={{
                                     minWidth: {
@@ -842,16 +899,69 @@ const CertificateDetails = () => {
                                         sm: 180,
                                         md: 210,
                                     },
+
+                                    textAlign: "center",
                                 }}
                             >
+
+                                {
+                                    teacherSignature ? (
+
+                                        <Box
+                                            sx={{
+                                                width: {
+                                                    xs: 130,
+                                                    sm: 180,
+                                                },
+
+                                                height: {
+                                                    xs: 60,
+                                                    sm: 80,
+                                                },
+
+                                                overflow: "hidden",
+
+                                                display: "flex",
+
+                                                justifyContent: "center",
+
+                                                alignItems: "center",
+
+                                                mb: 0.5,
+                                            }}
+                                        >
+                                            <Box
+                                                component="img"
+                                                src={teacherSignature}
+                                                alt="Instructor Signature"
+                                                sx={{
+                                                    width: "100%",
+                                                    height: "100%",
+                                                    objectFit: "cover",
+                                                    objectPosition: "center",
+                                                }}
+                                            />
+                                        </Box>
+
+                                    ) : (
+
+                                        <Box
+                                            sx={{
+                                                height: 60,
+                                            }}
+                                        />
+
+                                    )
+                                }
+
+
                                 <Box
                                     sx={{
-                                        borderBottom:
-                                            "1px solid #555",
-
+                                        borderBottom: "1px solid #555",
                                         mb: 0.5,
                                     }}
                                 />
+
 
                                 <Typography
                                     sx={{
@@ -866,11 +976,10 @@ const CertificateDetails = () => {
                                     {teacherName}
                                 </Typography>
 
+
                                 <Typography
                                     sx={{
-                                        fontSize:
-                                            "0.65rem",
-
+                                        fontSize: "0.65rem",
                                         color: "#777",
                                     }}
                                 >
@@ -928,38 +1037,61 @@ const CertificateDetails = () => {
                             CERTIFICATE ID
                         ================================================= */}
 
-                        <Box>
+                        {/* QR + CERTIFICATE ID */}
+
+                        <Box
+                            sx={{
+                                position: "absolute",
+                                right: 160,
+                                bottom: 110,
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                            }}
+                        >
+
+
+                            <QRCodeCanvas
+                                value={
+                                    `http://localhost:5173/verify-certificate/${certificateNumber}`
+                                }
+                                size={80}
+                            />
+
+
                             <Typography
                                 sx={{
-                                    fontSize: {
-                                        xs: "0.55rem",
-                                        sm: "0.65rem",
-                                    },
+                                    fontSize: "0.55rem",
+                                    color: "#777",
+                                    mt: 0.5,
+                                }}
+                            >
+                                Scan to verify
+                            </Typography>
 
+                            <Typography
+                                sx={{
+                                    fontSize: "0.55rem",
                                     color: "#888",
-
-                                    letterSpacing: 1,
+                                    mt: 0.5,
                                 }}
                             >
                                 CERTIFICATE ID
                             </Typography>
 
+
+
                             <Typography
                                 sx={{
-                                    fontSize: {
-                                        xs: "0.6rem",
-                                        sm: "0.7rem",
-                                    },
-
+                                    fontSize: "0.6rem",
                                     fontWeight: 700,
-
                                     letterSpacing: 1,
-
-                                    color: "#444",
                                 }}
                             >
                                 {certificateNumber}
                             </Typography>
+
+
                         </Box>
                     </Box>
                 </Paper>

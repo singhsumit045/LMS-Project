@@ -239,4 +239,23 @@ export class UsersService {
       '🔄 All users have been marked as OFFLINE',
     );
   }
+
+  async updateSignature(
+  userId:number,
+  signatureUrl:string,
+  signaturePublicId:string,
+){
+
+  await this.userRepository.update(
+    userId,
+    {
+      signatureUrl,
+      signaturePublicId,
+    },
+  );
+
+
+  return this.findOne(userId);
+}
+
 }

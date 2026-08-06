@@ -62,6 +62,23 @@ export class ExamsController {
     return this.examsService.findAll();
   }
 
+
+  // =====================================================
+// GET LOGGED-IN TEACHER EXAMS
+// =====================================================
+
+@UseGuards(JwtAuthGuard)
+@Get('teacher')
+getTeacherExams(
+  @Req() req: Request,
+) {
+  const teacherId = (req.user as any).id;
+
+  return this.examsService.getTeacherExams(
+    teacherId,
+  );
+}
+
   // =====================================================
   // GET TEACHER RESULTS
   // IMPORTANT:

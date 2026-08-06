@@ -196,7 +196,7 @@ export class PresenceGateway
         error,
       );
 
-      // Make sure invalid connection
+      // Make sure invalid connection  
       // doesn't remain active
 
       socket.disconnect();

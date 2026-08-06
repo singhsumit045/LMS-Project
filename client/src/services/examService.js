@@ -17,9 +17,9 @@ export const createExam = async (examData) => {
 // GET ALL EXAMS
 // =====================================================
 
-export const getAllExams = async () => {
+export const getTeacherExams  = async () => {
   const response = await api.get(
-    "/exams"
+    "/exams/teacher"
   );
 
   return response.data;
