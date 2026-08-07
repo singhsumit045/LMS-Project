@@ -8,7 +8,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 
-
+import { Notification } from '../../notifications/entities/notification.entity';
 @Entity()
 export class User {
 
@@ -129,14 +129,9 @@ export class User {
   })
   isOnline!: boolean;
 
-
-
-
-
   // =====================================================
   // LAST ACTIVE TIME
   // =====================================================
-
 
   @Column({
     type: 'datetime',
@@ -144,14 +139,9 @@ export class User {
   })
   lastSeen!: Date | null;
 
-
-
-
-
   // =====================================================
   // ACCOUNT CREATED DATE
   // =====================================================
-
 
   @CreateDateColumn()
   createdAt!: Date;
@@ -165,5 +155,15 @@ export class User {
     (rating) => rating.student
   )
   ratings!: Rating[];
+
+  // =====================================================
+// NOTIFICATIONS
+// =====================================================
+
+@OneToMany(
+  () => Notification,
+  (notification) => notification.user,
+)
+notifications!: Notification[];
 
 }

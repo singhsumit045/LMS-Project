@@ -41,12 +41,8 @@ import {
 
 
 import { useEffect, useState } from "react";
-
 import { useNavigate } from "react-router-dom";
-
 import { useTheme } from "@mui/material/styles";
-
-
 import api from "../../services/api";
 
 

@@ -15,7 +15,19 @@ import {
   ListItemIcon,
   ListItemText,
   useMediaQuery,
+  Badge,
+  Menu,
+  MenuItem,
 } from "@mui/material";
+
+import NotificationsIcon from "@mui/icons-material/Notifications";
+
+import {
+  getNotifications,
+  getUnreadCount,
+  markAsRead,
+  markAllAsRead,
+} from "../services/notificationService";
 
 import {
   DarkMode,
@@ -42,6 +54,13 @@ import logo from "../assets/LearnHub.png";
 const Navbar = ({ darkMode, toggleTheme }) => {
   const [user, setUser] = useState(null);
 
+
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const [notificationAnchor, setNotificationAnchor] =
+    useState(null);
+
   const [mobileMenuOpen, setMobileMenuOpen] =
     useState(false);
 
@@ -52,6 +71,41 @@ const Navbar = ({ darkMode, toggleTheme }) => {
   const isMobile = useMediaQuery(
     theme.breakpoints.down("md")
   );
+
+
+  const loadNotifications = async () => {
+    try {
+      const [listRes, countRes] =
+        await Promise.all([
+          getNotifications(),
+          getUnreadCount(),
+        ]);
+
+      setNotifications(listRes.data);
+      setUnreadCount(countRes.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const openNotification = (event) => {
+    setNotificationAnchor(event.currentTarget);
+    loadNotifications();
+  };
+
+  const closeNotification = () => {
+    setNotificationAnchor(null);
+  };
+
+  const handleRead = async (id) => {
+    await markAsRead(id);
+    loadNotifications();
+  };
+
+  const handleReadAll = async () => {
+    await markAllAsRead();
+    loadNotifications();
+  };
 
   // =========================
   // LOAD USER FROM LOCALSTORAGE
@@ -92,7 +146,7 @@ const Navbar = ({ darkMode, toggleTheme }) => {
         console.log(
           "Profile fetch error:",
           error.response?.data ||
-            error.message
+          error.message
         );
       }
     };
@@ -102,6 +156,12 @@ const Navbar = ({ darkMode, toggleTheme }) => {
 
     if (accessToken) {
       fetchProfile();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (localStorage.getItem("access_token")) {
+      loadNotifications();
     }
   }, []);
 
@@ -319,15 +379,15 @@ const Navbar = ({ darkMode, toggleTheme }) => {
 
             {(user?.role === "teacher" ||
               user?.role === "admin") && (
-              <Button
-                color="inherit"
-                component={Link}
-                to="/courses/create"
-                startIcon={<AddIcon />}
-              >
-                Create Course
-              </Button>
-            )}
+                <Button
+                  color="inherit"
+                  component={Link}
+                  to="/courses/create"
+                  startIcon={<AddIcon />}
+                >
+                  Create Course
+                </Button>
+              )}
 
             {/* =========================
                 THEME TOGGLE
@@ -356,6 +416,20 @@ const Navbar = ({ darkMode, toggleTheme }) => {
                 )}
               </IconButton>
             </Tooltip>
+
+
+            <IconButton
+              color="inherit"
+              onClick={openNotification}
+            >
+              <Badge
+                badgeContent={unreadCount}
+                color="error"
+                max={99}
+              >
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
 
             {/* =========================
                 PROFILE AVATAR
@@ -429,6 +503,44 @@ const Navbar = ({ darkMode, toggleTheme }) => {
           </IconButton>
         )}
       </Toolbar>
+
+      <Menu
+        anchorEl={notificationAnchor}
+        open={Boolean(notificationAnchor)}
+        onClose={closeNotification}
+        PaperProps={{
+          sx: {
+            width: 360,
+            maxHeight: 450,
+          },
+        }}
+      >
+        <MenuItem disabled>
+          <b>Notifications</b>
+        </MenuItem>
+
+        <MenuItem onClick={handleReadAll}>
+          Mark All Read
+        </MenuItem>
+
+        <Divider />
+
+        {notifications.length === 0 ? (
+          <MenuItem>No Notifications</MenuItem>
+        ) : (
+          notifications.map((item) => (
+            <MenuItem
+              key={item.id}
+              onClick={() => handleRead(item.id)}
+            >
+              <ListItemText
+                primary={item.title}
+                secondary={item.message}
+              />
+            </MenuItem>
+          ))
+        )}
+      </Menu> 
 
       {/* =========================
           MOBILE DRAWER
@@ -584,22 +696,22 @@ const Navbar = ({ darkMode, toggleTheme }) => {
 
             {(user?.role === "teacher" ||
               user?.role === "admin") && (
-              <ListItem disablePadding>
-                <ListItemButton
-                  component={Link}
-                  to="/courses/create"
-                  onClick={closeMobileMenu}
-                >
-                  <ListItemIcon>
-                    <AddIcon />
-                  </ListItemIcon>
+                <ListItem disablePadding>
+                  <ListItemButton
+                    component={Link}
+                    to="/courses/create"
+                    onClick={closeMobileMenu}
+                  >
+                    <ListItemIcon>
+                      <AddIcon />
+                    </ListItemIcon>
 
-                  <ListItemText>
-                    Create Course
-                  </ListItemText>
-                </ListItemButton>
-              </ListItem>
-            )}
+                    <ListItemText>
+                      Create Course
+                    </ListItemText>
+                  </ListItemButton>
+                </ListItem>
+              )}
 
             {/* =========================
                 PROFILE

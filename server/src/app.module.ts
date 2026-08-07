@@ -17,6 +17,7 @@ import { AnnouncementsModule } from './announcements/announcements.module';
 import { ExamsModule } from './exams/exams.module';
 import { CertificatesModule } from './certificates/certificates.module';
 import { RatingsModule } from './ratings/ratings.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { RatingsModule } from './ratings/ratings.module';
     ExamsModule,
     CertificatesModule,
     RatingsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

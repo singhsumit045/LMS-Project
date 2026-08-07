@@ -10,6 +10,8 @@ import { Repository } from 'typeorm';
 import { Enrollment } from './entities/enrollment.entity';
 import { Course } from '../courses/entities/course.entity';
 import { User } from '../users/entities/user.entity';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { NotificationType } from 'src/notifications/enums/notification-type.enum';
 
 @Injectable()
 export class EnrollmentService {
@@ -22,6 +24,8 @@ export class EnrollmentService {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+
+     private readonly notificationsService: NotificationsService,
   ) {}
 
   // =====================================================
@@ -115,18 +119,40 @@ async removeEnrollmentForAdmin(enrollmentId: number) {
         completed: false,
       });
 
-    const savedEnrollment =
-      await this.enrollmentRepository.save(
-        enrollment,
-      );
+const savedEnrollment =
+  await this.enrollmentRepository.save(
+    enrollment,
+  );
 
-    return {
-      message: 'Course enrolled successfully',
-      enrollment: savedEnrollment,
-    };
+// Create Notification
+try {
+  await this.notificationsService.createNotification(
+    user.id,
+    'Course Enrolled',
+    `You have successfully enrolled in "${course.title}".`,
+    NotificationType.ENROLLMENT,
+  );
+
+  if (course.teacherId !== user.id) {
+    await this.notificationsService.createNotification(
+      course.teacherId,
+      'New Student Enrolled',
+      `${user.name} enrolled in your course "${course.title}".`,
+      NotificationType.ENROLLMENT,
+    );
   }
+} catch (error) {
+  console.error(
+  'Notification Error:',
+  error instanceof Error ? error.message : error,
+);
+}
 
-
+return {
+  message: 'Course enrolled successfully',
+  enrollment: savedEnrollment,
+};
+  }
 
   // =====================================================
 // CHECK USER ENROLLMENT
