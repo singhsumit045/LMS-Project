@@ -7,6 +7,7 @@ import { AdminService } from './admin.service';
 import { User } from '../users/entities/user.entity';
 import { Course } from '../courses/entities/course.entity';
 import { Enrollment } from '../enrollments/entities/enrollment.entity';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { Enrollment } from '../enrollments/entities/enrollment.entity';
       Course,
       Enrollment,
     ]),
+    AnalyticsModule,
   ],
 
   controllers: [

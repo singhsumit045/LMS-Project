@@ -1,6 +1,6 @@
 import {
-    Container,
     Box,
+    Container,
     Paper,
     Typography,
     Grid,
@@ -10,990 +10,1401 @@ import {
     Button,
     Stack,
     Chip,
+    LinearProgress,
 } from "@mui/material";
+
 
 import {
     People,
     School,
-    MenuBook,
     Person,
-    AdminPanelSettings,
+    MenuBook,
+    Assignment,
     Refresh,
-    ArrowForward,
     Group,
     LibraryBooks,
-    HowToReg,
+    TrendingUp,
     Security,
+    ArrowForward,
 } from "@mui/icons-material";
+
+
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    ResponsiveContainer,
+    CartesianGrid,
+} from "recharts";
+
 
 import { useEffect, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 
+import { useTheme } from "@mui/material/styles";
+
+
 import api from "../../services/api";
+
+
+import {
+    getMonthlyUsers,
+    getCourseEnrollment,
+    getTopCourses,
+} from "../../services/analyticsService";
+
+
+
 
 
 const AdminDashboard = () => {
 
+
     const navigate = useNavigate();
 
+    const theme = useTheme();
 
-    // =====================================================
-    // DASHBOARD STATE
-    // =====================================================
+
+
+
 
     const [dashboard, setDashboard] = useState({
+
         totalUsers: 0,
+
         totalStudents: 0,
+
         totalTeachers: 0,
+
         totalCourses: 0,
+
         totalEnrollments: 0,
+
     });
+
+
+
+
+
+    const [monthlyUsers, setMonthlyUsers] = useState([]);
+
+    const [courseEnrollment, setCourseEnrollment] = useState([]);
+
+    const [topCourses, setTopCourses] = useState([]);
+
+
+
 
     const [loading, setLoading] = useState(true);
 
     const [error, setError] = useState("");
 
 
-    // =====================================================
-    // FETCH ADMIN DASHBOARD
-    // =====================================================
 
-    const fetchAdminDashboard = async () => {
+
+
+
+
+    const loadDashboard = async () => {
+
 
         try {
+
 
             setLoading(true);
 
             setError("");
 
-            const response = await api.get(
-                "/admin/dashboard"
+
+
+            const dashboardRes =
+                await api.get("/admin/dashboard");
+
+
+
+            const usersRes =
+                await getMonthlyUsers();
+
+
+
+            const enrollmentRes =
+                await getCourseEnrollment();
+
+
+
+            const coursesRes =
+                await getTopCourses();
+
+
+
+
+            setDashboard(
+                dashboardRes.data
             );
 
-            setDashboard(response.data);
 
-        } catch (error) {
 
-            console.error(
-                "Admin dashboard error:",
-                error
+            setMonthlyUsers(
+                usersRes.data
             );
+
+
+
+            setCourseEnrollment(
+                enrollmentRes.data
+            );
+
+
+
+            setTopCourses(
+                coursesRes.data
+            );
+
+
+
+        }
+
+        catch (error) {
+
+
+            console.log(error);
+
 
             setError(
-                error.response?.data?.message ||
-                "Unable to load admin dashboard."
+                "Unable to load admin dashboard"
             );
 
-        } finally {
+
+        }
+
+
+        finally {
+
 
             setLoading(false);
 
+
         }
+
+
+
     };
 
 
-    // =====================================================
-    // INITIAL LOAD
-    // =====================================================
+
+
+
+
 
     useEffect(() => {
 
-        fetchAdminDashboard();
+        loadDashboard();
 
     }, []);
 
 
-    // =====================================================
-    // LOADING
-    // =====================================================
+
+
+
+
+
+
 
     if (loading) {
 
+
         return (
+
             <Box
+
                 sx={{
-                    minHeight: "75vh",
+
+                    height: "80vh",
+
                     display: "flex",
-                    justifyContent: "center",
+
                     alignItems: "center",
+
+                    justifyContent: "center"
+
                 }}
+
             >
-                <CircularProgress />
+
+
+                <CircularProgress size={55} />
+
+
             </Box>
+
         );
+
 
     }
 
 
-    // =====================================================
-    // ERROR
-    // =====================================================
+
+
+
+
 
     if (error) {
 
-        return (
-            <Container
-                maxWidth="xl"
-                sx={{
-                    py: 5,
-                }}
-            >
 
-                <Alert
-                    severity="error"
-                    sx={{
-                        mb: 2,
-                        borderRadius: 2,
-                    }}
-                >
+        return (
+
+            <Container sx={{ mt: 5 }}>
+
+
+                <Alert severity="error">
+
                     {error}
+
                 </Alert>
 
+
+
                 <Button
+
+                    sx={{ mt: 2 }}
+
                     variant="contained"
+
                     startIcon={<Refresh />}
-                    onClick={fetchAdminDashboard}
-                    sx={{
-                        textTransform: "none",
-                        borderRadius: 2,
-                    }}
+
+                    onClick={loadDashboard}
+
                 >
-                    Try Again
+
+                    Retry
+
                 </Button>
 
+
             </Container>
+
         );
+
 
     }
 
 
-    // =====================================================
-    // STAT CARDS
-    // =====================================================
+
+
+
+
 
     const stats = [
 
+
         {
+
             title: "Total Users",
+
             value: dashboard.totalUsers,
+
             icon: <People />,
-            color: "primary.main",
-            bg: "primary.50",
+
+            growth: "+12%",
+
+            color: "#2563eb"
+
         },
 
+
+
         {
+
             title: "Students",
+
             value: dashboard.totalStudents,
+
             icon: <School />,
-            color: "success.main",
-            bg: "success.50",
+
+            growth: "+18%",
+
+            color: "#16a34a"
+
         },
 
+
+
         {
+
             title: "Teachers",
+
             value: dashboard.totalTeachers,
+
             icon: <Person />,
-            color: "warning.main",
-            bg: "warning.50",
+
+            growth: "+5%",
+
+            color: "#f97316"
+
         },
 
+
+
         {
+
             title: "Courses",
+
             value: dashboard.totalCourses,
+
             icon: <MenuBook />,
-            color: "secondary.main",
-            bg: "secondary.50",
+
+            growth: "+9%",
+
+            color: "#9333ea"
+
         },
 
+
+
         {
+
             title: "Enrollments",
+
             value: dashboard.totalEnrollments,
-            icon: <HowToReg />,
-            color: "info.main",
-            bg: "info.50",
-        },
+
+            icon: <Assignment />,
+
+            growth: "+20%",
+
+            color: "#0891b2"
+
+        }
+
+
 
     ];
 
 
-    // =====================================================
-    // ADMIN ACTIONS
-    // =====================================================
 
-    const adminActions = [
+
+
+
+
+    const actions = [
+
 
         {
+
             title: "Manage Users",
-            description:
-                "View, monitor and manage all registered students, teachers and admins.",
+
+            desc: "Students & Teachers",
+
             icon: <Group />,
-            color: "primary.main",
-            action: () => navigate("/admin/users"),
+
+            path: "/admin/users"
+
         },
 
+
+
         {
+
             title: "Manage Courses",
-            description:
-                "View and manage all courses created by teachers on the platform.",
+
+            desc: "Review LMS Courses",
+
             icon: <LibraryBooks />,
-            color: "secondary.main",
-            action: () => navigate("/admin/courses"),
+
+            path: "/admin/courses"
+
         },
 
+
+
         {
-            title: "Manage Enrollments",
-            description:
-                "Monitor student enrollments and course participation.",
-            icon: <HowToReg />,
-            color: "info.main",
-            action: () => navigate("/admin/enrollments"),
-        },
+
+            title: "Enrollment Reports",
+
+            desc: "Track learning activity",
+
+            icon: <TrendingUp />,
+
+            path: "/admin/enrollments"
+
+        }
+
+
 
     ];
 
 
-    // =====================================================
-    // DASHBOARD
-    // =====================================================
+
+
+
+
 
     return (
 
         <Container
+
             maxWidth="xl"
+
             sx={{
-                py: {
-                    xs: 2.5,
-                    sm: 3.5,
-                    md: 5,
-                },
+
+                py: 4
+
             }}
+
         >
 
-            {/* =================================================
-                HERO SECTION
-            ================================================= */}
+            {/* HEADER */}
+
 
             <Paper
-                elevation={0}
+
                 sx={{
-                    position: "relative",
-                    overflow: "hidden",
 
                     p: {
-                        xs: 2.5,
-                        sm: 4,
-                        md: 5,
-                    },
-
-                    mb: {
                         xs: 3,
-                        md: 4,
+                        md: 5
                     },
 
-                    borderRadius: {
-                        xs: 3,
-                        md: 4,
-                    },
+                    mb: 4,
 
-                    color: "white",
+                    borderRadius: 5,
+
+
+                    color: "#fff",
+
 
                     background:
-                        "linear-gradient(135deg, #1565c0 0%, #4527a0 100%)",
+
+                        `linear-gradient(
+135deg,
+${theme.palette.primary.main},
+${theme.palette.secondary.main}
+)`
+
+                }}
+
+            >
+
+
+
+                <Stack
+
+                    direction={{
+
+                        xs: "column",
+
+                        md: "row"
+
+                    }}
+
+                    justifyContent="space-between"
+
+                    alignItems="center"
+
+                    spacing={3}
+
+                >
+
+
+
+                    <Box>
+
+
+                        <Typography
+
+                            variant="h4"
+
+                            fontWeight={900}
+
+                        >
+
+                            Admin Control Center 🚀
+
+                        </Typography>
+
+
+
+
+                        <Typography
+
+                            sx={{
+
+                                mt: 1,
+
+                                opacity: .85
+
+                            }}
+
+                        >
+
+                            Manage users, courses and analytics from one powerful dashboard
+
+                        </Typography>
+
+
+
+
+
+                        <Chip
+
+                            icon={<Security />}
+
+                            label="Administrator Access"
+
+                            sx={{
+
+                                mt: 3,
+
+                                color: "#fff",
+
+                                background:
+
+                                    "rgba(255,255,255,0.18)"
+
+                            }}
+
+                        />
+
+
+
+                    </Box>
+
+                    <Avatar
+
+                        sx={{
+
+                            width: 90,
+
+                            height: 90,
+
+                            background:
+
+                                "rgba(255,255,255,0.20)"
+
+                        }}
+
+                    >
+
+
+                        <Security
+
+                            fontSize="large"
+
+                        />
+
+
+                    </Avatar>
+
+                </Stack>
+
+            </Paper>
+
+            {/* STAT CARDS */}
+            <Grid
+                container
+                spacing={3}
+            >
+                {
+                    stats.map((item) => (
+                        <Grid
+                            key={item.title}
+
+                            size={{
+
+                                xs: 12,
+
+                                sm: 6,
+
+                                md: 4,
+
+                                lg: 2.4
+
+                            }}
+
+                        >
+                            <Paper
+
+                                sx={{
+
+                                    p: 3,
+
+                                    height: 170,
+
+                                    borderRadius: 5,
+
+                                    position: "relative",
+
+                                    overflow: "hidden",
+                                    background:
+
+                                        theme.palette.mode === "dark"
+
+                                            ?
+
+                                            `linear-gradient(
+  135deg,
+${item.color}35,
+rgba(255,255,255,0.04)
+)`
+
+                                            :
+
+                                            `linear-gradient(
+135deg,
+${item.color}20,
+#ffffff
+)`,
+
+
+
+
+                                    border:
+
+                                        `1px solid ${item.color}45`,
+
+
+
+                                    transition: "0.3s",
+
+
+
+                                    "&:hover": {
+
+
+                                        transform: "translateY(-8px)",
+
+
+                                        boxShadow:
+
+                                            `0 15px 35px ${item.color}40`
+
+
+
+                                    },
+
+
+
+                                    "&:before": {
+
+
+                                        content: '""',
+
+                                        position: "absolute",
+
+                                        top: -40,
+
+                                        right: -40,
+
+                                        width: 120,
+
+                                        height: 120,
+
+                                        borderRadius: "50%",
+
+                                        background:
+
+                                            `${item.color}25`
+
+                                    }
+
+
+
+                                }}
+
+                            >
+
+
+
+
+                                <Stack
+
+                                    direction="row"
+
+                                    justifyContent="space-between"
+
+                                    alignItems="center"
+
+                                    height="100%"
+
+                                >
+
+
+
+                                    <Box zIndex={2}>
+
+
+                                        <Typography
+
+                                            variant="body2"
+
+                                            fontWeight={700}
+
+                                            color="text.secondary"
+
+                                        >
+
+                                            {item.title}
+
+                                        </Typography>
+
+
+
+
+
+                                        <Typography
+
+                                            fontSize={38}
+
+                                            fontWeight={900}
+
+                                            mt={1}
+
+                                        >
+
+                                            {item.value}
+
+                                        </Typography>
+
+
+
+
+
+                                        <Chip
+
+                                            size="small"
+
+                                            label={item.growth}
+
+                                            sx={{
+
+                                                mt: 1,
+
+
+                                                background:
+
+                                                    `${item.color}25`,
+
+
+                                                color: item.color,
+
+
+                                                fontWeight: 800
+
+                                            }}
+
+                                        />
+
+
+
+                                    </Box>
+
+
+
+
+
+
+
+                                    <Avatar
+
+                                        sx={{
+
+                                            width: 65,
+
+                                            height: 65,
+                                            left:40,
+
+
+                                            background:
+
+                                                item.color,
+
+
+                                            boxShadow:
+
+                                                `0 10px 25px ${item.color}70`
+
+                                        }}
+
+                                    >
+
+
+                                        {item.icon}
+
+
+
+                                    </Avatar>
+
+
+
+
+
+                                </Stack>
+
+
+
+                            </Paper>
+
+
+
+
+                        </Grid>
+
+
+                    ))
+
+
+                }
+
+
+
+            </Grid>
+
+
+
+
+
+
+
+
+
+            {/* ANALYTICS TITLE */}
+
+
+
+            <Typography
+
+                variant="h5"
+
+                fontWeight={900}
+
+                sx={{
+
+                    mt: 6,
+
+                    mb: 3
+
+                }}
+
+            >
+
+                Analytics Overview
+
+            </Typography>
+
+
+
+
+
+
+
+
+
+            <Grid
+
+                container
+
+                spacing={3}
+
+            >
+
+
+
+
+
+
+
+                {/* USER CHART */}
+
+
+
+                <Grid
+
+                    size={{
+
+                        xs: 12,
+
+                        lg: 6
+
+                    }}
+
+                >
+
+
+                    <Paper
+
+                        sx={{
+
+                            p: 3,
+
+                            height: 420,
+
+
+                            borderRadius: 5,
+
+
+                            border:
+
+                                `1px solid ${theme.palette.divider}`
+
+                        }}
+
+                    >
+
+
+                        <Typography
+
+                            fontWeight={900}
+
+                            mb={3}
+
+                        >
+
+                            User Growth
+
+                        </Typography>
+
+
+
+
+
+                        <ResponsiveContainer
+
+                            width="100%"
+
+                            height={320}
+
+                        >
+
+
+                            <BarChart
+
+                                data={monthlyUsers}
+
+                            >
+
+
+
+                                <CartesianGrid
+
+                                    strokeDasharray="3 3"
+
+                                />
+
+
+
+                                <XAxis
+
+                                    dataKey="month"
+
+                                />
+
+
+
+                                <YAxis />
+
+
+
+                                <Tooltip />
+
+
+
+                                <Bar
+
+                                    dataKey="users"
+
+                                    fill={theme.palette.primary.main}
+
+                                    radius={[8, 8, 0, 0]}
+
+                                />
+
+
+
+                            </BarChart>
+
+
+                        </ResponsiveContainer>
+
+
+
+                    </Paper>
+
+
+
+                </Grid>
+
+
+
+
+
+
+
+
+
+                {/* COURSE CHART */}
+
+
+
+                <Grid
+
+                    size={{
+
+                        xs: 12,
+
+                        lg: 6
+
+                    }}
+
+                >
+
+
+
+                    <Paper
+
+                        sx={{
+
+                            p: 3,
+
+                            height: 420,
+
+
+                            borderRadius: 5,
+
+
+                            border:
+
+                                `1px solid ${theme.palette.divider}`
+
+                        }}
+
+                    >
+                        <Typography
+
+                            fontWeight={900}
+
+                            mb={3}
+
+                        >
+
+                            Course Enrollment
+
+                        </Typography>
+
+                        <ResponsiveContainer
+
+                            width="100%"
+
+                            height={320}
+
+                        >
+
+
+                            <BarChart
+
+                                data={courseEnrollment}
+
+                            >
+
+
+
+                                <CartesianGrid
+
+                                    strokeDasharray="3 3"
+
+                                />
+
+
+
+                                <XAxis
+
+                                    dataKey="course"
+
+                                />
+
+
+                                <YAxis />
+
+
+                                <Tooltip />
+
+                                <Bar
+
+                                    dataKey="enrollments"
+
+                                    fill={theme.palette.success.main}
+
+                                    radius={[8, 8, 0, 0]}
+
+                                />
+
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </Paper>
+
+                </Grid>
+
+            </Grid>
+
+            {/* TOP COURSES */}
+
+            <Typography
+                variant="h5"
+                fontWeight={900}
+                sx={{ mt: 6, mb: 3 }}
+            >
+                🔥 Top Performing Courses
+            </Typography>
+
+            <Paper
+                sx={{
+                    borderRadius: 5,
+                    overflow: "hidden",
+                    border: `1px solid ${theme.palette.divider}`
                 }}
             >
 
-                {/* Decorative Circle */}
+                {
+                    topCourses.length === 0 ?
 
-                <Box
-                    sx={{
-                        position: "absolute",
-
-                        width: {
-                            xs: 160,
-                            md: 320,
-                        },
-
-                        height: {
-                            xs: 160,
-                            md: 320,
-                        },
-
-                        borderRadius: "50%",
-
-                        background:
-                            "rgba(255,255,255,0.08)",
-
-                        right: {
-                            xs: -80,
-                            md: -120,
-                        },
-
-                        top: {
-                            xs: -80,
-                            md: -150,
-                        },
-                    }}
-                />
-
-
-                {/* Second Decorative Circle */}
-
-                <Box
-                    sx={{
-                        position: "absolute",
-
-                        width: 120,
-                        height: 120,
-
-                        borderRadius: "50%",
-
-                        background:
-                            "rgba(255,255,255,0.05)",
-
-                        right: {
-                            xs: 70,
-                            md: 180,
-                        },
-
-                        bottom: -70,
-                    }}
-                />
-
-
-                <Box
-                    sx={{
-                        position: "relative",
-                        zIndex: 1,
-                    }}
-                >
-
-                    {/* Header */}
-
-                    <Stack
-                        direction={{
-                            xs: "column",
-                            sm: "row",
-                        }}
-                        spacing={2}
-                        alignItems={{
-                            xs: "flex-start",
-                            sm: "center",
-                        }}
-                    >
-
-                        <Avatar
-                            sx={{
-                                width: {
-                                    xs: 55,
-                                    sm: 65,
-                                },
-
-                                height: {
-                                    xs: 55,
-                                    sm: 65,
-                                },
-
-                                bgcolor:
-                                    "rgba(255,255,255,0.18)",
-
-                                backdropFilter:
-                                    "blur(5px)",
-                            }}
-                        >
-                            <AdminPanelSettings
-                                sx={{
-                                    fontSize: {
-                                        xs: 32,
-                                        sm: 40,
-                                    },
-                                }}
-                            />
-                        </Avatar>
-
-
-                        <Box>
-
-                            <Typography
-                                sx={{
-                                    fontSize: {
-                                        xs: "1.65rem",
-                                        sm: "2.2rem",
-                                        md: "2.8rem",
-                                    },
-
-                                    fontWeight: 800,
-
-                                    lineHeight: 1.2,
-                                }}
-                            >
-                                Admin Dashboard
+                        <Box p={5} textAlign="center">
+                            <Typography color="text.secondary">
+                                No course analytics available
                             </Typography>
-
-
-                            <Typography
-                                sx={{
-                                    mt: 0.8,
-
-                                    opacity: 0.9,
-
-                                    fontSize: {
-                                        xs: "0.9rem",
-                                        sm: "1rem",
-                                    },
-
-                                    maxWidth: 700,
-                                }}
-                            >
-                                Manage your LMS platform,
-                                users, courses and
-                                enrollments from one place.
-                            </Typography>
-
                         </Box>
 
-                    </Stack>
+                        :
+
+                        topCourses.map((course, index) => (
+
+                            <Box
+                                key={index}
+                                sx={{
+                                    p: 3,
+                                    borderBottom: `1px solid ${theme.palette.divider}`
+                                }}
+                            >
+
+                                <Stack
+                                    direction={{ xs: "column", sm: "row" }}
+                                    justifyContent="space-between"
+                                    alignItems="center"
+                                    spacing={2}
+                                >
+
+                                    <Stack
+                                        direction="row"
+                                        spacing={2}
+                                        alignItems="center"
+                                    >
+
+                                        <Avatar
+                                            sx={{
+                                                bgcolor: index === 0
+                                                    ? theme.palette.warning.main
+                                                    : theme.palette.primary.main
+                                            }}
+                                        >
+                                            {index + 1}
+                                        </Avatar>
+
+                                        <Box>
+                                            <Typography fontWeight={900}>
+                                                {course.title || "Course"}
+                                            </Typography>
+
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                            >
+                                                {course.enrollments || 0} students enrolled
+                                            </Typography>
+
+                                        </Box>
+
+                                    </Stack>
 
 
-                    {/* Status */}
+                                    <Box width={{ xs: "100%", sm: 250 }}>
+                                        <LinearProgress
+                                            variant="determinate"
+                                            value={Math.min((course.enrollments || 0) * 5, 100)}
+                                        />
+                                    </Box>
 
-                    <Stack
-                        direction="row"
-                        spacing={1}
-                        sx={{
-                            mt: 3,
-                        }}
-                    >
 
-                        <Chip
-                            icon={<Security />}
-                            label="Administrator Access"
-                            sx={{
-                                color: "white",
+                                </Stack>
 
-                                backgroundColor:
-                                    "rgba(255,255,255,0.15)",
+                            </Box>
 
-                                border:
-                                    "1px solid rgba(255,255,255,0.25)",
+                        ))
 
-                                fontWeight: 600,
-                            }}
-                        />
-
-                    </Stack>
-
-                </Box>
+                }
 
             </Paper>
 
 
-            {/* =================================================
-                OVERVIEW HEADER
-            ================================================= */}
 
-            <Box
-                sx={{
-                    display: "flex",
 
-                    alignItems: {
-                        xs: "flex-start",
-                        sm: "center",
-                    },
 
-                    justifyContent: "space-between",
+            {/* ADMIN ACTIONS */}
 
-                    flexDirection: {
-                        xs: "column",
-                        sm: "row",
-                    },
-
-                    gap: 2,
-
-                    mb: 2.5,
-                }}
+            <Typography
+                variant="h5"
+                fontWeight={900}
+                sx={{ mt: 6, mb: 3 }}
             >
-
-                <Box>
-
-                    <Typography
-                        variant="h5"
-                        fontWeight={800}
-                        sx={{
-                            fontSize: {
-                                xs: "1.35rem",
-                                sm: "1.55rem",
-                            },
-                        }}
-                    >
-                        Platform Overview
-                    </Typography>
+                Administration
+            </Typography>
 
 
-                    <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                            mt: 0.5,
-                        }}
-                    >
-                        Monitor your LMS statistics at a glance.
-                    </Typography>
+            <Grid container spacing={3}>
 
-                </Box>
+                {
+                    actions.map((item) => (
+
+                        <Grid
+                            key={item.title}
+                            size={{ xs: 12, md: 4 }}
+                        >
+
+                            <Paper
+                                onClick={() => navigate(item.path)}
+                                sx={{
+                                    p: 3,
+                                    borderRadius: 5,
+                                    cursor: "pointer",
+                                    border: `1px solid ${theme.palette.divider}`,
+                                    transition: "0.3s",
+                                    "&:hover": {
+                                        transform: "translateY(-6px)",
+                                        boxShadow: 8
+                                    }
+                                }}
+                            >
+
+                                <Stack
+                                    direction="row"
+                                    spacing={2}
+                                    alignItems="center"
+                                >
+
+                                    <Avatar
+                                        sx={{
+                                            width: 60,
+                                            height: 60,
+                                            background:
+                                                `linear-gradient(
+135deg,
+${theme.palette.primary.main},
+${theme.palette.secondary.main}
+)`
+                                        }}
+                                    >
+                                        {item.icon}
+                                    </Avatar>
 
 
-                <Button
-                    variant="outlined"
-                    startIcon={<Refresh />}
-                    onClick={fetchAdminDashboard}
-                    sx={{
-                        borderRadius: 2,
-                        textTransform: "none",
-                        fontWeight: 600,
-                    }}
-                >
-                    Refresh
-                </Button>
+                                    <Box>
+                                        <Typography fontWeight={900}>
+                                            {item.title}
+                                        </Typography>
 
-            </Box>
+                                        <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                        >
+                                            {item.desc}
+                                        </Typography>
 
+                                        <Button
+                                            size="small"
+                                            sx={{ mt: 1 }}
+                                            endIcon={<ArrowForward />}
+                                        >
+                                            Open
+                                        </Button>
 
-            {/* =================================================
-                STAT CARDS
-            ================================================= */}
+                                    </Box>
 
-            <Grid
-                container
-                spacing={{
-                    xs: 2,
-                    sm: 2.5,
-                    md: 3,
-                }}
-                sx={{
-                    mb: {
-                        xs: 4,
-                        md: 5,
-                    },
-                }}
-            >
+                                </Stack>
 
-                {stats.map((stat) => (
+                            </Paper>
 
-                    <Grid
-                        key={stat.title}
-                        size={{
-                            xs: 12,
-                            sm: 6,
-                            md: 4,
-                            lg: 2.4,
-                        }}
-                    >
+                        </Grid>
 
-                        <StatCard
-                            title={stat.title}
-                            value={stat.value}
-                            icon={stat.icon}
-                            color={stat.color}
-                        />
+                    ))
 
-                    </Grid>
-
-                ))}
+                }
 
             </Grid>
 
 
-            {/* =================================================
-                ADMINISTRATION
-            ================================================= */}
-
-            <Box
-                sx={{
-                    mb: 2.5,
-                }}
-            >
-
-                <Typography
-                    variant="h5"
-                    fontWeight={800}
-                    sx={{
-                        fontSize: {
-                            xs: "1.35rem",
-                            sm: "1.55rem",
-                        },
-                    }}
-                >
-                    Administration
-                </Typography>
 
 
-                <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{
-                        mt: 0.5,
-                    }}
-                >
-                    Manage important parts of your LMS.
-                </Typography>
 
-            </Box>
-
-
-            <Grid
-                container
-                spacing={{
-                    xs: 2,
-                    sm: 2.5,
-                    md: 3,
-                }}
-            >
-
-                {adminActions.map((item) => (
-
-                    <Grid
-                        key={item.title}
-                        size={{
-                            xs: 12,
-                            md: 4,
-                        }}
-                    >
-
-                        <AdminActionCard
-                            title={item.title}
-                            description={item.description}
-                            icon={item.icon}
-                            color={item.color}
-                            onClick={item.action}
-                        />
-
-                    </Grid>
-
-                ))}
-
-            </Grid>
-
-
-            {/* =================================================
-                QUICK SUMMARY
-            ================================================= */}
+            {/* SYSTEM STATUS */}
 
             <Paper
-                elevation={0}
                 sx={{
-                    mt: {
-                        xs: 3,
-                        md: 4,
-                    },
-
-                    p: {
-                        xs: 2.5,
-                        sm: 3,
-                    },
-
-                    borderRadius: 3,
-
-                    border: "1px solid",
-
-                    borderColor: "divider",
+                    mt: 6,
+                    p: 4,
+                    borderRadius: 5,
+                    border: `1px solid ${theme.palette.divider}`,
+                    background:
+                        theme.palette.mode === "dark"
+                            ? "rgba(255,255,255,0.05)"
+                            : "linear-gradient(135deg,#f8fafc,#eef2ff)"
                 }}
             >
 
                 <Stack
-                    direction={{
-                        xs: "column",
-                        sm: "row",
-                    }}
-                    spacing={2}
-                    alignItems={{
-                        xs: "flex-start",
-                        sm: "center",
-                    }}
+                    direction={{ xs: "column", md: "row" }}
+                    spacing={3}
+                    alignItems="center"
                 >
 
                     <Avatar
                         sx={{
-                            bgcolor: "primary.main",
+                            width: 65,
+                            height: 65,
+                            bgcolor: theme.palette.primary.main
                         }}
                     >
-                        <AdminPanelSettings />
+                        <Security />
                     </Avatar>
 
 
-                    <Box sx={{ flex: 1 }}>
-
+                    <Box flex={1}>
                         <Typography
-                            fontWeight={700}
+                            fontWeight={900}
+                            fontSize={20}
                         >
-                            Admin Control Center
+                            System Status
                         </Typography>
 
-
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{
-                                mt: 0.3,
-                            }}
-                        >
-                            You have full administrative
-                            access to the LMS platform.
+                        <Typography color="text.secondary">
+                            All LMS services are running normally.
+                            Admin panel is secure and active.
                         </Typography>
 
                     </Box>
 
 
                     <Chip
-                        label="System Active"
+                        label="ONLINE"
                         color="success"
-                        variant="outlined"
-                        sx={{
-                            fontWeight: 600,
-                        }}
+                        sx={{ fontWeight: 800 }}
                     />
 
                 </Stack>
 
             </Paper>
 
+
         </Container>
     );
 };
-
-
-// =====================================================
-// STAT CARD
-// =====================================================
-
-const StatCard = ({
-    title,
-    value,
-    icon,
-    color,
-}) => {
-
-    return (
-
-        <Paper
-            elevation={0}
-            sx={{
-                p: {
-                    xs: 2.2,
-                    sm: 2.5,
-                    md: 3,
-                },
-
-                borderRadius: 3,
-
-                border: "1px solid",
-
-                borderColor: "divider",
-
-                height: "100%",
-
-                transition:
-                    "all 0.25s ease",
-
-                "&:hover": {
-                    transform:
-                        "translateY(-5px)",
-
-                    boxShadow:
-                        "0 12px 30px rgba(0,0,0,0.08)",
-                },
-            }}
-        >
-
-            <Box
-                sx={{
-                    display: "flex",
-
-                    justifyContent:
-                        "space-between",
-
-                    alignItems: "center",
-
-                    gap: 2,
-                }}
-            >
-
-                <Box>
-
-                    <Typography
-                        color="text.secondary"
-                        fontSize={{
-                            xs: "0.82rem",
-                            sm: "0.88rem",
-                        }}
-                        fontWeight={500}
-                    >
-                        {title}
-                    </Typography>
-
-
-                    <Typography
-                        fontWeight={800}
-                        sx={{
-                            mt: 0.5,
-
-                            fontSize: {
-                                xs: "1.75rem",
-                                sm: "2rem",
-                                md: "2.15rem",
-                            },
-                        }}
-                    >
-                        {value}
-                    </Typography>
-
-                </Box>
-
-
-                <Avatar
-                    sx={{
-                        width: {
-                            xs: 45,
-                            sm: 52,
-                        },
-
-                        height: {
-                            xs: 45,
-                            sm: 52,
-                        },
-
-                        bgcolor: color,
-                    }}
-                >
-                    {icon}
-                </Avatar>
-
-            </Box>
-
-        </Paper>
-
-    );
-};
-
-
-// =====================================================
-// ADMIN ACTION CARD
-// =====================================================
-
-const AdminActionCard = ({
-    title,
-    description,
-    icon,
-    color,
-    onClick,
-}) => {
-
-    return (
-
-        <Paper
-            elevation={0}
-            sx={{
-                p: {
-                    xs: 2.5,
-                    sm: 3,
-                },
-
-                borderRadius: 3,
-
-                border: "1px solid",
-
-                borderColor: "divider",
-
-                height: "100%",
-
-                cursor: "pointer",
-
-                transition:
-                    "all 0.25s ease",
-
-                "&:hover": {
-                    transform:
-                        "translateY(-5px)",
-
-                    boxShadow:
-                        "0 12px 30px rgba(0,0,0,0.08)",
-
-                    borderColor: color,
-                },
-            }}
-
-            onClick={onClick}
-        >
-
-            <Stack
-                direction="row"
-                spacing={2}
-                alignItems="flex-start"
-            >
-
-                <Avatar
-                    sx={{
-                        width: 52,
-                        height: 52,
-                        bgcolor: color,
-                        flexShrink: 0,
-                    }}
-                >
-                    {icon}
-                </Avatar>
-
-
-                <Box sx={{ flex: 1 }}>
-
-                    <Typography
-                        variant="h6"
-                        fontWeight={750}
-                    >
-                        {title}
-                    </Typography>
-
-
-                    <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                            mt: 0.7,
-                            lineHeight: 1.6,
-                        }}
-                    >
-                        {description}
-                    </Typography>
-
-
-                    <Button
-                        size="small"
-                        endIcon={<ArrowForward />}
-                        sx={{
-                            mt: 1.5,
-
-                            px: 0,
-
-                            textTransform: "none",
-
-                            fontWeight: 700,
-
-                            "&:hover": {
-                                backgroundColor:
-                                    "transparent",
-                            },
-                        }}
-                    >
-                        Open
-                    </Button>
-
-                </Box>
-
-            </Stack>
-
-        </Paper>
-
-    );
-};
-
 
 export default AdminDashboard;

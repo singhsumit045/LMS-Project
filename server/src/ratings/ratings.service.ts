@@ -27,26 +27,27 @@ export class RatingsService {
     private readonly enrollmentsRepository: Repository<Enrollment>,
   ) {}
 
- async create(
-  createRatingDto: CreateRatingDto,
-  studentId: number,
-): Promise<Rating> {
-  const { courseId, rating, review } = createRatingDto;
+  // =====================================================
+  // CREATE RATING
+  // =====================================================
 
-  // Check course exists
-  const course = await this.coursesRepository.findOne({
-    where: { id: courseId },
-  });
+  async create(
+    createRatingDto: CreateRatingDto,
+    studentId: number,
+  ): Promise<Rating> {
+    const { courseId, rating, review } = createRatingDto;
 
-  if (!course) {
-    throw new BadRequestException(
-      'Course not found',
-    );
-  }
+    // Check course
+    const course = await this.coursesRepository.findOne({
+      where: { id: courseId },
+    });
 
-  // Check enrollment
-  const enrollment =
-    await this.enrollmentsRepository.findOne({
+    if (!course) {
+      throw new BadRequestException('Course not found');
+    }
+
+    // Check enrollment
+    const enrollment = await this.enrollmentsRepository.findOne({
       where: {
         user: {
           id: studentId,
@@ -61,61 +62,77 @@ export class RatingsService {
       },
     });
 
-  if (!enrollment) {
-    throw new BadRequestException(
-      'You are not enrolled in this course',
-    );
-  }
+    if (!enrollment) {
+      throw new BadRequestException(
+        'You are not enrolled in this course',
+      );
+    }
 
-  // Check existing rating
-  const existingRating =
-    await this.ratingsRepository.findOne({
+    // Prevent duplicate rating
+    const existingRating = await this.ratingsRepository.findOne({
       where: {
         studentId,
         courseId,
       },
     });
 
-  if (existingRating) {
-    existingRating.rating = rating;
-    existingRating.review = review ?? null;
+    if (existingRating) {
+      throw new BadRequestException(
+        'You have already rated this course.',
+      );
+    }
 
-    return await this.ratingsRepository.save(
-      existingRating,
-    );
-  }
-
-  // Create new rating
-  const newRating =
-    this.ratingsRepository.create({
+    const newRating = this.ratingsRepository.create({
       rating,
       review: review ?? null,
       studentId,
       courseId,
     });
 
-  return await this.ratingsRepository.save(
-    newRating,
-  );
-}
+    return await this.ratingsRepository.save(newRating);
+  }
 
- async findAll(): Promise<Rating[]> {
-  return await this.ratingsRepository.find({
-    relations: {
-      student: true,
-      course: true,
-    },
-    order: {
-      createdAt: 'DESC',
-    },
-  });
-}
+  // =====================================================
+  // GET MY RATING
+  // =====================================================
 
-async findOne(
-  id: number,
-): Promise<Rating> {
-  const rating =
-    await this.ratingsRepository.findOne({
+  async getMyRating(
+    courseId: number,
+    studentId: number,
+  ): Promise<Rating | null> {
+    return await this.ratingsRepository.findOne({
+      where: {
+        courseId,
+        studentId,
+      },
+      relations: {
+        student: true,
+      },
+    });
+  }
+
+  // =====================================================
+  // GET ALL RATINGS
+  // =====================================================
+
+  async findAll(): Promise<Rating[]> {
+    return await this.ratingsRepository.find({
+      relations: {
+        student: true,
+        course: true,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  }
+
+  // =====================================================
+  // GET ONE RATING
+  // =====================================================
+
+  async findOne(id: number): Promise<Rating> {
+    const rating = await this.ratingsRepository.findOne({
       where: { id },
       relations: {
         student: true,
@@ -123,99 +140,101 @@ async findOne(
       },
     });
 
-  if (!rating) {
-    throw new NotFoundException(
-      `Rating with ID ${id} not found`,
-    );
+    if (!rating) {
+      throw new NotFoundException(
+        `Rating with ID ${id} not found`,
+      );
+    }
+
+    return rating;
   }
 
-  return rating;
-}
+  // =====================================================
+  // UPDATE RATING
+  // =====================================================
 
-async update(
-  id: number,
-  updateRatingDto: UpdateRatingDto,
-): Promise<Rating> {
-  const rating =
-    await this.findOne(id);
+  async update(
+    id: number,
+    updateRatingDto: UpdateRatingDto,
+  ): Promise<Rating> {
+    const rating = await this.findOne(id);
 
-  Object.assign(
-    rating,
-    updateRatingDto,
-  );
+    Object.assign(rating, updateRatingDto);
 
-  return await this.ratingsRepository.save(
-    rating,
-  );
-}
-async remove(
-  id: number,
-): Promise<{ message: string }> {
-  const rating =
-    await this.findOne(id);
+    return await this.ratingsRepository.save(rating);
+  }
 
-  await this.ratingsRepository.remove(
-    rating,
-  );
+  // =====================================================
+  // DELETE RATING
+  // =====================================================
 
-  return {
-    message:
-      'Rating deleted successfully',
-  };
-}
+  async remove(
+    id: number,
+  ): Promise<{ message: string }> {
+    const rating = await this.findOne(id);
 
+    await this.ratingsRepository.remove(rating);
 
-async getCourseRatings(
-  courseId: number,
-): Promise<Rating[]> {
-  return await this.ratingsRepository.find({
-    where: {
-      courseId,
-    },
-    relations: {
-      student: true,
-    },
-    order: {
-      createdAt: 'DESC',
-    },
-  });
-}
+    return {
+      message: 'Rating deleted successfully',
+    };
+  }
 
-async getAverageRating(
-  courseId: number,
-): Promise<{
-  averageRating: number;
-  totalRatings: number;
-}> {
-  const ratings =
-    await this.ratingsRepository.find({
+  // =====================================================
+  // GET COURSE RATINGS
+  // =====================================================
+
+  async getCourseRatings(
+    courseId: number,
+  ): Promise<Rating[]> {
+    return await this.ratingsRepository.find({
+      where: {
+        courseId,
+      },
+      relations: {
+        student: true,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  }
+
+  // =====================================================
+  // GET AVERAGE RATING
+  // =====================================================
+
+  async getAverageRating(
+    courseId: number,
+  ): Promise<{
+    averageRating: number;
+    totalRatings: number;
+  }> {
+    const ratings = await this.ratingsRepository.find({
       where: {
         courseId,
       },
     });
 
-  const totalRatings =
-    ratings.length;
+    const totalRatings = ratings.length;
 
-  if (totalRatings === 0) {
-    return {
-      averageRating: 0,
-      totalRatings: 0,
-    };
-  }
+    if (totalRatings === 0) {
+      return {
+        averageRating: 0,
+        totalRatings: 0,
+      };
+    }
 
-  const total =
-    ratings.reduce(
-      (sum, rating) =>
-        sum + Number(rating.rating),
+    const total = ratings.reduce(
+      (sum, item) => sum + Number(item.rating),
       0,
     );
 
-  return {
-    averageRating: Number(
-      (total / totalRatings).toFixed(1),
-    ),
-    totalRatings,
-  };
-}
+    return {
+      averageRating: Number(
+        (total / totalRatings).toFixed(1),
+      ),
+      totalRatings,
+    };
+  }
 }

@@ -27,7 +27,7 @@ export class RatingsController {
   ) {}
 
   // =====================================================
-  // CREATE / UPDATE RATING
+  // CREATE RATING
   // =====================================================
 
   @UseGuards(JwtAuthGuard)
@@ -40,6 +40,26 @@ export class RatingsController {
 
     return this.ratingsService.create(
       createRatingDto,
+      studentId,
+    );
+  }
+
+  // =====================================================
+  // GET MY RATING
+  // =====================================================
+
+  @UseGuards(JwtAuthGuard)
+  @Get('course/:courseId/my')
+  getMyRating(
+    @Param('courseId', ParseIntPipe)
+    courseId: number,
+
+    @Req() req: Request,
+  ) {
+    const studentId = (req.user as any).id;
+
+    return this.ratingsService.getMyRating(
+      courseId,
       studentId,
     );
   }
@@ -68,7 +88,7 @@ export class RatingsController {
   }
 
   // =====================================================
-  // GET COURSE AVERAGE RATING
+  // GET COURSE AVERAGE
   // =====================================================
 
   @Get('course/:courseId/average')
@@ -82,7 +102,7 @@ export class RatingsController {
   }
 
   // =====================================================
-  // GET RATING BY ID
+  // GET ONE
   // =====================================================
 
   @Get(':id')
@@ -94,7 +114,7 @@ export class RatingsController {
   }
 
   // =====================================================
-  // UPDATE RATING
+  // UPDATE
   // =====================================================
 
   @UseGuards(JwtAuthGuard)
@@ -113,7 +133,7 @@ export class RatingsController {
   }
 
   // =====================================================
-  // DELETE RATING
+  // DELETE
   // =====================================================
 
   @UseGuards(JwtAuthGuard)

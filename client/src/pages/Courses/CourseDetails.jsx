@@ -7,6 +7,7 @@ import {
   createRating,
   getCourseRatings,
   getAverageRating,
+  getMyRating,
 } from "../../services/ratingService";
 
 import {
@@ -144,7 +145,7 @@ const CourseDetails = () => {
 
   const [ratings, setRatings] = useState([]);
 
-  const [userRated, setUserRated] = useState(false);
+  // const [userRated, setUserRated] = useState(false);
   const [myRating, setMyRating] = useState(null);
 
   const [averageRating, setAverageRating] =
@@ -334,65 +335,37 @@ const CourseDetails = () => {
   // FETCH RATINGS
   // =====================================================
 
-  const fetchRatings = async () => {
+ const fetchRatings = async () => {
+  try {
+    // All ratings
+    const ratingsResponse = await getCourseRatings(id);
 
-    try {
+    const allRatings = Array.isArray(ratingsResponse.data)
+      ? ratingsResponse.data
+      : [];
 
-      const ratingsResponse =
-        await getCourseRatings(id);
+    setRatings(allRatings);
 
+    // Average rating
+    const averageResponse = await getAverageRating(id);
 
-      setRatings(
-        Array.isArray(
-          ratingsResponse.data
-        )
-          ? ratingsResponse.data
-          : []
-      );
-      const allRatings = Array.isArray(ratingsResponse.data)
-        ? ratingsResponse.data
-        : [];
+    setAverageRating(
+      Number(averageResponse.data.averageRating || 0)
+    );
 
-      setRatings(allRatings);
-
-
-      const currentUserRating = allRatings.find(
-        (item) =>
-          Number(item.user?.id) === Number(user?.id)
-      );
-
-
-      if (currentUserRating) {
-        setUserRated(true);
-        setMyRating(currentUserRating);
-      } else {
-        setUserRated(false);
+    // Current student's rating
+    if (user?.role === "student") {
+      try {
+        const myResponse = await getMyRating(id);
+        setMyRating(myResponse.data);
+      } catch {
         setMyRating(null);
       }
-
-
-      const averageResponse =
-        await getAverageRating(id);
-
-
-      setAverageRating(
-        Number(
-          averageResponse.data.average ||
-          0
-        )
-      );
-
-
-    } catch (error) {
-
-      console.log(
-        "Rating fetch error:",
-        error
-      );
-
     }
-
-  };
+  } catch (error) {
+    console.log("Rating fetch error:", error);
+  }
+};
 
   // =====================================================
   // FETCH COURSE PROGRESS
@@ -696,70 +669,45 @@ const CourseDetails = () => {
   // SUBMIT RATING
   // =====================================================
 
-  const handleRatingSubmit = async () => {
+ const handleRatingSubmit = async () => {
+  if (myRating) {
+    return;
+  }
 
-    if (userRated) {
-      alert("You have already rated this course");
-      return;
-    }
+  if (ratingValue === 0) {
+    alert("Please select a rating");
+    return;
+  }
 
-    if (ratingValue === 0) {
+  try {
+    setRatingLoading(true);
+    setRatingError("");
 
-      alert(
-        "Please select rating"
-      );
+    await createRating({
+      courseId: Number(id),
+      rating: ratingValue,
+      review: reviewText,
+    });
 
-      return;
-    }
+    // Reset form
+    setRatingValue(0);
+    setReviewText("");
 
+    // Reload ratings + my rating + average rating
+    await fetchRatings();
 
-    try {
+    alert("Rating submitted successfully");
+  } catch (error) {
+    console.log(error);
 
-      setRatingLoading(true);
-
-
-      await createRating({
-
-        courseId: Number(id),
-
-        rating: ratingValue,
-
-        review: reviewText,
-
-      });
-
-
-      setRatingValue(0);
-
-      setReviewText("");
-
-
-      await fetchRatings();
-
-
-      alert(
-        "Rating submitted successfully"
-      );
-
-
-    }
-    catch (error) {
-
-      console.log(
-        error
-      );
-
-
-      setRatingError(
-        error.response?.data?.message ||
-        "Unable to submit rating"
-      );
-    }
-    finally {
-      setRatingLoading(false);
-    }
-
-  };
+    setRatingError(
+      error.response?.data?.message ||
+      "Unable to submit rating"
+    );
+  } finally {
+    setRatingLoading(false);
+  }
+};
 
   // =====================================================
   // VIEW PDF
@@ -2573,7 +2521,7 @@ const CourseDetails = () => {
                 color="primary"
               >
 
-                {averageRating.toFixed(1)}
+                {Number(averageRating || 0).toFixed(1)}
 
               </Typography>
 
@@ -2590,177 +2538,143 @@ const CourseDetails = () => {
 
 
 
-            {user?.role === "student" && !userRated && (
+         {user?.role === "student" && !myRating && (
+  <Box>
 
-              <Box>
+    <Typography
+      fontWeight={700}
+      mb={1}
+    >
+      Give Your Rating
+    </Typography>
 
+    <Box sx={{ mb: 2 }}>
+      {[1,2,3,4,5].map((star)=>(
+        <Button
+          key={star}
+          onClick={()=>setRatingValue(star)}
+          sx={{
+            fontSize:30,
+            minWidth:40,
+            color:
+              star<=ratingValue
+                ? "#ffb400"
+                : "#bdbdbd"
+          }}
+        >
+          ★
+        </Button>
+      ))}
+    </Box>
 
-                <Typography
-                  fontWeight={700}
-                  mb={1}
-                >
-                  Give Your Rating
-                </Typography>
+    <textarea
+      value={reviewText}
+      onChange={(e)=>setReviewText(e.target.value)}
+      placeholder="Write your review..."
+      style={{
+        width:"100%",
+        minHeight:"100px",
+        padding:"12px",
+        borderRadius:"8px",
+        border:"1px solid #ccc"
+      }}
+    />
 
+    <Button
+      variant="contained"
+      sx={{ mt:2 }}
+      disabled={ratingLoading}
+      onClick={handleRatingSubmit}
+    >
+      Submit Review
+    </Button>
 
+  </Box>
+)}
 
-                <Box>
+{myRating && (
+  <Paper
+    variant="outlined"
+    sx={{
+      p:2,
+      mb:3,
+      borderRadius:2,
+      bgcolor:"#f8f9fa"
+    }}
+  >
+    <Typography fontWeight={700} mb={1}>
+      Your Review
+    </Typography>
 
-                  {[1, 2, 3, 4, 5].map((star) => (
+    <Typography
+      fontSize={24}
+      color="warning.main"
+    >
+      {"★".repeat(myRating.rating)}
+    </Typography>
 
-                    <Button
+    <Typography color="text.secondary">
+      {myRating.review || "No review"}
+    </Typography>
 
-                      key={star}
-
-                      onClick={() => setRatingValue(star)}
-
-                      sx={{
-                        fontSize: 30,
-                        minWidth: 40,
-                        color:
-                          star <= ratingValue
-                            ? "#ffb400"
-                            : "grey"
-                      }}
-
-                    >
-                      ★
-                    </Button>
-
-                  ))}
-
-                </Box>
-
-
-
-                <textarea
-
-                  value={reviewText}
-
-                  onChange={(e) =>
-                    setReviewText(
-                      e.target.value
-                    )
-                  }
-
-                  placeholder="Write your review..."
-
-                  style={{
-
-                    width: "100%",
-
-                    minHeight: "100px",
-
-                    padding: "12px",
-
-                    marginTop: "15px"
-
-                  }}
-
-                />
-
-
-
-                <Button
-
-                  variant="contained"
-
-                  sx={{
-                    mt: 2
-                  }}
-
-                  disabled={ratingLoading}
-
-                  onClick={
-                    handleRatingSubmit
-                  }
-
-                >
-
-                  Submit Review
-
-                </Button>
-
-
-              </Box>
-
-            )}
-
-
-
+  </Paper>
+)}
             <Divider
               sx={{
                 my: 3
               }}
 
-
             />
-
-            {userRated && (
-              <Box sx={{ mb: 3 }}>
-                <Typography fontWeight={700}>
-                  You already rated this course
-                </Typography>
-
-                <Typography
-                  color="warning.main"
-                  fontSize={25}
-                >
-                  {"★".repeat(myRating?.rating || 0)}
-                </Typography>
-
-                <Typography color="text.secondary">
-                  {myRating?.review}
-                </Typography>
-              </Box>
-            )}
+         
             <Stack spacing={2}>
 
-              {ratings.map((item) => (
+              {ratings
+                .filter((item) => item)
+                .map((item) => (
 
-                <Paper
+                  <Paper
 
-                  key={item.id}
+                    key={item.id}
 
-                  variant="outlined"
+                    variant="outlined"
 
-                  sx={{
-                    p: 2,
-                    borderRadius: 2
-                  }}
+                    sx={{
+                      p: 2,
+                      borderRadius: 2
+                    }}
 
-                >
-
-
-                  <Typography
-                    fontWeight={700}
                   >
-                    {
-                      item.user?.name ||
-                      "Student"
-                    }
-                  </Typography>
 
 
-                  <Typography
-                    color="warning.main"
-                    fontSize={22}
-                  >
-                    {"★".repeat(item.rating)}
-                  </Typography>
+                    <Typography
+                      fontWeight={700}
+                    >
+                      {
+                        item.student?.name ||
+                        "Student"
+                      }
+                    </Typography>
 
 
-                  <Typography
-                    color="text.secondary"
-                  >
-                    {item.review}
-                  </Typography>
+                    <Typography
+                      color="warning.main"
+                      fontSize={22}
+                    >
+                      {"★".repeat(item.rating)}
+                    </Typography>
 
 
-                </Paper>
+                    <Typography
+                      color="text.secondary"
+                    >
+                      {item.review}
+                    </Typography>
 
 
-              ))}
+                  </Paper>
+
+
+                ))}
 
             </Stack>
 

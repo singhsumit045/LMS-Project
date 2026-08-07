@@ -1,9 +1,11 @@
 import { Rating } from 'src/ratings/entities/rating.entity';
+
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   OneToMany,
+  CreateDateColumn,
 } from 'typeorm';
 
 
@@ -20,8 +22,10 @@ export class User {
   // BASIC USER DETAILS
   // =====================================================
 
+
   @Column()
   name!: string;
+
 
 
   @Column({
@@ -30,14 +34,17 @@ export class User {
   email!: string;
 
 
+
   @Column()
   password!: string;
+
 
 
 
   // =====================================================
   // USER ROLE
   // =====================================================
+
 
   @Column({
     default: 'student',
@@ -46,9 +53,11 @@ export class User {
 
 
 
+
   // =====================================================
   // REFRESH TOKEN
   // =====================================================
+
 
   @Column({
     type: 'varchar',
@@ -59,9 +68,11 @@ export class User {
 
 
 
+
   // =====================================================
   // PROFILE IMAGE
   // =====================================================
+
 
   @Column({
     type: 'varchar',
@@ -82,9 +93,11 @@ export class User {
 
 
 
+
   // =====================================================
   // TEACHER SIGNATURE
   // =====================================================
+
 
   @Column({
     type: 'varchar',
@@ -105,9 +118,11 @@ export class User {
 
 
 
+
   // =====================================================
   // ONLINE / OFFLINE STATUS
   // =====================================================
+
 
   @Column({
     default: false,
@@ -116,9 +131,12 @@ export class User {
 
 
 
+
+
   // =====================================================
   // LAST ACTIVE TIME
   // =====================================================
+
 
   @Column({
     type: 'datetime',
@@ -126,8 +144,26 @@ export class User {
   })
   lastSeen!: Date | null;
 
-  @OneToMany(() => Rating, (rating) => rating.student)
-ratings!: Rating[];
 
+
+
+
+  // =====================================================
+  // ACCOUNT CREATED DATE
+  // =====================================================
+
+
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  // =====================================================
+  // RATINGS
+  // =====================================================
+
+  @OneToMany(
+    () => Rating,
+    (rating) => rating.student
+  )
+  ratings!: Rating[];
 
 }
