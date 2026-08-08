@@ -69,11 +69,6 @@ export class UsersController {
     );
 
   }
-
-
-
-
-
   // =====================================================
   // UPDATE USER PROFILE
   // =====================================================
@@ -97,11 +92,6 @@ export class UsersController {
     );
 
   }
-
-
-
-
-
   // =====================================================
   // DELETE USER
   // =====================================================
@@ -116,11 +106,6 @@ export class UsersController {
     );
 
   }
-
-
-
-
-
   // =====================================================
   // UPLOAD / UPDATE PROFILE PICTURE
   // =====================================================
@@ -154,21 +139,11 @@ export class UsersController {
       };
 
     }
-
-
-
-
-
     const result =
 
       await this.cloudinaryService.uploadImage(
         file,
       );
-
-
-
-
-
     const updatedUser =
 
       await this.usersService.updateProfileImage(
@@ -181,41 +156,17 @@ export class UsersController {
 
       );
 
-
-
-
-
     return {
-
-
       message:
       'Profile picture updated successfully',
-
-
-
       profileImageUrl:
 
       updatedUser?.profileImageUrl,
-
-
-
       profileImagePublicId:
 
       updatedUser?.profileImagePublicId,
-
-
     };
-
-
   }
-
-
-
-
-
-
-
-
   // =====================================================
   // UPLOAD TEACHER SIGNATURE
   // =====================================================
@@ -237,36 +188,20 @@ export class UsersController {
     req:any,
 
   ) {
-
-
-
     if(!file){
 
       return {
 
         message:
         'Signature image is required',
-
       };
 
     }
-
-
-
-
-
-
     const result =
 
       await this.cloudinaryService.uploadSignature(
         file,
       );
-
-
-
-
-
-
     const updatedUser =
 
       await this.usersService.updateSignature(
@@ -278,31 +213,14 @@ export class UsersController {
         result.public_id,
 
       );
-
-
-
-
-
-
     return {
-
-
       message:
       'Signature uploaded successfully',
-
-
-
       signatureUrl:
-
       updatedUser?.signatureUrl,
-
-
-
       signaturePublicId:
 
       updatedUser?.signaturePublicId,
-
-
     };
 
 

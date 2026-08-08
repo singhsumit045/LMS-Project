@@ -123,6 +123,21 @@ export class AuthController {
   }
 
   // =====================================================
+// VERIFY EMAIL
+// =====================================================
+
+@Post('verify-email')
+async verifyEmail(
+  @Body('email') email: string,
+  @Body('otp') otp: string,
+) {
+  return await this.authService.verifyEmail(
+    email,
+    otp,
+  );
+}
+
+  // =====================================================
   // FORGOT PASSWORD - SEND OTP
   // =====================================================
 

@@ -69,6 +69,7 @@ import ManageCourses from "../pages/Admin/ManageCourses";
 
 
 import ForgotPassword from "../pages/ResetPassword/ResetPassword";
+import VerifyEmail from "../pages/VerifyEmail/VerifyEmail";
 
 // =========================
 // APP ROUTES
@@ -97,12 +98,9 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         element={<Register />}
       />
 
-      
-      <Route
-  path="/forgot-password"
-  element={<ForgotPassword />}
-/>
 
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
       {/* =====================================================
           PROTECTED ROUTES
           ALL INSIDE MAIN LAYOUT
@@ -337,13 +335,13 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
 
 
         <Route
-  path="/certificate/:certificateId"
-  element={
-    <ProtectedRoute>
-      <CertificateDetails />
-    </ProtectedRoute>
-  }
-/>
+          path="/certificate/:certificateId"
+          element={
+            <ProtectedRoute>
+              <CertificateDetails />
+            </ProtectedRoute>
+          }
+        />
 
         {/* =================================================
             ADMIN - MANAGE USERS

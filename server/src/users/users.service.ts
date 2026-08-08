@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DeepPartial } from 'typeorm';
 
 import { User } from './entities/user.entity';
 import { RegisterDto } from '../auth/dto/register.dto';
@@ -35,6 +35,14 @@ export class UsersService {
       password: hashedPassword,
     });
 
+    return await this.userRepository.save(user);
+  }
+
+  // =====================================================
+  // SAVE USER
+  // =====================================================
+
+  async save(user: DeepPartial<User>): Promise<User> {
     return await this.userRepository.save(user);
   }
 
@@ -240,36 +248,37 @@ export class UsersService {
     );
   }
 
+  // =====================================================
+  // UPDATE TEACHER SIGNATURE
+  // =====================================================
+
   async updateSignature(
-  userId:number,
-  signatureUrl:string,
-  signaturePublicId:string,
-){
+    userId: number,
+    signatureUrl: string,
+    signaturePublicId: string,
+  ) {
+    await this.userRepository.update(
+      userId,
+      {
+        signatureUrl,
+        signaturePublicId,
+      },
+    );
 
-  await this.userRepository.update(
-    userId,
-    {
-      signatureUrl,
-      signaturePublicId,
-    },
-  );
+    return await this.findOne(userId);
+  }
 
+  // =====================================================
+  // FIND USER BY RESET TOKEN
+  // =====================================================
 
-  return this.findOne(userId);
-}
-
-async save(user: User): Promise<User> {
-  return this.userRepository.save(user);
-}
-
-async findByResetToken(
-  token: string,
-): Promise<User | null> {
-  return this.userRepository.findOne({
-    where: {
-      resetPasswordToken: token,
-    },
-  });
-}
-
+  async findByResetToken(
+    token: string,
+  ): Promise<User | null> {
+    return await this.userRepository.findOne({
+      where: {
+        resetPasswordToken: token,
+      },
+    });
+  }
 }

@@ -196,4 +196,22 @@ resetPasswordOtp!: string | null;
 })
 resetPasswordOtpExpires!: Date | null;
 
+@Column({
+  type: 'varchar',
+  length: 10,
+  nullable: true,
+})
+emailVerificationOtp!: string | null;
+
+@Column({
+  type: 'datetime',
+  nullable: true,
+})
+emailVerificationOtpExpires!: Date | null;
+
+@Column({
+  default: false,
+})
+isEmailVerified!: boolean;
+
 }

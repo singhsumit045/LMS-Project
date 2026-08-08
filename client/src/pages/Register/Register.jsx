@@ -63,39 +63,46 @@ function Register() {
     // HANDLE REGISTER
     // =========================
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+  const handleSubmit = async (e) => {
+e.preventDefault();
 
-        const validationErrors = validateRegister(formData);
 
-        setErrors(validationErrors);
+const validationErrors = validateRegister(formData);
 
-        if (Object.keys(validationErrors).length > 0) {
-            return;
-        }
+setErrors(validationErrors);
 
-        try {
-            const response = await registerUser({
-                name: formData.name,
-                email: formData.email,
-                password: formData.password,
-                role: formData.role,
-            });
+if (Object.keys(validationErrors).length > 0) {
+    return;
+}
 
-            console.log(response.data);
+try {
+    const response = await registerUser({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+    });
 
-            alert("Registration Successful");
+    console.log(response.data);
 
-            navigate("/login");
-        } catch (error) {
-            console.log(error.response?.data);
+    navigate("/verify-email", {
+        state: {
+            email: formData.email,
+        },
+    });
 
-            alert(
-                error.response?.data?.message ||
-                    "Registration failed"
-            );
-        }
-    };
+} catch (error) {
+    console.log(error.response?.data);
+
+    alert(
+        error.response?.data?.message ||
+            "Registration failed"
+    );
+}
+
+
+};
+
 
     return (
         <Box

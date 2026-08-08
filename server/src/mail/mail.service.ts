@@ -17,7 +17,8 @@ export class MailService {
         pass: process.env.MAIL_PASSWORD,
       },
     });
-  }
+  } 
+
 
   // =====================================================
   // SEND PASSWORD RESET OTP
@@ -240,5 +241,74 @@ export class MailService {
       `,
     });
   }
+
+  async sendEmailVerificationOtp(
+  email: string,
+  otp: string,
+): Promise<void> {
+  await this.transporter.sendMail({
+    from: `"LearnHub" <${process.env.MAIL_FROM}>`,
+    to: email,
+
+    subject: 'Verify Your LearnHub Email',
+
+    html: `
+      <div
+        style="
+          font-family: Arial, sans-serif;
+          max-width: 600px;
+          margin: auto;
+          padding: 30px;
+        "
+      >
+
+        <h2 style="color: #1976d2;">
+          Welcome to LearnHub 🎓
+        </h2>
+
+        <p>
+          Thank you for registering with LearnHub.
+        </p>
+
+        <p>
+          Please use the following OTP to verify
+          your email address:
+        </p>
+
+        <div
+          style="
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            background: #f4f6f8;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 25px 0;
+          "
+        >
+          ${otp}
+        </div>
+
+        <p>
+          This OTP will expire in
+          <strong>10 minutes</strong>.
+        </p>
+
+        <p>
+          If you did not create a LearnHub account,
+          you can safely ignore this email.
+        </p>
+
+        <hr />
+
+        <p style="color: #777;">
+          LearnHub Team
+        </p>
+
+      </div>
+    `,
+  });
+}
 }
 
