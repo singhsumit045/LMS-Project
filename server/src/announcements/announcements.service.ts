@@ -1,3 +1,4 @@
+
 import {
   Injectable,
   ForbiddenException,
@@ -9,6 +10,10 @@ import { Repository } from 'typeorm';
 
 import { Announcement } from './entities/announcement.entity';
 import { Course } from '../courses/entities/course.entity';
+import { Enrollment } from '../enrollments/entities/enrollment.entity';
+
+import { NotificationType } from '../notifications/enums/notification-type.enum';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AnnouncementsService {
@@ -18,6 +23,11 @@ export class AnnouncementsService {
 
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
+
+    @InjectRepository(Enrollment)
+    private readonly enrollmentRepository: Repository<Enrollment>,
+
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   // =====================================================
@@ -47,21 +57,58 @@ export class AnnouncementsService {
       );
     }
 
-    const announcement = this.announcementRepository.create({
-      title,
-      message,
-      courseId,
-      teacherId,
-    });
+    const announcement =
+      this.announcementRepository.create({
+        title,
+        message,
+        courseId,
+        teacherId,
+      });
 
-    return this.announcementRepository.save(announcement);
+    const savedAnnouncement =
+      await this.announcementRepository.save(
+        announcement,
+      );
+
+    // =====================================================
+    // FIND ENROLLED STUDENTS
+    // =====================================================
+
+    const enrollments =
+      await this.enrollmentRepository.find({
+        where: {
+          course: {
+            id: courseId,
+          },
+        },
+        relations: {
+          user: true,
+        },
+      });
+
+    // =====================================================
+    // SEND NOTIFICATION
+    // =====================================================
+
+    for (const enrollment of enrollments) {
+      await this.notificationsService.createNotification(
+        enrollment.user.id,
+        `📢 ${title}`,
+        message,
+        NotificationType.ANNOUNCEMENT,
+      );
+    }
+
+    return savedAnnouncement;
   }
 
   // =====================================================
   // GET ANNOUNCEMENTS BY COURSE
   // =====================================================
 
-  async getAnnouncementsByCourse(courseId: number) {
+  async getAnnouncementsByCourse(
+    courseId: number,
+  ) {
     return this.announcementRepository.find({
       where: {
         courseId,
@@ -181,3 +228,4 @@ export class AnnouncementsService {
     };
   }
 }
+

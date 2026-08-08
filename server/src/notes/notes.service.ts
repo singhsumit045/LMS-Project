@@ -9,65 +9,95 @@ import { Repository } from 'typeorm';
 
 import { Note } from './entities/note.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { Enrollment } from '../enrollments/entities/enrollment.entity';
+import { NotificationType } from '../notifications/enums/notification-type.enum';
 
 @Injectable()
 export class NotesService {
-  constructor(
-    @InjectRepository(Note)
-    private readonly noteRepository: Repository<Note>,
+constructor(
+  @InjectRepository(Note)
+  private readonly noteRepository: Repository<Note>,
 
-    private readonly cloudinaryService: CloudinaryService,
-  ) {}
+  private readonly cloudinaryService: CloudinaryService,
+
+  @InjectRepository(Enrollment)
+  private readonly enrollmentRepository: Repository<Enrollment>,
+
+  private readonly notificationsService: NotificationsService,
+) {}
 
   // =====================================================
   // CREATE / UPLOAD NOTE
   // =====================================================
 
-  async createNote(
-    file: any,
-    title: string,
-    content: string,
-    courseId: number,
-  ) {
-    if (!file) {
-      throw new BadRequestException(
-        'PDF file is required.',
-      );
-    }
+ async createNote(
+  file: any,
+  title: string,
+  content: string,
+  courseId: number,
+) {
+  if (!file) {
+    throw new BadRequestException(
+      'PDF file is required.',
+    );
+  }
 
-    if (!title?.trim()) {
-      throw new BadRequestException(
-        'Note title is required.',
-      );
-    }
+  if (!title?.trim()) {
+    throw new BadRequestException(
+      'Note title is required.',
+    );
+  }
 
-    if (!courseId) {
-      throw new BadRequestException(
-        'Course ID is required.',
-      );
-    }
+  if (!courseId) {
+    throw new BadRequestException(
+      'Course ID is required.',
+    );
+  }
 
-    // Only PDF allowed
-    if (file.mimetype !== 'application/pdf') {
-      throw new BadRequestException(
-        'Only PDF files are allowed.',
-      );
-    }
+  if (file.mimetype !== 'application/pdf') {
+    throw new BadRequestException(
+      'Only PDF files are allowed.',
+    );
+  }
 
-    // Upload PDF to Cloudinary
-    const result =
-      await this.cloudinaryService.uploadNote(file);
+  const result =
+    await this.cloudinaryService.uploadNote(file);
 
-    const note = this.noteRepository.create({
-      title: title.trim(),
-      content: content?.trim() || '',
-      noteUrl: result.secure_url,
-      publicId: result.public_id,
-      courseId,
+  const note = this.noteRepository.create({
+    title: title.trim(),
+    content: content?.trim() || '',
+    noteUrl: result.secure_url,
+    publicId: result.public_id,
+    courseId,
+  });
+
+  const savedNote =
+    await this.noteRepository.save(note);
+
+  const enrollments =
+    await this.enrollmentRepository.find({
+      where: {
+        course: {
+          id: courseId,
+        },
+      },
+      relations: {
+        user: true,
+      },
     });
 
-    return await this.noteRepository.save(note);
+  for (const enrollment of enrollments) {
+    await this.notificationsService.createNotification(
+      enrollment.user.id,
+      'New Notes Available 📄',
+      `${savedNote.title} has been added to your course.`,
+      NotificationType.NOTES,
+    );
   }
+
+  return savedNote;
+}
 
   // =====================================================
   // GET NOTES BY COURSE

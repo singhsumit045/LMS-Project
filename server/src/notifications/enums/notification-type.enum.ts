@@ -1,5 +1,7 @@
+
 export enum NotificationType {
   ENROLLMENT = 'ENROLLMENT',
+  COURSE = 'COURSE',
   VIDEO = 'VIDEO',
   NOTES = 'NOTES',
   ASSIGNMENT = 'ASSIGNMENT',

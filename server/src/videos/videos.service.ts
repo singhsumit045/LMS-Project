@@ -8,7 +8,9 @@ import { Repository } from 'typeorm';
 
 import { Video } from './video.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { Enrollment } from 'src/enrollments/entities/enrollment.entity';
+import { Enrollment } from '../enrollments/entities/enrollment.entity';
+import { NotificationType } from '../notifications/enums/notification-type.enum';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class VideosService {
@@ -20,32 +22,60 @@ export class VideosService {
 
   @InjectRepository(Enrollment)
   private readonly enrollmentRepository: Repository<Enrollment>,
+
+  private readonly notificationsService: NotificationsService,
 ) {}
 
   // =========================
   // UPLOAD VIDEO
   // =========================
 
-  async uploadVideo(
-    file: any,
-    title: string,
-    description: string,
-    courseId: number,
-  ) {
-    const result =
-      await this.cloudinaryService.uploadVideo(file);
+async uploadVideo(
+  file: any,
+  title: string,
+  description: string,
+  courseId: number,
+) {
+  const result =
+    await this.cloudinaryService.uploadVideo(file);
 
-    const video = this.videoRepository.create({
-      title,
-      description,
-      videoUrl: result.secure_url,
-      publicId: result.public_id,
-      courseId,
-      duration: result.duration,
+  const video = this.videoRepository.create({
+    title,
+    description,
+    videoUrl: result.secure_url,
+    publicId: result.public_id,
+    courseId,
+    duration: result.duration,
+  });
+
+  const savedVideo =
+    await this.videoRepository.save(video);
+
+  // Find students enrolled in this course
+  const enrollments =
+    await this.enrollmentRepository.find({
+      where: {
+        course: {
+          id: courseId,
+        },
+      },
+      relations: {
+        user: true,
+      },
     });
 
-    return this.videoRepository.save(video);
+  // Send notification to enrolled students
+  for (const enrollment of enrollments) {
+    await this.notificationsService.createNotification(
+      enrollment.user.id,
+      'New Video Available 🎥',
+      `${savedVideo.title} has been added to your course.`,
+      NotificationType.VIDEO,
+    );
   }
+
+  return savedVideo;
+}
 
   // =========================
   // GET VIDEOS BY COURSE

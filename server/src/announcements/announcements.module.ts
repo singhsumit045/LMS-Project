@@ -6,7 +6,9 @@ import { AnnouncementsService } from './announcements.service';
 
 import { Announcement } from './entities/announcement.entity';
 import { User } from '../users/entities/user.entity';
-import { Course } from 'src/courses/entities/course.entity';
+import { Course } from '../courses/entities/course.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { Enrollment } from '../enrollments/entities/enrollment.entity';
 
 @Module({
   imports: [
@@ -14,7 +16,9 @@ import { Course } from 'src/courses/entities/course.entity';
       Announcement,
       Course,
       User,
+      Enrollment,
     ]),
+    NotificationsModule,
   ],
 
   controllers: [AnnouncementsController],

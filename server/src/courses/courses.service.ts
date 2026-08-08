@@ -8,32 +8,60 @@ import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 
 import { Enrollment } from '../enrollments/entities/enrollment.entity';
+import {NotificationType} from '../notifications/enums/notification-type.enum';
+import {NotificationsService} from '../notifications/notifications.service';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class CoursesService {
-  constructor(
-    @InjectRepository(Course)
-    private readonly courseRepository: Repository<Course>,
+ constructor(
+  @InjectRepository(Course)
+  private readonly courseRepository: Repository<Course>,
 
-    @InjectRepository(Enrollment)
-    private readonly enrollmentRepository: Repository<Enrollment>,
-  ) {}
+  @InjectRepository(Enrollment)
+  private readonly enrollmentRepository: Repository<Enrollment>,
+
+  @InjectRepository(User)
+  private readonly userRepository: Repository<User>,
+
+  private readonly notificationsService: NotificationsService,
+) {}
 
   // =====================================================
   // CREATE COURSE
   // =====================================================
 
   async create(
-    createCourseDto: CreateCourseDto,
-    teacherId: number,
-  ) {
-    const course = this.courseRepository.create({
-      ...createCourseDto,
-      teacherId,
+  createCourseDto: CreateCourseDto,
+  teacherId: number,
+) {
+  const course = this.courseRepository.create({
+    ...createCourseDto,
+    teacherId,
+  });
+
+  const savedCourse =
+    await this.courseRepository.save(course);
+
+  // Get all students
+  const students =
+    await this.userRepository.find({
+      where: {
+        role: 'student',
+      },
     });
 
-    return await this.courseRepository.save(course);
+  // Send notification
+  for (const student of students) {
+    await this.notificationsService.createNotification(
+      student.id,
+      'New Course Available 📚',
+      `${savedCourse.title} has been added. Start learning now!`,
+      NotificationType.COURSE,
+    );
   }
+  return savedCourse;
+}
 
   // =====================================================
   // GET ALL COURSES
@@ -118,7 +146,7 @@ export class CoursesService {
         id,
       },
     });
-  }
+  }  
 
   // =====================================================
   // GET TEACHER COURSES

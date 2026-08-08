@@ -67,7 +67,7 @@ export class NotificationsService {
       },
     });
   }
-
+            
   async markAsRead(id: number, userId: number) {
     const notification = await this.notificationRepository.findOne({
       where: {

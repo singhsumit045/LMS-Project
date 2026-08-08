@@ -32,28 +32,36 @@ import { CreateOptionDto } from './dto/create-option.dto';
 import { UpdateOptionDto } from './dto/update-option.dto';
 
 import { SubmitExamDto } from './dto/submit-exam.dto';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { Enrollment } from '../enrollments/entities/enrollment.entity';
+import { NotificationType } from 'src/notifications/enums/notification-type.enum';
 
 @Injectable()
 export class ExamsService {
-  constructor(
-    @InjectRepository(Exam)
-    private readonly examsRepository: Repository<Exam>,
+constructor(
+  @InjectRepository(Exam)
+  private readonly examsRepository: Repository<Exam>,
 
-    @InjectRepository(Question)
-    private readonly questionsRepository: Repository<Question>,
+  @InjectRepository(Question)
+  private readonly questionsRepository: Repository<Question>,
 
-    @InjectRepository(Option)
-    private readonly optionsRepository: Repository<Option>,
+  @InjectRepository(Option)
+  private readonly optionsRepository: Repository<Option>,
 
-    @InjectRepository(ExamAttempt)
-    private readonly examAttemptsRepository: Repository<ExamAttempt>,
+  @InjectRepository(ExamAttempt)
+  private readonly examAttemptsRepository: Repository<ExamAttempt>,
 
-    @InjectRepository(Answer)
-    private readonly answersRepository: Repository<Answer>,
+  @InjectRepository(Answer)
+  private readonly answersRepository: Repository<Answer>,
 
-    @InjectRepository(Certificate)
-    private readonly certificatesRepository: Repository<Certificate>,
-  ) {}
+  @InjectRepository(Certificate)
+  private readonly certificatesRepository: Repository<Certificate>,
+
+  @InjectRepository(Enrollment)
+  private readonly enrollmentRepository: Repository<Enrollment>,
+
+  private readonly notificationsService: NotificationsService,
+) {}
 
   // =====================================================
   // ENSURE CERTIFICATE
@@ -172,47 +180,74 @@ export class ExamsService {
   // CREATE EXAM
   // =====================================================
 
-  async create(
-    createExamDto: CreateExamDto,
-    teacherId: number,
-  ): Promise<Exam> {
-    const exam =
-      this.examsRepository.create({
-        title: createExamDto.title,
+async create(
+  createExamDto: CreateExamDto,
+  teacherId: number,
+): Promise<Exam> {
+  const exam =
+    this.examsRepository.create({
+      title: createExamDto.title,
 
-        description:
-          createExamDto.description,
+      description:
+        createExamDto.description,
 
-        duration:
-          createExamDto.duration,
+      duration:
+        createExamDto.duration,
 
-        totalMarks:
-          createExamDto.totalMarks,
+      totalMarks:
+        createExamDto.totalMarks,
 
-        courseId:
-          createExamDto.courseId,
+      courseId:
+        createExamDto.courseId,
 
-        teacherId,
+      teacherId,
 
-        passingPercentage:
-          createExamDto.passingMarks,
+      passingPercentage:
+        createExamDto.passingMarks,
 
-        isPublished:
-          createExamDto.isPublished ?? false,
-      });
-
-    console.log('Creating Exam:', {
-      title: exam.title,
-      courseId: exam.courseId,
-      teacherId: exam.teacherId,
-      isPublished: exam.isPublished,
+      isPublished:
+        createExamDto.isPublished ?? false,
     });
 
-    return await this.examsRepository.save(
-      exam,
-    );
+  console.log('Creating Exam:', {
+    title: exam.title,
+    courseId: exam.courseId,
+    teacherId: exam.teacherId,
+    isPublished: exam.isPublished,
+  });
+
+  const savedExam =
+    await this.examsRepository.save(exam);
+
+  // =====================================================
+  // SEND NOTIFICATION IF EXAM IS CREATED AS PUBLISHED
+  // =====================================================
+
+  if (savedExam.isPublished) {
+    const enrollments =
+      await this.enrollmentRepository.find({
+        where: {
+          course: {
+            id: savedExam.courseId,
+          },
+        },
+        relations: {
+          user: true,
+        },
+      });
+
+    for (const enrollment of enrollments) {
+      await this.notificationsService.createNotification(
+        enrollment.user.id,
+        'New Exam Available 📝',
+        `${savedExam.title} has been published for your course.`,
+        NotificationType.EXAM,
+      );
+    }
   }
 
+  return savedExam;
+}
   // =====================================================
   // GET ALL EXAMS
   // =====================================================
@@ -343,14 +378,41 @@ async getTeacherExams(
       exam.passingPercentage =
         updateExamDto.passingMarks;
     }
+if (
+  updateExamDto.isPublished !== undefined
+) {
+  const wasPublished = exam.isPublished;
 
-    if (
-      updateExamDto.isPublished !==
-      undefined
-    ) {
-      exam.isPublished =
-        updateExamDto.isPublished;
+  exam.isPublished =
+    updateExamDto.isPublished;
+
+  // Notify only when exam is published
+  if (
+    !wasPublished &&
+    exam.isPublished
+  ) {
+    const enrollments =
+      await this.enrollmentRepository.find({
+        where: {
+          course: {
+            id: exam.courseId,
+          },
+        },
+        relations: {
+          user: true,
+        },
+      });
+
+    for (const enrollment of enrollments) {
+      await this.notificationsService.createNotification(
+        enrollment.user.id,
+        'New Exam Available 📝',
+        `${exam.title} has been published for your course.`,
+        NotificationType.EXAM,
+      );
     }
+  }
+}
 
     return await this.examsRepository.save(
       exam,

@@ -8,13 +8,16 @@ import { NotesService } from './notes.service';
 import { Note } from './entities/note.entity';
 
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { Enrollment } from '../enrollments/entities/enrollment.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Note,
+      Enrollment
     ]),
-
+    NotificationsModule,
     CloudinaryModule,
   ],
 

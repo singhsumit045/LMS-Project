@@ -13,6 +13,8 @@ import { Answer } from './entities/answer.entity/answer.entity';
 
 // Certificate Entity
 import { Certificate } from '../certificates/entities/certificate.entity';
+import { NotificationsModule } from 'src/notifications/notifications.module';
+import { Enrollment } from 'src/enrollments/entities/enrollment.entity';
 
 @Module({
   imports: [
@@ -22,11 +24,12 @@ import { Certificate } from '../certificates/entities/certificate.entity';
       Option,
       ExamAttempt,
       Answer,
-
+      Enrollment, // Add Enrollment entity to the imports
       // IMPORTANT:
       // ExamsService me CertificateRepository use ho raha hai
       Certificate,
     ]),
+    NotificationsModule,
   ],
 
   controllers: [ExamsController],

@@ -7,6 +7,7 @@ import { VideosService } from './videos.service';
 
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { Enrollment } from '../enrollments/entities/enrollment.entity';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 
 @Module({
@@ -15,6 +16,8 @@ import { Enrollment } from '../enrollments/entities/enrollment.entity';
       Video,
       Enrollment,
     ]),
+
+    NotificationsModule,
 
     CloudinaryModule,
   ],
