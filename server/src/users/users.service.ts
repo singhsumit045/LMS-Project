@@ -258,4 +258,18 @@ export class UsersService {
   return this.findOne(userId);
 }
 
+async save(user: User): Promise<User> {
+  return this.userRepository.save(user);
+}
+
+async findByResetToken(
+  token: string,
+): Promise<User | null> {
+  return this.userRepository.findOne({
+    where: {
+      resetPasswordToken: token,
+    },
+  });
+}
+
 }

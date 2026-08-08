@@ -67,6 +67,9 @@ import ManageUsers from "../pages/Admin/ManageUsers";
 import ManageEnrollments from "../pages/Admin/ManageEnrollments";
 import ManageCourses from "../pages/Admin/ManageCourses";
 
+
+import ForgotPassword from "../pages/ResetPassword/ResetPassword";
+
 // =========================
 // APP ROUTES
 // =========================
@@ -93,6 +96,12 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         path="/register"
         element={<Register />}
       />
+
+      
+      <Route
+  path="/forgot-password"
+  element={<ForgotPassword />}
+/>
 
       {/* =====================================================
           PROTECTED ROUTES
@@ -382,6 +391,7 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         />
 
       </Route>
+
 
       {/* =====================================================
           404

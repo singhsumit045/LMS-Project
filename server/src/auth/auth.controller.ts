@@ -25,9 +25,9 @@ export class AuthController {
     private readonly authService: AuthService,
   ) {}
 
-  // =========================
+  // =====================================================
   // REGISTER
-  // =========================
+  // =====================================================
 
   @Post('register')
   async register(
@@ -38,9 +38,9 @@ export class AuthController {
     );
   }
 
-  // =========================
+  // =====================================================
   // LOGIN
-  // =========================
+  // =====================================================
 
   @Post('login')
   async login(
@@ -51,19 +51,21 @@ export class AuthController {
     );
   }
 
-  // =========================
+  // =====================================================
   // PROFILE
-  // =========================
-  
-@UseGuards(JwtAuthGuard)
-@Get('profile')
-async profile(@Req() req: any) {
-  return await this.authService.getProfile(req.user.id);
-}
+  // =====================================================
 
-  // =========================
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  async profile(@Req() req: any) {
+    return await this.authService.getProfile(
+      req.user.id,
+    );
+  }
+
+  // =====================================================
   // UPDATE PROFILE
-  // =========================
+  // =====================================================
 
   @UseGuards(JwtAuthGuard)
   @Put('profile')
@@ -77,15 +79,16 @@ async profile(@Req() req: any) {
     );
   }
 
-  // =========================
+  // =====================================================
   // CHANGE PASSWORD
-  // =========================
+  // =====================================================
 
   @UseGuards(JwtAuthGuard)
   @Put('change-password')
   async changePassword(
     @Req() req: any,
-    @Body() changePasswordDto: ChangePasswordDto,
+    @Body()
+    changePasswordDto: ChangePasswordDto,
   ) {
     return await this.authService.changePassword(
       req.user.id,
@@ -93,28 +96,74 @@ async profile(@Req() req: any) {
     );
   }
 
-  // =========================
+  // =====================================================
   // REFRESH TOKEN
-  // =========================
+  // =====================================================
 
   @Post('refresh')
   async refresh(
-    @Body('refresh_token') refreshToken: string,
+    @Body('refresh_token')
+    refreshToken: string,
   ) {
     return await this.authService.refreshToken(
       refreshToken,
     );
   }
 
-  // =========================
+  // =====================================================
   // LOGOUT
-  // =========================
+  // =====================================================
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Req() req: any) {
     return await this.authService.logout(
       req.user.id,
+    );
+  }
+
+  // =====================================================
+  // FORGOT PASSWORD - SEND OTP
+  // =====================================================
+
+  @Post('forgot-password')
+  async forgotPassword(
+    @Body('email') email: string,
+  ) {
+    return await this.authService.forgotPassword(
+      email,
+    );
+  }
+
+  // =====================================================
+  // VERIFY RESET OTP
+  // =====================================================
+
+  @Post('verify-reset-otp')
+  async verifyResetOtp(
+    @Body('email') email: string,
+    @Body('otp') otp: string,
+  ) {
+    return await this.authService.verifyResetOtp(
+      email,
+      otp,
+    );
+  }
+
+  // =====================================================
+  // RESET PASSWORD
+  // =====================================================
+
+  @Post('reset-password')
+  async resetPassword(
+    @Body('email') email: string,
+    @Body('otp') otp: string,
+    @Body('password') password: string,
+  ) {
+    return await this.authService.resetPassword(
+      email,
+      otp,
+      password,
     );
   }
 }

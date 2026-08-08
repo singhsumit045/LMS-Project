@@ -157,13 +157,43 @@ export class User {
   ratings!: Rating[];
 
   // =====================================================
-// NOTIFICATIONS
+  // NOTIFICATIONS
+  // =====================================================
+
+  @OneToMany(
+    () => Notification,
+    (notification) => notification.user,
+  )
+  notifications!: Notification[];
+
+ // =====================================================
+// PASSWORD RESET
 // =====================================================
 
-@OneToMany(
-  () => Notification,
-  (notification) => notification.user,
-)
-notifications!: Notification[];
+@Column({
+  type: 'varchar',
+  length: 255,
+  nullable: true,
+})
+resetPasswordToken!: string | null;
+
+@Column({
+  type: 'datetime',
+  nullable: true,
+})
+resetPasswordExpires!: Date | null;
+
+@Column({
+  type: 'varchar',
+  length: 10,
+  nullable: true,
+})
+resetPasswordOtp!: string | null;
+
+@Column({
+  type: 'datetime',
+  nullable: true,
+})
+resetPasswordOtpExpires!: Date | null;
 
 }

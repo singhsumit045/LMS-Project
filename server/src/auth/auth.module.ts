@@ -1,11 +1,19 @@
 import { Module } from '@nestjs/common';
+
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { UsersModule } from '../users/users.module';
 
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UsersModule } from '../users/users.module';
+import { MailModule } from '../mail/mail.module';
+
+import {
+  ConfigModule,
+  ConfigService,
+} from '@nestjs/config';
+
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+
 import { StringValue } from 'ms';
 
 import { JwtStrategy } from './jwt.strategy';
@@ -20,25 +28,37 @@ import { RolesGuard } from './guards/roles.guard';
 
     ConfigModule,
 
+    // IMPORTANT
+    // MailService nahi, MailModule import hoga
+    MailModule,
+
     JwtModule.registerAsync({
       imports: [ConfigModule],
+
       inject: [ConfigService],
 
-      useFactory: (configService: ConfigService) => ({
+      useFactory: (
+        configService: ConfigService,
+      ) => ({
         secret:
-          configService.get<string>('JWT_ACCESS_SECRET') ||
-          'lms-access-secret',
+          configService.get<string>(
+            'JWT_ACCESS_SECRET',
+          ) || 'lms-access-secret',
 
         signOptions: {
           expiresIn: (
-            configService.get<string>('JWT_ACCESS_EXPIRES') || '15m'
+            configService.get<string>(
+              'JWT_ACCESS_EXPIRES',
+            ) || '15m'
           ) as StringValue,
         },
       }),
     }),
   ],
 
-  controllers: [AuthController],
+  controllers: [
+    AuthController,
+  ],
 
   providers: [
     AuthService,
@@ -47,6 +67,8 @@ import { RolesGuard } from './guards/roles.guard';
     RolesGuard,
   ],
 
-  exports: [JwtModule],
+  exports: [
+    JwtModule,
+  ],
 })
 export class AuthModule {}

@@ -1,8 +1,8 @@
-
 import {
   Injectable,
   ConflictException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 
 import { UsersService } from '../users/users.service';
@@ -17,6 +17,9 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -24,11 +27,12 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService,
   ) {}
 
-  // =========================
+  // =====================================================
   // REGISTER
-  // =========================
+  // =====================================================
 
   async register(registerDto: RegisterDto) {
     const existingUser =
@@ -46,10 +50,10 @@ export class AuthService {
       registerDto,
     );
   }
-  
-  // =========================
+
+  // =====================================================
   // LOGIN
-  // =========================
+  // =====================================================
 
   async login(loginDto: LoginDto) {
     const user =
@@ -82,16 +86,16 @@ export class AuthService {
       name: user.name,
     };
 
-    // =========================
+    // =====================================================
     // ACCESS TOKEN
-    // =========================
+    // =====================================================
 
     const accessToken =
       this.jwtService.sign(payload);
 
-    // =========================
+    // =====================================================
     // REFRESH TOKEN
-    // =========================
+    // =====================================================
 
     const refreshToken =
       this.jwtService.sign(payload, {
@@ -103,7 +107,6 @@ export class AuthService {
         expiresIn: '7d',
       });
 
-    // Hash refresh token before storing
     const hashedRefreshToken =
       await bcrypt.hash(
         refreshToken,
@@ -128,16 +131,18 @@ export class AuthService {
     };
   }
 
-  // =========================
+  // =====================================================
   // UPDATE PROFILE
-  // =========================
+  // =====================================================
 
   async updateProfile(
     userId: number,
     updateUserDto: UpdateUserDto,
   ) {
     const user =
-      await this.usersService.findOne(userId);
+      await this.usersService.findOne(
+        userId,
+      );
 
     if (!user) {
       throw new UnauthorizedException(
@@ -172,26 +177,24 @@ export class AuthService {
     };
   }
 
-  // =========================
+  // =====================================================
   // CHANGE PASSWORD
-  // =========================
+  // =====================================================
 
   async changePassword(
     userId: number,
     changePasswordDto: ChangePasswordDto,
   ) {
     const user =
-      await this.usersService.findOne(userId);
+      await this.usersService.findOne(
+        userId,
+      );
 
     if (!user) {
       throw new UnauthorizedException(
         'User not found',
       );
     }
-
-    // =========================
-    // VERIFY CURRENT PASSWORD
-    // =========================
 
     const isCurrentPasswordValid =
       await bcrypt.compare(
@@ -205,10 +208,6 @@ export class AuthService {
       );
     }
 
-    // =========================
-    // CHECK SAME PASSWORD
-    // =========================
-
     const isSamePassword =
       await bcrypt.compare(
         changePasswordDto.newPassword,
@@ -221,28 +220,16 @@ export class AuthService {
       );
     }
 
-    // =========================
-    // HASH NEW PASSWORD
-    // =========================
-
     const hashedNewPassword =
       await bcrypt.hash(
         changePasswordDto.newPassword,
         10,
       );
 
-    // =========================
-    // UPDATE PASSWORD
-    // =========================
-
     await this.usersService.updatePassword(
       userId,
       hashedNewPassword,
     );
-
-    // =========================
-    // INVALIDATE REFRESH TOKEN
-    // =========================
 
     await this.usersService.removeRefreshToken(
       userId,
@@ -254,9 +241,9 @@ export class AuthService {
     };
   }
 
-  // =========================
+  // =====================================================
   // REFRESH TOKEN
-  // =========================
+  // =====================================================
 
   async refreshToken(
     refreshToken: string,
@@ -268,10 +255,6 @@ export class AuthService {
     }
 
     try {
-      // =========================
-      // VERIFY REFRESH TOKEN
-      // =========================
-
       const payload =
         this.jwtService.verify(
           refreshToken,
@@ -283,10 +266,6 @@ export class AuthService {
               'lms-refresh-secret',
           },
         );
-
-      // =========================
-      // FIND USER
-      // =========================
 
       const user =
         await this.usersService.findOne(
@@ -302,10 +281,6 @@ export class AuthService {
         );
       }
 
-      // =========================
-      // COMPARE REFRESH TOKEN
-      // =========================
-
       const isRefreshTokenValid =
         await bcrypt.compare(
           refreshToken,
@@ -318,10 +293,6 @@ export class AuthService {
         );
       }
 
-      // =========================
-      // NEW PAYLOAD
-      // =========================
-
       const newPayload = {
         sub: user.id,
         email: user.email,
@@ -329,18 +300,10 @@ export class AuthService {
         name: user.name,
       };
 
-      // =========================
-      // NEW ACCESS TOKEN
-      // =========================
-
       const newAccessToken =
         this.jwtService.sign(
           newPayload,
         );
-
-      // =========================
-      // NEW REFRESH TOKEN
-      // =========================
 
       const newRefreshToken =
         this.jwtService.sign(
@@ -356,19 +319,11 @@ export class AuthService {
           },
         );
 
-      // =========================
-      // HASH NEW REFRESH TOKEN
-      // =========================
-
       const hashedNewRefreshToken =
         await bcrypt.hash(
           newRefreshToken,
           10,
         );
-
-      // =========================
-      // REPLACE OLD TOKEN
-      // =========================
 
       await this.usersService.updateRefreshToken(
         user.id,
@@ -389,40 +344,291 @@ export class AuthService {
     }
   }
 
-  // =========================
-// GET PROFILE
-// =========================
+  // =====================================================
+  // GET PROFILE
+  // =====================================================
 
-async getProfile(userId: number) {
-  const user = await this.usersService.findOne(userId);
+  async getProfile(
+    userId: number,
+  ) {
+    const user =
+      await this.usersService.findOne(
+        userId,
+      );
 
-  if (!user) {
-    throw new UnauthorizedException(
-      'User not found',
-    );
+    if (!user) {
+      throw new UnauthorizedException(
+        'User not found',
+      );
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profileImageUrl:
+        user.profileImageUrl,
+    };
   }
 
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    profileImageUrl: user.profileImageUrl,
-  };
-}
-
-  // =========================
+  // =====================================================
   // LOGOUT
-  // =========================
+  // =====================================================
 
-  async logout(userId: number) {
+  async logout(
+    userId: number,
+  ) {
     await this.usersService.removeRefreshToken(
       userId,
     );
 
     return {
-      message: 'Logout successful',
+      message:
+        'Logout successful',
+    };
+  }
+
+  // =====================================================
+  // FORGOT PASSWORD - SEND OTP
+  // =====================================================
+
+  async forgotPassword(
+    email: string,
+  ): Promise<{ message: string }> {
+    const normalizedEmail =
+      email.trim().toLowerCase();
+
+    const user =
+      await this.usersService.findByEmail(
+        normalizedEmail,
+      );
+
+    // Same response for security
+    if (!user) {
+      return {
+        message:
+          'If an account exists with this email, a password reset OTP has been sent.',
+      };
+    }
+
+    // =====================================================
+    // GENERATE 6 DIGIT OTP
+    // =====================================================
+
+    const otp =
+      crypto
+        .randomInt(
+          100000,
+          1000000,
+        )
+        .toString();
+
+    // =====================================================
+    // OTP EXPIRY - 10 MINUTES
+    // =====================================================
+
+    const otpExpiry = new Date(
+      Date.now() +
+        10 * 60 * 1000,
+    );
+
+    // =====================================================
+    // SAVE OTP
+    // =====================================================
+
+    user.resetPasswordOtp = otp;
+    user.resetPasswordOtpExpires =
+      otpExpiry;
+
+    // Clear old token if any
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+
+    await this.usersService.save(user);
+
+    // =====================================================
+    // SEND OTP EMAIL
+    // =====================================================
+
+    await this.mailService.sendPasswordResetOtpEmail(
+      user.email,
+      otp,
+    );
+
+    return {
+      message:
+        'If an account exists with this email, a password reset OTP has been sent.',
+    };
+  }
+
+  // =====================================================
+  // VERIFY RESET OTP
+  // =====================================================
+
+  async verifyResetOtp(
+    email: string,
+    otp: string,
+  ): Promise<{ message: string }> {
+    const normalizedEmail =
+      email.trim().toLowerCase();
+
+    const user =
+      await this.usersService.findByEmail(
+        normalizedEmail,
+      );
+
+    if (!user) {
+      throw new BadRequestException(
+        'Invalid OTP or email.',
+      );
+    }
+
+    if (
+      !user.resetPasswordOtp ||
+      !user.resetPasswordOtpExpires
+    ) {
+      throw new BadRequestException(
+        'No active OTP found. Please request a new OTP.',
+      );
+    }
+
+    // =====================================================
+    // CHECK OTP EXPIRY
+    // =====================================================
+
+    if (
+      user.resetPasswordOtpExpires <
+      new Date()
+    ) {
+      user.resetPasswordOtp = null;
+      user.resetPasswordOtpExpires = null;
+
+      await this.usersService.save(user);
+
+      throw new BadRequestException(
+        'OTP has expired. Please request a new OTP.',
+      );
+    }
+
+    // =====================================================
+    // CHECK OTP
+    // =====================================================
+
+    if (
+      user.resetPasswordOtp !==
+      otp.trim()
+    ) {
+      throw new BadRequestException(
+        'Invalid OTP.',
+      );
+    }
+
+    return {
+      message:
+        'OTP verified successfully.',
+    };
+  }
+
+  // =====================================================
+  // RESET PASSWORD USING OTP
+  // =====================================================
+
+  async resetPassword(
+    email: string,
+    otp: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    const normalizedEmail =
+      email.trim().toLowerCase();
+
+    const user =
+      await this.usersService.findByEmail(
+        normalizedEmail,
+      );
+
+    if (!user) {
+      throw new BadRequestException(
+        'Invalid password reset request.',
+      );
+    }
+
+    // =====================================================
+    // CHECK OTP EXISTS
+    // =====================================================
+
+    if (
+      !user.resetPasswordOtp ||
+      !user.resetPasswordOtpExpires
+    ) {
+      throw new BadRequestException(
+        'Please request a new password reset OTP.',
+      );
+    }
+
+    // =====================================================
+    // CHECK OTP EXPIRY
+    // =====================================================
+
+    if (
+      user.resetPasswordOtpExpires <
+      new Date()
+    ) {
+      user.resetPasswordOtp = null;
+      user.resetPasswordOtpExpires = null;
+
+      await this.usersService.save(user);
+
+      throw new BadRequestException(
+        'OTP has expired. Please request a new OTP.',
+      );
+    }
+
+    // =====================================================
+    // CHECK OTP
+    // =====================================================
+
+    if (
+      user.resetPasswordOtp !==
+      otp.trim()
+    ) {
+      throw new BadRequestException(
+        'Invalid OTP.',
+      );
+    }
+
+    // =====================================================
+    // HASH NEW PASSWORD
+    // =====================================================
+
+    const hashedPassword =
+      await bcrypt.hash(
+        newPassword,
+        10,
+      );
+
+    user.password =
+      hashedPassword;
+
+    // =====================================================
+    // CLEAR OTP
+    // =====================================================
+
+    user.resetPasswordOtp = null;
+    user.resetPasswordOtpExpires = null;
+
+    // Clear old reset token
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+
+    // Invalidate refresh token
+    user.refreshToken = null;
+
+    await this.usersService.save(user);
+
+    return {
+      message:
+        'Password reset successfully.',
     };
   }
 }
-

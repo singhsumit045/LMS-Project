@@ -20,7 +20,7 @@ import { Enrollment } from '../enrollments/entities/enrollment.entity';
     NotificationsModule,
     CloudinaryModule,
   ],
-
+  
   controllers: [
     NotesController,
   ],
