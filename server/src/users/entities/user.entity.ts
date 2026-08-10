@@ -15,9 +15,7 @@ export class User {
 
   @PrimaryGeneratedColumn()
   id!: number;
-
-
-
+  
   // =====================================================
   // BASIC USER DETAILS
   // =====================================================
@@ -26,20 +24,13 @@ export class User {
   @Column()
   name!: string;
 
-
-
   @Column({
     unique: true,
   })
   email!: string;
 
-
-
   @Column()
   password!: string;
-
-
-
 
   // =====================================================
   // USER ROLE
@@ -50,9 +41,6 @@ export class User {
     default: 'student',
   })
   role!: string;
-
-
-
 
   // =====================================================
   // REFRESH TOKEN
@@ -65,9 +53,6 @@ export class User {
     nullable: true,
   })
   refreshToken!: string | null;
-
-
-
 
   // =====================================================
   // PROFILE IMAGE
@@ -82,17 +67,12 @@ export class User {
   profileImageUrl!: string | null;
 
 
-
   @Column({
     type: 'varchar',
     length: 500,
     nullable: true,
   })
   profileImagePublicId!: string | null;
-
-
-
-
 
   // =====================================================
   // TEACHER SIGNATURE
@@ -106,18 +86,12 @@ export class User {
   })
   signatureUrl!: string | null;
 
-
-
   @Column({
     type: 'varchar',
     length: 500,
     nullable: true,
   })
   signaturePublicId!: string | null;
-
-
-
-
 
   // =====================================================
   // ONLINE / OFFLINE STATUS

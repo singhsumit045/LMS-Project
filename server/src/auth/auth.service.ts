@@ -481,7 +481,6 @@ try {
   );
 }
 
-
 }
 
 // =====================================================
@@ -527,16 +526,11 @@ userId: number,
 await this.usersService.removeRefreshToken(
 userId,
 );
-
-
 return {
   message:
     'Logout successful',
 };
-
-
 }
-
 // =====================================================
 // FORGOT PASSWORD - SEND OTP
 // =====================================================
@@ -592,10 +586,7 @@ return {
   message:
     'If an account exists with this email, a password reset OTP has been sent.',
 };
-
-
 }
-
 // =====================================================
 // VERIFY RESET OTP
 // =====================================================
@@ -738,7 +729,5 @@ return {
   message:
     'Password reset successfully.',
 };
-
-
 }
 }

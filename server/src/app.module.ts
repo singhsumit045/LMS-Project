@@ -19,6 +19,7 @@ import { CertificatesModule } from './certificates/certificates.module';
 import { RatingsModule } from './ratings/ratings.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { MailModule } from './mail/mail.module';
+import { LiveClassModule } from './live-class/live-class.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { MailModule } from './mail/mail.module';
     RatingsModule,
     NotificationsModule,
     MailModule,
+    LiveClassModule,
   ],
   controllers: [AppController],
   providers: [AppService],

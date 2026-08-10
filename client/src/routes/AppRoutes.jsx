@@ -4,84 +4,86 @@ import { Routes, Route } from "react-router-dom";
 // =========================
 // Layout
 // =========================
-
 import MainLayout from "../layouts/MainLayout";
 
 // =========================
-// Components
+// Route Guards
 // =========================
-
 import ProtectedRoute from "../components/ProtectedRoute";
 import RoleProtectedRoute from "../components/RoleProtectedRoute";
 
 // =========================
-// Pages
+// Public Pages
 // =========================
-
 import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
+import ForgotPassword from "../pages/ResetPassword/ResetPassword";
+import VerifyEmail from "../pages/VerifyEmail/VerifyEmail";
+import NotFound from "../pages/NotFound/NotFound";
 
+// =========================
+// Dashboard
+// =========================
 import DashboardRouter from "../pages/Dashboard/DashboardRouter";
 
+// =========================
+// Profile
+// =========================
 import Profile from "../pages/Profile/Profile";
-import NotFound from "../pages/NotFound/NotFound";
 
 // =========================
 // Courses
 // =========================
-
 import CourseList from "../pages/Courses/CourseList";
+import CourseDetails from "../pages/Courses/CourseDetails";
 import CreateCourse from "../pages/Courses/CreateCourse";
 import EditCourse from "../pages/Courses/EditCourse";
-import CourseDetails from "../pages/Courses/CourseDetails";
-
 import MyCourses from "../pages/MyCourses/MyCourse";
 
 import ManageCourseContent from "../pages/Courses/ManageCourseContent/ManageCourseContent";
-
 import ManageVideos from "../pages/Courses/ManageVideos/ManageVideos";
-
 import ManageNotes from "../pages/Courses/ManageNotes/ManageNotes";
-
 import ManageAnnouncements from "../pages/Courses/ManageAnnouncements/ManageAnnouncements";
 
 // =========================
-// EXAM
+// Exams
 // =========================
-
 import ManageExams from "../pages/Courses/ManageExam/ManageExam";
 import ManageQuestions from "../pages/Courses/ManageExam/ManageQuestions";
 import StudentExam from "../pages/Courses/ManageExam/StudentExam";
 import ExamResult from "../pages/Courses/ManageExam/ExamResult";
 import StudentExamResult from "../pages/Courses/ManageExam/StudentExamResult";
 
-
+// =========================
+// Certificates
+// =========================
 import CertificateDetails from "../pages/Courses/Certificates/CertificateDetails";
 
 // =========================
 // Admin
 // =========================
-
 import ManageUsers from "../pages/Admin/ManageUsers";
 import ManageEnrollments from "../pages/Admin/ManageEnrollments";
 import ManageCourses from "../pages/Admin/ManageCourses";
 
-
-import ForgotPassword from "../pages/ResetPassword/ResetPassword";
-import VerifyEmail from "../pages/VerifyEmail/VerifyEmail";
-
 // =========================
+// Live Classes
+// =========================
+import LiveClassRoom from "../pages/live-class/LiveClassRoom";
+import CreateLiveClass from "../pages/live-class/CreateLiveClass";
+
+// =====================================================
 // APP ROUTES
-// =========================
+// =====================================================
 
 const AppRoutes = ({ darkMode, toggleTheme }) => {
   return (
     <Routes>
 
-      {/* =====================================================
+      {/* =================================================
           PUBLIC ROUTES
-      ===================================================== */}
+      ================================================= */}
 
       <Route
         path="/"
@@ -98,13 +100,21 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         element={<Register />}
       />
 
+      <Route
+        path="/forgot-password"
+        element={<ForgotPassword />}
+      />
 
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
-      {/* =====================================================
+      <Route
+        path="/verify-email"
+        element={<VerifyEmail />}
+      />
+
+
+      {/* =================================================
           PROTECTED ROUTES
-          ALL INSIDE MAIN LAYOUT
-      ===================================================== */}
+          MainLayout
+      ================================================= */}
 
       <Route
         element={
@@ -126,6 +136,7 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           element={<DashboardRouter />}
         />
 
+
         {/* =================================================
             PROFILE
         ================================================= */}
@@ -134,6 +145,7 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/profile"
           element={<Profile />}
         />
+
 
         {/* =================================================
             COURSES
@@ -149,6 +161,32 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           element={<CourseDetails />}
         />
 
+
+        {/* =================================================
+            LIVE CLASS
+            IMPORTANT:
+
+            /live-class/create MUST come before
+            /live-class/:liveClassId
+        ================================================= */}
+
+        <Route
+          path="/live-class/create"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={["teacher", "admin"]}
+            >
+              <CreateLiveClass />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/live-class/:liveClassId"
+          element={<LiveClassRoom />}
+        />
+
+
         {/* =================================================
             CREATE COURSE
             TEACHER + ADMIN
@@ -158,34 +196,13 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/create"
           element={
             <RoleProtectedRoute
-              allowedRoles={[
-                "teacher",
-                "admin",
-              ]}
+              allowedRoles={["teacher", "admin"]}
             >
               <CreateCourse />
             </RoleProtectedRoute>
           }
         />
 
-        {/* =================================================
-            MANAGE COURSE CONTENT
-            TEACHER + ADMIN
-        ================================================= */}
-
-        <Route
-          path="/courses/:id/manage-content"
-          element={
-            <RoleProtectedRoute
-              allowedRoles={[
-                "teacher",
-                "admin",
-              ]}
-            >
-              <ManageCourseContent />
-            </RoleProtectedRoute>
-          }
-        />
 
         {/* =================================================
             EDIT COURSE
@@ -196,15 +213,30 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/edit/:id"
           element={
             <RoleProtectedRoute
-              allowedRoles={[
-                "teacher",
-                "admin",
-              ]}
+              allowedRoles={["teacher", "admin"]}
             >
               <EditCourse />
             </RoleProtectedRoute>
           }
         />
+
+
+        {/* =================================================
+            MANAGE COURSE CONTENT
+            TEACHER + ADMIN
+        ================================================= */}
+
+        <Route
+          path="/courses/:id/manage-content"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={["teacher", "admin"]}
+            >
+              <ManageCourseContent />
+            </RoleProtectedRoute>
+          }
+        />
+
 
         {/* =================================================
             MANAGE VIDEOS
@@ -215,15 +247,13 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/:id/manage-videos"
           element={
             <RoleProtectedRoute
-              allowedRoles={[
-                "teacher",
-                "admin",
-              ]}
+              allowedRoles={["teacher", "admin"]}
             >
               <ManageVideos />
             </RoleProtectedRoute>
           }
         />
+
 
         {/* =================================================
             MANAGE NOTES
@@ -234,15 +264,13 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/:id/manage-notes"
           element={
             <RoleProtectedRoute
-              allowedRoles={[
-                "teacher",
-                "admin",
-              ]}
+              allowedRoles={["teacher", "admin"]}
             >
               <ManageNotes />
             </RoleProtectedRoute>
           }
         />
+
 
         {/* =================================================
             MANAGE ANNOUNCEMENTS
@@ -253,15 +281,13 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/:id/manage-announcements"
           element={
             <RoleProtectedRoute
-              allowedRoles={[
-                "teacher",
-                "admin",
-              ]}
+              allowedRoles={["teacher", "admin"]}
             >
               <ManageAnnouncements />
             </RoleProtectedRoute>
           }
         />
+
 
         {/* =================================================
             MANAGE EXAMS
@@ -272,15 +298,13 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/:id/manage-exams"
           element={
             <RoleProtectedRoute
-              allowedRoles={[
-                "teacher",
-                "admin",
-              ]}
+              allowedRoles={["teacher", "admin"]}
             >
               <ManageExams />
             </RoleProtectedRoute>
           }
         />
+
 
         {/* =================================================
             MANAGE QUESTIONS
@@ -291,6 +315,7 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           element={<ManageQuestions />}
         />
 
+
         {/* =================================================
             STUDENT EXAM ATTEMPT
         ================================================= */}
@@ -300,14 +325,16 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           element={<StudentExam />}
         />
 
+
         {/* =================================================
-    STUDENT EXAM RESULT
-================================================= */}
+            STUDENT EXAM RESULT
+        ================================================= */}
 
         <Route
           path="/exams/attempts/:attemptId/result"
           element={<StudentExamResult />}
         />
+
 
         {/* =================================================
             TEACHER EXAM RESULTS
@@ -324,6 +351,7 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           }
         />
 
+
         {/* =================================================
             MY COURSES
         ================================================= */}
@@ -334,17 +362,18 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         />
 
 
+        {/* =================================================
+            CERTIFICATE
+        ================================================= */}
+
         <Route
           path="/certificate/:certificateId"
-          element={
-            <ProtectedRoute>
-              <CertificateDetails />
-            </ProtectedRoute>
-          }
+          element={<CertificateDetails />}
         />
 
+
         {/* =================================================
-            ADMIN - MANAGE USERS
+            ADMIN - USERS
         ================================================= */}
 
         <Route
@@ -358,8 +387,9 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           }
         />
 
+
         {/* =================================================
-            ADMIN - MANAGE ENROLLMENTS
+            ADMIN - ENROLLMENTS
         ================================================= */}
 
         <Route
@@ -373,8 +403,9 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           }
         />
 
+
         {/* =================================================
-            ADMIN - MANAGE COURSES
+            ADMIN - COURSES
         ================================================= */}
 
         <Route
@@ -391,9 +422,9 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
       </Route>
 
 
-      {/* =====================================================
+      {/* =================================================
           404
-      ===================================================== */}
+      ================================================= */}
 
       <Route
         path="*"

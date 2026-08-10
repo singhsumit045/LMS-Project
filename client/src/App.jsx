@@ -4,8 +4,7 @@ import socket from "./services/socket";
 
 function App({ darkMode, toggleTheme }) {
   useEffect(() => {
-    const accessToken =
-      localStorage.getItem("access_token");
+    const accessToken = localStorage.getItem("access_token");
 
     console.log(
       "🔑 Access Token:",
@@ -18,7 +17,7 @@ function App({ darkMode, toggleTheme }) {
     }
 
     // ==========================================
-    // Send access_token to WebSocket
+    // AUTH
     // ==========================================
 
     socket.auth = {
@@ -26,53 +25,35 @@ function App({ darkMode, toggleTheme }) {
     };
 
     // ==========================================
-    // Socket Events
+    // EVENTS
     // ==========================================
 
     const handleConnect = () => {
-      console.log(
-        "🟢 Socket connected:",
-        socket.id
-      );
+      console.log("🟢 Global Socket connected:", socket.id);
     };
 
     const handleConnectError = (error) => {
       console.error(
-        "❌ Socket connection error:",
+        "❌ Global Socket connection error:",
         error.message
       );
     };
 
     const handleUserOnline = (data) => {
-      console.log(
-        "🟢 User online:",
-        data
-      );
+      console.log("🟢 User online:", data);
     };
 
     const handleUserOffline = (data) => {
-      console.log(
-        "⚪ User offline:",
-        data
-      );
+      console.log("⚪ User offline:", data);
     };
 
     socket.on("connect", handleConnect);
-    socket.on(
-      "connect_error",
-      handleConnectError
-    );
-    socket.on(
-      "user-online",
-      handleUserOnline
-    );
-    socket.on(
-      "user-offline",
-      handleUserOffline
-    );
+    socket.on("connect_error", handleConnectError);
+    socket.on("user-online", handleUserOnline);
+    socket.on("user-offline", handleUserOffline);
 
     // ==========================================
-    // Connect socket
+    // CONNECT
     // ==========================================
 
     if (!socket.connected) {
@@ -80,27 +61,18 @@ function App({ darkMode, toggleTheme }) {
     }
 
     // ==========================================
-    // Cleanup
+    // CLEANUP
     // ==========================================
 
     return () => {
       socket.off("connect", handleConnect);
-      socket.off(
-        "connect_error",
-        handleConnectError
-      );
-      socket.off(
-        "user-online",
-        handleUserOnline
-      );
-      socket.off(
-        "user-offline",
-        handleUserOffline
-      );
+      socket.off("connect_error", handleConnectError);
+      socket.off("user-online", handleUserOnline);
+      socket.off("user-offline", handleUserOffline);
 
-      if (socket.connected) {
-        socket.disconnect();
-      }
+      // IMPORTANT:
+      // Do not disconnect the socket here.
+      // React StrictMode can run cleanup during development.
     };
   }, []);
 

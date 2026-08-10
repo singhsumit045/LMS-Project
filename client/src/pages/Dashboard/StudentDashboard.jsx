@@ -72,7 +72,7 @@ const StudentDashboard = () => {
             setLoadingCourses(true);
             setCoursesError("");
 
-            const response = await getMyCourses();
+            const response = await getCourses();
 
             setMyCourses(
                 Array.isArray(response.data)
