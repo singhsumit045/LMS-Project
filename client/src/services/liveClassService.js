@@ -1,85 +1,67 @@
-
 import api from "./api";
 
 // =====================================================
-// CREATE LIVE CLASS - TEACHER / ADMIN
-// POST /live-classes
+// TEACHER - CREATE LIVE CLASS
 // =====================================================
-export const createLiveClass = async (data) => {
-  return api.post("/live-classes", data);
+export const createLiveClass = (data) => {
+    return api.post("/live-classes", data);
 };
 
 
+
 // =====================================================
-// GET MY LIVE CLASSES - TEACHER
-// GET /live-classes/teacher/my-classes
+// TEACHER - MY LIVE CLASSES
 // =====================================================
-export const getMyLiveClasses = async () => {
-  return api.get("/live-classes/teacher/my-classes");
+export const getMyLiveClasses = () => {
+    return api.get("/live-classes/teacher/my-classes");
+};
+
+// =====================================================
+// STUDENT - AVAILABLE LIVE CLASSES
+// =====================================================
+export const getStudentLiveClasses = () => {
+    return api.get("/live-classes/student/available");
 };
 
 // =====================================================
 // GET SINGLE LIVE CLASS
-// GET /live-classes/:id
 // =====================================================
-export const getLiveClass = async (id) => {
-  const numericId = Number(id);
+export const getLiveClass = (id) => {
+    if (!id || !Number.isInteger(Number(id))) {
+        return Promise.reject(
+            new Error("Invalid live class ID")
+        );
+    }
 
-  if (
-    !id ||
-    !Number.isInteger(numericId) ||
-    numericId <= 0
-  ) {
-    return Promise.reject(
-      new Error(`Invalid live class ID: ${id}`)
-    );
-  }
-
-  return api.get(`/live-classes/${numericId}`);
+    return api.get(`/live-classes/${Number(id)}`);
 };
 
 // =====================================================
-// START LIVE CLASS - TEACHER
-// POST /live-classes/:id/start
+// TEACHER - START LIVE CLASS
 // =====================================================
-export const startLiveClass = async (id) => {
-  const numericId = Number(id);
+export const startLiveClass = (id) => {
+    if (!id || !Number.isInteger(Number(id))) {
+        return Promise.reject(
+            new Error("Invalid live class ID")
+        );
+    }
 
-  if (
-    !id ||
-    !Number.isInteger(numericId) ||
-    numericId <= 0
-  ) {
-    return Promise.reject(
-      new Error(`Invalid live class ID: ${id}`)
+    return api.post(
+        `/live-classes/${Number(id)}/start`
     );
-  }
-
-  return api.post(
-    `/live-classes/${numericId}/start`
-  );
 };
 
-
 // =====================================================
-// END LIVE CLASS - TEACHER
-// POST /live-classes/:id/end
+// TEACHER - END LIVE CLASS
 // =====================================================
-export const endLiveClass = async (id) => {
-  const numericId = Number(id);
+export const endLiveClass = (id) => {
+    if (!id || !Number.isInteger(Number(id))) {
+        return Promise.reject(
+            new Error("Invalid live class ID")
+        );
+    }
 
-  if (
-    !id ||
-    !Number.isInteger(numericId) ||
-    numericId <= 0
-  ) {
-    return Promise.reject(
-      new Error(`Invalid live class ID: ${id}`)
+    return api.post(
+        `/live-classes/${Number(id)}/end`
     );
-  }
-
-  return api.post(
-    `/live-classes/${numericId}/end`
-  );
 };
-

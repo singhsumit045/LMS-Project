@@ -42,7 +42,10 @@ import {
 // CONFIG
 // =====================================================
 
-const SOCKET_URL = "http://localhost:3000";
+const SOCKET_URL = (
+  import.meta.env.VITE_API_BASE_URL ||
+  "http://localhost:3000"
+).replace(/\/+$/, "");
 
 
 // =====================================================
@@ -331,9 +334,69 @@ const LiveClassRoom = () => {
   // CREATE PEER CONNECTION
   // =====================================================
 
-  const createPeerConnection = () => {
+  const peerConnectionsRef = useRef(
+    new Map()
+  );
+
+  const getActivePeerConnection = () => {
     if (peerConnectionRef.current) {
       return peerConnectionRef.current;
+    }
+
+    return (
+      peerConnectionsRef.current.values()
+        .next().value || null
+    );
+  };
+
+  const closePeerConnection = (
+    targetSocketId
+  ) => {
+    if (!targetSocketId) {
+      return;
+    }
+
+    const peerConnection =
+      peerConnectionsRef.current.get(
+        targetSocketId
+      );
+
+    if (!peerConnection) {
+      return;
+    }
+
+    peerConnection.ontrack = null;
+    peerConnection.onicecandidate = null;
+    peerConnection.onconnectionstatechange = null;
+    peerConnection.close();
+
+    peerConnectionsRef.current.delete(
+      targetSocketId
+    );
+
+    if (
+      peerConnectionRef.current ===
+      peerConnection
+    ) {
+      peerConnectionRef.current = null;
+    }
+  };
+
+  const createPeerConnection = (
+    targetSocketId = null
+  ) => {
+    const connectionKey =
+      targetSocketId || "default";
+
+    const existingConnection =
+      targetSocketId
+        ? peerConnectionsRef.current.get(
+            targetSocketId
+          )
+        : peerConnectionRef.current;
+
+    if (existingConnection) {
+      return existingConnection;
     }
 
     const peerConnection =
@@ -348,10 +411,6 @@ const LiveClassRoom = () => {
         ],
       });
 
-    // ===============================================
-    // LOCAL TRACKS
-    // ===============================================
-
     if (localStreamRef.current) {
       localStreamRef.current
         .getTracks()
@@ -363,13 +422,10 @@ const LiveClassRoom = () => {
         });
     }
 
-    // ===============================================
-    // REMOTE TRACK
-    // ===============================================
-
     peerConnection.ontrack = (event) => {
       console.log(
-        "📺 Remote track received"
+        "📺 Remote track received",
+        event.streams?.[0]
       );
 
       if (
@@ -381,23 +437,20 @@ const LiveClassRoom = () => {
       }
     };
 
-    // ===============================================
-    // ICE CANDIDATE
-    // ===============================================
-
     peerConnection.onicecandidate =
       (event) => {
         if (
           event.candidate &&
           socketRef.current &&
-          socketRef.current.connected
+          socketRef.current.connected &&
+          targetSocketId
         ) {
           socketRef.current.emit(
-            "ice-candidate",
+            "webrtc-ice-candidate",
             {
               liveClassId:
                 numericLiveClassId,
-
+              targetSocketId,
               candidate:
                 event.candidate,
             }
@@ -409,14 +462,68 @@ const LiveClassRoom = () => {
       () => {
         console.log(
           "🔗 Peer connection:",
-          peerConnection.connectionState
+          peerConnection.connectionState,
+          connectionKey
         );
       };
 
-    peerConnectionRef.current =
-      peerConnection;
+    if (targetSocketId) {
+      peerConnectionsRef.current.set(
+        targetSocketId,
+        peerConnection
+      );
+    } else {
+      peerConnectionRef.current =
+        peerConnection;
+    }
 
     return peerConnection;
+  };
+
+  const createAndSendOffer = async (
+    targetSocketId
+  ) => {
+    if (
+      !targetSocketId ||
+      !socketRef.current ||
+      !socketRef.current.connected ||
+      !localStreamRef.current
+    ) {
+      return;
+    }
+
+    const peerConnection =
+      createPeerConnection(
+        targetSocketId
+      );
+
+    if (!peerConnection) {
+      return;
+    }
+
+    try {
+      const offer =
+        await peerConnection.createOffer();
+
+      await peerConnection.setLocalDescription(
+        offer
+      );
+
+      socketRef.current.emit(
+        "webrtc-offer",
+        {
+          liveClassId:
+            numericLiveClassId,
+          targetSocketId,
+          offer,
+        }
+      );
+    } catch (err) {
+      console.error(
+        "❌ Offer creation error:",
+        err
+      );
+    }
   };
 
 
@@ -424,54 +531,87 @@ const LiveClassRoom = () => {
   // GET CAMERA + MICROPHONE
   // =====================================================
 
-  const startCameraAndMicrophone =
-    async () => {
-      try {
-        if (localStreamRef.current) {
-          return localStreamRef.current;
-        }
+const startCameraAndMicrophone = async () => {
+  try {
+    if (localStreamRef.current) {
+      return localStreamRef.current;
+    }
 
-        const stream =
-          await navigator.mediaDevices.getUserMedia(
-            {
-              video: true,
-              audio: true,
-            }
-          );
+    // Browser support check
+    if (!navigator.mediaDevices) {
+      throw new Error(
+        "Camera/Microphone API is not available. HTTPS may be required."
+      );
+    }
 
-        localStreamRef.current =
-          stream;
+    console.log("🌐 Current URL:", window.location.href);
+    console.log(
+      "🔐 Secure Context:",
+      window.isSecureContext
+    );
 
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject =
-            stream;
-        }
+    const stream =
+      await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
 
-        setIsCameraOn(true);
+    localStreamRef.current = stream;
 
-        setIsMicOn(true);
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = stream;
+    }
 
-        console.log(
-          "🎥 Camera + microphone started"
-        );
+    setIsCameraOn(true);
+    setIsMicOn(true);
 
-        return stream;
+    console.log("🎥 Camera + microphone started");
 
-      } catch (err) {
-        console.error(
-          "❌ Camera/Microphone error:",
-          err
-        );
+    return stream;
 
-        setError(
-          "Camera or microphone permission was denied."
-        );
+  } catch (err) {
+    console.error(
+      "❌ Camera/Microphone error:",
+      err
+    );
 
-        return null;
-      }
-    };
+    console.error(
+      "Error name:",
+      err?.name
+    );
 
+    console.error(
+      "Error message:",
+      err?.message
+    );
 
+    if (err?.name === "NotAllowedError") {
+      setError(
+        "Camera or microphone permission was denied. Please allow camera and microphone access in Chrome."
+      );
+    } else if (err?.name === "NotFoundError") {
+      setError(
+        "No camera or microphone was found on this device."
+      );
+    } else if (err?.name === "NotReadableError") {
+      setError(
+        "Camera or microphone is already being used by another application."
+      );
+    } else if (err?.name === "SecurityError") {
+      setError(
+        "Camera/microphone access is blocked because this page is not using a secure connection."
+      );
+    } else {
+      setError(
+        `Camera/Microphone error: ${
+          err?.name || "Unknown error"
+        }`
+      );
+    }
+
+    return null;
+  }
+};
   // =====================================================
   // SOCKET CONNECTION
   // =====================================================
@@ -493,7 +633,6 @@ const LiveClassRoom = () => {
       console.error(
         "❌ No access token found"
       );
-
       return;
     }
 
@@ -608,6 +747,48 @@ const LiveClassRoom = () => {
     // =================================================
 
     socket.on(
+      "joined-live-class",
+      (data) => {
+        console.log(
+          "✅ Joined live class:",
+          data
+        );
+
+        const existingParticipants =
+          Array.isArray(
+            data?.participants
+          )
+            ? data.participants
+            : [];
+
+        if (existingParticipants.length) {
+          setParticipants(
+            existingParticipants
+          );
+
+          existingParticipants.forEach(
+            (participant) => {
+              const remoteSocketId =
+                participant?.socketId ||
+                participant?.id;
+
+              if (
+                remoteSocketId &&
+                remoteSocketId !==
+                  socket.id &&
+                localStreamRef.current
+              ) {
+                createAndSendOffer(
+                  remoteSocketId
+                );
+              }
+            }
+          );
+        }
+      }
+    );
+
+    socket.on(
       "participants",
       (data) => {
         console.log(
@@ -642,7 +823,9 @@ const LiveClassRoom = () => {
               prev.some(
                 (item) =>
                   item?.id ===
-                  participant?.id
+                    participant?.id ||
+                  item?.socketId ===
+                    participant?.socketId
               );
 
             if (exists) {
@@ -655,6 +838,20 @@ const LiveClassRoom = () => {
             ];
           }
         );
+
+        const remoteSocketId =
+          participant?.socketId ||
+          participant?.id;
+
+        if (
+          remoteSocketId &&
+          remoteSocketId !== socket.id &&
+          localStreamRef.current
+        ) {
+          createAndSendOffer(
+            remoteSocketId
+          );
+        }
       }
     );
 
@@ -667,12 +864,24 @@ const LiveClassRoom = () => {
           participant
         );
 
+        const remoteSocketId =
+          participant?.socketId ||
+          participant?.id;
+
+        if (remoteSocketId) {
+          closePeerConnection(
+            remoteSocketId
+          );
+        }
+
         setParticipants(
           (prev) =>
             prev.filter(
               (item) =>
                 item?.id !==
-                participant?.id
+                  participant?.id &&
+                item?.socketId !==
+                  remoteSocketId
             )
         );
       }
@@ -740,15 +949,22 @@ const LiveClassRoom = () => {
     // =================================================
 
     socket.on(
-      "offer",
+      "webrtc-offer",
       async (data) => {
         try {
           console.log(
-            "📨 WebRTC offer received"
+            "📨 WebRTC offer received",
+            data
           );
 
+          if (!data?.offer) {
+            return;
+          }
+
           const peerConnection =
-            createPeerConnection();
+            createPeerConnection(
+              data.senderSocketId
+            );
 
           await peerConnection.setRemoteDescription(
             new RTCSessionDescription(
@@ -764,15 +980,15 @@ const LiveClassRoom = () => {
           );
 
           socket.emit(
-            "answer",
+            "webrtc-answer",
             {
               liveClassId:
                 numericLiveClassId,
-
+              targetSocketId:
+                data.senderSocketId,
               answer,
             }
           );
-
         } catch (err) {
           console.error(
             "❌ Offer handling error:",
@@ -788,23 +1004,31 @@ const LiveClassRoom = () => {
     // =================================================
 
     socket.on(
-      "answer",
+      "webrtc-answer",
       async (data) => {
         try {
           console.log(
-            "📨 WebRTC answer received"
+            "📨 WebRTC answer received",
+            data
           );
 
           if (
-            peerConnectionRef.current
+            data?.senderSocketId &&
+            data?.answer
           ) {
-            await peerConnectionRef.current.setRemoteDescription(
-              new RTCSessionDescription(
-                data.answer
-              )
-            );
-          }
+            const peerConnection =
+              createPeerConnection(
+                data.senderSocketId
+              );
 
+            if (peerConnection) {
+              await peerConnection.setRemoteDescription(
+                new RTCSessionDescription(
+                  data.answer
+                )
+              );
+            }
+          }
         } catch (err) {
           console.error(
             "❌ Answer handling error:",
@@ -820,20 +1044,26 @@ const LiveClassRoom = () => {
     // =================================================
 
     socket.on(
-      "ice-candidate",
+      "webrtc-ice-candidate",
       async (data) => {
         try {
+          const peerConnection =
+            data?.senderSocketId
+              ? createPeerConnection(
+                  data.senderSocketId
+                )
+              : peerConnectionRef.current;
+
           if (
-            peerConnectionRef.current &&
+            peerConnection &&
             data?.candidate
           ) {
-            await peerConnectionRef.current.addIceCandidate(
+            await peerConnection.addIceCandidate(
               new RTCIceCandidate(
                 data.candidate
               )
             );
           }
-
         } catch (err) {
           console.error(
             "❌ ICE candidate error:",
@@ -1074,11 +1304,12 @@ const LiveClassRoom = () => {
             screenStream;
         }
 
-        if (
-          peerConnectionRef.current
-        ) {
+        const activePeerConnection =
+          getActivePeerConnection();
+
+        if (activePeerConnection) {
           const sender =
-            peerConnectionRef.current
+            activePeerConnection
               .getSenders()
               .find(
                 (item) =>
@@ -1130,12 +1361,15 @@ const LiveClassRoom = () => {
             ?.getVideoTracks()
             ?. [0];
 
+        const activePeerConnection =
+          getActivePeerConnection();
+
         if (
           cameraTrack &&
-          peerConnectionRef.current
+          activePeerConnection
         ) {
           const sender =
-            peerConnectionRef.current
+            activePeerConnection
               .getSenders()
               .find(
                 (item) =>
@@ -1913,7 +2147,6 @@ const LiveClassRoom = () => {
             )}
 
           </Box>
-
 
           {/* CHAT INPUT */}
 

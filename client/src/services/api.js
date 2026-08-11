@@ -1,7 +1,12 @@
 import axios from "axios";
 
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ||
+  "http://localhost:3000"
+).replace(/\/+$/, "");
+
 const api = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: API_BASE_URL,
 });
 
 // Add access token to every request
@@ -51,7 +56,7 @@ api.interceptors.response.use(
 
         // Get new tokens
         const response = await axios.post(
-          "http://localhost:3000/auth/refresh",
+          `${API_BASE_URL}/auth/refresh`,
           {
             refresh_token: refreshToken,
           }

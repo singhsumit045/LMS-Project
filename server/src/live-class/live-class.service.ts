@@ -1,8 +1,7 @@
-
 import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
 } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,208 +12,211 @@ import { CreateLiveClassDto } from './dto/create-live-class.dto';
 
 @Injectable()
 export class LiveClassService {
-  constructor(
-    @InjectRepository(LiveClass)
-    private readonly liveClassRepository: Repository<LiveClass>,
-  ) {}
+    constructor(
+        @InjectRepository(LiveClass)
+        private readonly liveClassRepository: Repository<LiveClass>,
+    ) {}
 
-  // ======================================================
-  // CREATE LIVE CLASS
-  // Teacher only
-  // ======================================================
+    // =====================================================
+    // CREATE LIVE CLASS
+    // =====================================================
+    async create(
+        dto: CreateLiveClassDto,
+        teacherId: number,
+    ): Promise<LiveClass> {
+        const liveClass =
+            this.liveClassRepository.create({
+                title: dto.title,
+                description: dto.description ?? null,
+                courseId: dto.courseId,
+                teacherId: Number(teacherId),
+                scheduledAt: dto.scheduledAt,
 
-  async create(
-    dto: CreateLiveClassDto,
-    teacherId: number,
-  ): Promise<LiveClass> {
-    const liveClass = this.liveClassRepository.create({
-      title: dto.title,
-      description: dto.description ?? null,
-      courseId: dto.courseId,
-      teacherId: Number(teacherId),
-      scheduledAt: dto.scheduledAt,
+                startedAt: null,
+                endedAt: null,
 
-      startedAt: null,
-      endedAt: null,
+                isLive: false,
+                isCompleted: false,
+                isCancelled: false,
+            });
 
-      isLive: false,
-      isCompleted: false,
-      isCancelled: false,
-    });
-
-    return await this.liveClassRepository.save(liveClass);
-  }
-
-  // ======================================================
-  // GET LIVE CLASS BY ID
-  // Authenticated users
-  // ======================================================
-
-  async findById(id: number): Promise<LiveClass> {
-    const liveClass = await this.liveClassRepository.findOne({
-      where: {
-        id: Number(id),
-      },
-    });
-
-    if (!liveClass) {
-      throw new NotFoundException(
-        'Live class not found',
-      );
+        return await this.liveClassRepository.save(
+            liveClass,
+        );
     }
 
-    return liveClass;
-  }
+    // =====================================================
+    // GET SINGLE LIVE CLASS
+    // =====================================================
+    async findById(
+        id: number,
+    ): Promise<LiveClass> {
+        const liveClass =
+            await this.liveClassRepository.findOne({
+                where: {
+                    id: Number(id),
+                },
+            });
 
-  // ======================================================
-  // GET TEACHER'S LIVE CLASSES
-  // Teacher only
-  // ======================================================
+        if (!liveClass) {
+            throw new NotFoundException(
+                'Live class not found',
+            );
+        }
 
-  async findByTeacher(
-    teacherId: number,
-  ): Promise<LiveClass[]> {
-    return await this.liveClassRepository.find({
-      where: {
-        teacherId: Number(teacherId),
-      },
-      order: {
-        scheduledAt: 'DESC',
-      },
-    });
-  }
-
-  // ======================================================
-  // START LIVE CLASS
-  // Teacher only
-  // ======================================================
-
-  async start(
-    id: number,
-    teacherId: number,
-  ): Promise<LiveClass> {
-    const liveClass = await this.findById(id);
-
-    // --------------------------------------------------
-    // Check ownership
-    // --------------------------------------------------
-
-    if (
-      Number(liveClass.teacherId) !==
-      Number(teacherId)
-    ) {
-      throw new ForbiddenException(
-        'You are not allowed to start this live class',
-      );
+        return liveClass;
     }
 
-    // --------------------------------------------------
-    // Check cancelled
-    // --------------------------------------------------
-
-    if (liveClass.isCancelled) {
-      throw new ForbiddenException(
-        'This live class has been cancelled',
-      );
+    // =====================================================
+    // TEACHER - GET MY LIVE CLASSES
+    // =====================================================
+    async findByTeacher(
+        teacherId: number,
+    ): Promise<LiveClass[]> {
+        return await this.liveClassRepository.find({
+            where: {
+                teacherId: Number(teacherId),
+            },
+            order: {
+                scheduledAt: 'DESC',
+            },
+        });
     }
 
-    // --------------------------------------------------
-    // Check completed
-    // --------------------------------------------------
+    // =====================================================
+    // STUDENT - GET AVAILABLE LIVE CLASSES
+    // =====================================================
+    async findForStudent(
+        studentId: number,
+    ): Promise<LiveClass[]> {
+        // -------------------------------------------------
+        // For now return active/upcoming classes.
+        // Enrollment-based filtering can be added next.
+        // -------------------------------------------------
 
-    if (liveClass.isCompleted) {
-      throw new ForbiddenException(
-        'This live class has already ended',
-      );
+        return await this.liveClassRepository
+            .createQueryBuilder('liveClass')
+            .where(
+                'liveClass.isCancelled = :cancelled',
+                {
+                    cancelled: false,
+                },
+            )
+            .andWhere(
+                'liveClass.isCompleted = :completed',
+                {
+                    completed: false,
+                },
+            )
+            .orderBy(
+                'liveClass.isLive',
+                'DESC',
+            )
+            .addOrderBy(
+                'liveClass.scheduledAt',
+                'ASC',
+            )
+            .getMany();
     }
 
-    // --------------------------------------------------
-    // Check already live
-    // --------------------------------------------------
+    // =====================================================
+    // START LIVE CLASS
+    // =====================================================
+    async start(
+        id: number,
+        teacherId: number,
+    ): Promise<LiveClass> {
+        const liveClass =
+            await this.findById(id);
 
-    if (liveClass.isLive) {
-      throw new ForbiddenException(
-        'This live class is already live',
-      );
+        // Ownership
+        if (
+            Number(liveClass.teacherId) !==
+            Number(teacherId)
+        ) {
+            throw new ForbiddenException(
+                'You are not allowed to start this live class',
+            );
+        }
+
+        // Cancelled
+        if (liveClass.isCancelled) {
+            throw new ForbiddenException(
+                'This live class has been cancelled',
+            );
+        }
+
+        // Completed
+        if (liveClass.isCompleted) {
+            throw new ForbiddenException(
+                'This live class has already ended',
+            );
+        }
+
+        // Already live
+        if (liveClass.isLive) {
+            throw new ForbiddenException(
+                'This live class is already live',
+            );
+        }
+
+        // Start
+        liveClass.isLive = true;
+        liveClass.startedAt = new Date();
+
+        return await this.liveClassRepository.save(
+            liveClass,
+        );
     }
 
-    // --------------------------------------------------
-    // Start class
-    // --------------------------------------------------
+    // =====================================================
+    // END LIVE CLASS
+    // =====================================================
+    async end(
+        id: number,
+        teacherId: number,
+    ): Promise<LiveClass> {
+        const liveClass =
+            await this.findById(id);
 
-    liveClass.isLive = true;
-    liveClass.startedAt = new Date();
+        // Ownership
+        if (
+            Number(liveClass.teacherId) !==
+            Number(teacherId)
+        ) {
+            throw new ForbiddenException(
+                'You are not allowed to end this live class',
+            );
+        }
 
-    return await this.liveClassRepository.save(
-      liveClass,
-    );
-  }
+        // Cancelled
+        if (liveClass.isCancelled) {
+            throw new ForbiddenException(
+                'This live class has been cancelled',
+            );
+        }
 
-  // ======================================================
-  // END LIVE CLASS
-  // Teacher only
-  // ======================================================
+        // Already completed
+        if (liveClass.isCompleted) {
+            throw new ForbiddenException(
+                'This live class has already ended',
+            );
+        }
 
-  async end(
-    id: number,
-    teacherId: number,
-  ): Promise<LiveClass> {
-    const liveClass = await this.findById(id);
+        // Must be live
+        if (!liveClass.isLive) {
+            throw new ForbiddenException(
+                'This live class has not started yet',
+            );
+        }
 
-    // --------------------------------------------------
-    // Check ownership
-    // --------------------------------------------------
+        // End
+        liveClass.isLive = false;
+        liveClass.isCompleted = true;
+        liveClass.endedAt = new Date();
 
-    if (
-      Number(liveClass.teacherId) !==
-      Number(teacherId)
-    ) {
-      throw new ForbiddenException(
-        'You are not allowed to end this live class',
-      );
+        return await this.liveClassRepository.save(
+            liveClass,
+        );
     }
-
-    // --------------------------------------------------
-    // Check cancelled
-    // --------------------------------------------------
-
-    if (liveClass.isCancelled) {
-      throw new ForbiddenException(
-        'This live class has been cancelled',
-      );
-    }
-
-    // --------------------------------------------------
-    // Check already completed
-    // --------------------------------------------------
-
-    if (liveClass.isCompleted) {
-      throw new ForbiddenException(
-        'This live class has already ended',
-      );
-    }
-
-    // --------------------------------------------------
-    // Class must be live
-    // --------------------------------------------------
-
-    if (!liveClass.isLive) {
-      throw new ForbiddenException(
-        'This live class has not started yet',
-      );
-    }
-
-    // --------------------------------------------------
-    // End class
-    // --------------------------------------------------
-
-    liveClass.isLive = false;
-    liveClass.isCompleted = true;
-    liveClass.endedAt = new Date();
-
-    return await this.liveClassRepository.save(
-      liveClass,
-    );
-  }
 }
-

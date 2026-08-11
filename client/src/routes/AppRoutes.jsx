@@ -73,6 +73,9 @@ import ManageCourses from "../pages/Admin/ManageCourses";
 import LiveClassRoom from "../pages/live-class/LiveClassRoom";
 import CreateLiveClass from "../pages/live-class/CreateLiveClass";
 
+
+import AIAssistant from "../pages/AI/AIAssistant";
+
 // =====================================================
 // APP ROUTES
 // =====================================================
@@ -108,6 +111,16 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
       <Route
         path="/verify-email"
         element={<VerifyEmail />}
+      />
+
+
+      <Route
+        path="/ai-assistant"
+        element={
+          <ProtectedRoute>
+            <AIAssistant />
+          </ProtectedRoute>
+        }
       />
 
 

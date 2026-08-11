@@ -39,6 +39,7 @@ import {
   Add as AddIcon,
   Person,
   Logout as LogoutIcon,
+  SmartToy,
 } from "@mui/icons-material";
 
 import { useEffect, useState } from "react";
@@ -357,6 +358,20 @@ const Navbar = ({ darkMode, toggleTheme }) => {
             </Button>
 
             {/* =========================
+    AI ASSISTANT
+    ALL USERS
+========================= */}
+
+<Button
+  color="inherit"
+  component={Link}
+  to="/ai-assistant"
+  startIcon={<SmartToy />}
+>
+  AI Assistant
+</Button>
+
+            {/* =========================
                 MY COURSES
                 STUDENT ONLY
             ========================= */}
@@ -665,6 +680,28 @@ const Navbar = ({ darkMode, toggleTheme }) => {
                 </ListItemText>
               </ListItemButton>
             </ListItem>
+
+
+            {/* =========================
+    AI ASSISTANT
+    ALL USERS
+========================= */}
+
+<ListItem disablePadding>
+  <ListItemButton
+    component={Link}
+    to="/ai-assistant"
+    onClick={closeMobileMenu}
+  >
+    <ListItemIcon>
+      <SmartToy />
+    </ListItemIcon>
+
+    <ListItemText>
+      AI Assistant
+    </ListItemText>
+  </ListItemButton>
+</ListItem>
 
             {/* =========================
                 MY COURSES

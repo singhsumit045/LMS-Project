@@ -1,11 +1,11 @@
 import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Req,
-  UseGuards,
+    Body,
+    Controller,
+    Get,
+    Param,
+    Post,
+    Req,
+    UseGuards,
 } from '@nestjs/common';
 
 import { LiveClassService } from './live-class.service';
@@ -18,84 +18,106 @@ import { Roles } from '../auth/decorators/roles.decorator';
 @Controller('live-classes')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class LiveClassController {
+    constructor(
+        private readonly liveClassService: LiveClassService,
+    ) {}
 
-  constructor(
-    private readonly liveClassService: LiveClassService,
-  ) {}
+    // =====================================================
+    // TEACHER - CREATE
+    // POST /live-classes
+    // =====================================================
+    @Post()
+    @Roles('teacher')
+    async create(
+        @Body() dto: CreateLiveClassDto,
+        @Req() req: any,
+    ) {
+        const teacherId = req.user.id;
 
-  // ==========================================
-  // TEACHER ONLY - CREATE
-  // ==========================================
-  @Post()
-  @Roles('teacher')
-  async create(
-    @Body() dto: CreateLiveClassDto,
-    @Req() req: any,
-  ) {
-    const teacherId = req.user.id;
+        return this.liveClassService.create(
+            dto,
+            teacherId,
+        );
+    }
 
-    return this.liveClassService.create(
-      dto,
-      teacherId,
-    );
-  }
+    // =====================================================
+    // TEACHER - MY LIVE CLASSES
+    // GET /live-classes/teacher/my-classes
+    // =====================================================
+    @Get('teacher/my-classes')
+    @Roles('teacher')
+    async findTeacherClasses(
+        @Req() req: any,
+    ) {
+        const teacherId = req.user.id;
 
-  // ==========================================
-// TEACHER ONLY - MY LIVE CLASSES
-// ==========================================
-@Get('teacher/my-classes')
-@Roles('teacher')
-async findTeacherClasses(@Req() req: any) {
-  const teacherId = req.user.id;
+        return this.liveClassService.findByTeacher(
+            teacherId,
+        );
+    }
 
-  return this.liveClassService.findByTeacher(
-    teacherId,
-  );
-}
+    // =====================================================
+    // STUDENT - AVAILABLE LIVE CLASSES
+    // GET /live-classes/student/available
+    // =====================================================
+    @Get('student/available')
+    @Roles('student')
+    async findStudentClasses(
+        @Req() req: any,
+    ) {
+        const studentId = req.user.id;
 
-  // ==========================================
-  // AUTHENTICATED USERS - VIEW
-  // ==========================================
-  @Get(':id')
-  async findOne(
-    @Param('id') id: string,
-  ) {
-    return this.liveClassService.findById(
-      Number(id),
-    );
-  }
+        return this.liveClassService.findForStudent(
+            studentId,
+        );
+    }
 
-  // ==========================================
-  // TEACHER ONLY - START
-  // ==========================================
-  @Post(':id/start')
-  @Roles('teacher')
-  async start(
-    @Param('id') id: string,
-    @Req() req: any,
-  ) {
-    const teacherId = req.user.id;
+    // =====================================================
+    // GET SINGLE LIVE CLASS
+    // GET /live-classes/:id
+    // =====================================================
+    @Get(':id')
+    async findOne(
+        @Param('id') id: string,
+    ) {
+        return this.liveClassService.findById(
+            Number(id),
+        );
+    }
 
-    return this.liveClassService.start(
-      Number(id),
-      teacherId,
-    );
-  }
+    // =====================================================
+    // TEACHER - START
+    // POST /live-classes/:id/start
+    // =====================================================
+    @Post(':id/start')
+    @Roles('teacher')
+    async start(
+        @Param('id') id: string,
+        @Req() req: any,
+    ) {
+        const teacherId = req.user.id;
 
-  // ==========================================
-  // TEACHER ONLY - END
-  // ==========================================
-  @Post(':id/end')
-  @Roles('teacher')
-  async end(
-    @Param('id') id: string,
-    @Req() req: any,
-  ) {
-    const teacherId = req.user.id;
+        return this.liveClassService.start(
+            Number(id),
+            teacherId,
+        );
+    }
 
-    return this.liveClassService.end(
-      Number(id),
-      teacherId,
-    );
-  }
+    // =====================================================
+    // TEACHER - END
+    // POST /live-classes/:id/end
+    // =====================================================
+    @Post(':id/end')
+    @Roles('teacher')
+    async end(
+        @Param('id') id: string,
+        @Req() req: any,
+    ) {
+        const teacherId = req.user.id;
+
+        return this.liveClassService.end(
+            Number(id),
+            teacherId,
+        );
+    }
 }
