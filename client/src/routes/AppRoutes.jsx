@@ -77,6 +77,14 @@ import CreateLiveClass from "../pages/live-class/CreateLiveClass";
 import AIAssistant from "../pages/AI/AIAssistant";
 import AIQuizGenerator from "../pages/Ai/AIQuizGenerator";
 
+
+
+import HelpCenter from "../pages/support/HelpCenter";
+import ContactUs from "../pages/support/ContactUs";
+import PrivacyPolicy from "../pages/support/PrivacyPolicy";
+
+
+
 // =====================================================
 // APP ROUTES
 // =====================================================
@@ -123,7 +131,7 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           </ProtectedRoute>
         }
       />
-      
+
       <Route
         path="/teacher/ai-quiz-generator"
         element={
@@ -132,6 +140,24 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           </RoleProtectedRoute>
         }
       />
+
+      ```jsx
+      <Route
+        path="/help"
+        element={<HelpCenter />}
+      />
+
+      <Route
+        path="/contact"
+        element={<ContactUs />}
+      />
+
+      <Route
+        path="/privacy"
+        element={<PrivacyPolicy />}
+      />
+      ```
+
 
 
       {/* =================================================

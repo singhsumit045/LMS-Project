@@ -21,6 +21,27 @@ import { Link as RouterLink } from "react-router-dom";
 import logo from "../assets/LearnHub.png";
 
 const Footer = () => {
+  const linkStyles = {
+    opacity: 0.82,
+    transition: "all 0.2s ease",
+    display: "inline-block",
+    "&:hover": {
+      opacity: 1,
+      transform: "translateX(4px)",
+    },
+  };
+
+  const socialButtonStyles = {
+    color: "inherit",
+    backgroundColor: "rgba(255,255,255,0.1)",
+    transition: "all 0.2s ease",
+
+    "&:hover": {
+      backgroundColor: "rgba(255,255,255,0.2)",
+      transform: "translateY(-3px)",
+    },
+  };
+
   return (
     <Box
       component="footer"
@@ -30,6 +51,10 @@ const Footer = () => {
         color: "primary.contrastText",
       }}
     >
+      {/* =====================================================
+          MAIN FOOTER
+      ===================================================== */}
+
       <Container
         maxWidth="xl"
         sx={{
@@ -52,9 +77,9 @@ const Footer = () => {
             justifyContent: "space-between",
           }}
         >
-          {/* =========================
+          {/* =================================================
               BRAND
-          ========================= */}
+          ================================================= */}
 
           <Box
             sx={{
@@ -73,7 +98,6 @@ const Footer = () => {
                 mb: 2,
               }}
             >
-
               <Box
                 component="img"
                 src={logo}
@@ -88,6 +112,8 @@ const Footer = () => {
                 }}
               />
             </Box>
+
+            {/* DESCRIPTION */}
 
             <Typography
               sx={{
@@ -118,15 +144,17 @@ const Footer = () => {
             </Stack>
           </Box>
 
-          {/* =========================
+          {/* =================================================
               QUICK LINKS
-          ========================= */}
+          ================================================= */}
 
           <Box>
             <Typography
               variant="h6"
               fontWeight={700}
-              sx={{ mb: 2 }}
+              sx={{
+                mb: 2,
+              }}
             >
               Quick Links
             </Typography>
@@ -137,14 +165,7 @@ const Footer = () => {
                 to="/dashboard"
                 color="inherit"
                 underline="none"
-                sx={{
-                  opacity: 0.82,
-                  transition: "0.2s",
-                  "&:hover": {
-                    opacity: 1,
-                    transform: "translateX(4px)",
-                  },
-                }}
+                sx={linkStyles}
               >
                 Dashboard
               </Link>
@@ -154,14 +175,7 @@ const Footer = () => {
                 to="/courses"
                 color="inherit"
                 underline="none"
-                sx={{
-                  opacity: 0.82,
-                  transition: "0.2s",
-                  "&:hover": {
-                    opacity: 1,
-                    transform: "translateX(4px)",
-                  },
-                }}
+                sx={linkStyles}
               >
                 Courses
               </Link>
@@ -171,14 +185,7 @@ const Footer = () => {
                 to="/my-courses"
                 color="inherit"
                 underline="none"
-                sx={{
-                  opacity: 0.82,
-                  transition: "0.2s",
-                  "&:hover": {
-                    opacity: 1,
-                    transform: "translateX(4px)",
-                  },
-                }}
+                sx={linkStyles}
               >
                 My Courses
               </Link>
@@ -188,96 +195,78 @@ const Footer = () => {
                 to="/profile"
                 color="inherit"
                 underline="none"
-                sx={{
-                  opacity: 0.82,
-                  transition: "0.2s",
-                  "&:hover": {
-                    opacity: 1,
-                    transform: "translateX(4px)",
-                  },
-                }}
+                sx={linkStyles}
               >
                 Profile
               </Link>
             </Stack>
           </Box>
 
-          {/* =========================
+          {/* =================================================
               SUPPORT
-          ========================= */}
+          ================================================= */}
 
           <Box>
             <Typography
               variant="h6"
               fontWeight={700}
-              sx={{ mb: 2 }}
+              sx={{
+                mb: 2,
+              }}
             >
               Support
             </Typography>
 
             <Stack spacing={1.3}>
+              {/* HELP CENTER */}
+
               <Link
                 component={RouterLink}
                 to="/help"
                 color="inherit"
                 underline="none"
-                sx={{
-                  opacity: 0.82,
-                  transition: "0.2s",
-                  "&:hover": {
-                    opacity: 1,
-                    transform: "translateX(4px)",
-                  },
-                }}
+                sx={linkStyles}
               >
                 Help Center
               </Link>
+
+              {/* CONTACT US */}
 
               <Link
                 component={RouterLink}
                 to="/contact"
                 color="inherit"
                 underline="none"
-                sx={{
-                  opacity: 0.82,
-                  transition: "0.2s",
-                  "&:hover": {
-                    opacity: 1,
-                    transform: "translateX(4px)",
-                  },
-                }}
+                sx={linkStyles}
               >
                 Contact Us
               </Link>
+
+              {/* PRIVACY POLICY */}
 
               <Link
                 component={RouterLink}
                 to="/privacy"
                 color="inherit"
                 underline="none"
-                sx={{
-                  opacity: 0.82,
-                  transition: "0.2s",
-                  "&:hover": {
-                    opacity: 1,
-                    transform: "translateX(4px)",
-                  },
-                }}
+                sx={linkStyles}
               >
                 Privacy Policy
               </Link>
             </Stack>
           </Box>
 
-          {/* =========================
+          {/* =================================================
               SOCIAL
-          ========================= */}
+          ================================================= */}
 
           <Box>
             <Typography
               variant="h6"
               fontWeight={700}
-              sx={{ mb: 2 }}
+              sx={{
+                mb: 2,
+              }}
             >
               Follow Us
             </Typography>
@@ -286,9 +275,7 @@ const Footer = () => {
               direction="row"
               spacing={1}
             >
-              {/* =========================
-                  GITHUB
-              ========================= */}
+              {/* GITHUB */}
 
               <IconButton
                 component="a"
@@ -296,25 +283,12 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub Profile"
-                sx={{
-                  color: "inherit",
-                  backgroundColor:
-                    "rgba(255,255,255,0.1)",
-                  transition: "0.2s",
-
-                  "&:hover": {
-                    backgroundColor:
-                      "rgba(255,255,255,0.2)",
-                    transform: "translateY(-3px)",
-                  },
-                }}
+                sx={socialButtonStyles}
               >
                 <GitHub />
               </IconButton>
 
-              {/* =========================
-                  LINKEDIN
-              ========================= */}
+              {/* LINKEDIN */}
 
               <IconButton
                 component="a"
@@ -322,18 +296,7 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn Profile"
-                sx={{
-                  color: "inherit",
-                  backgroundColor:
-                    "rgba(255,255,255,0.1)",
-                  transition: "0.2s",
-
-                  "&:hover": {
-                    backgroundColor:
-                      "rgba(255,255,255,0.2)",
-                    transform: "translateY(-3px)",
-                  },
-                }}
+                sx={socialButtonStyles}
               >
                 <LinkedIn />
               </IconButton>
@@ -345,29 +308,29 @@ const Footer = () => {
                 mt: 2,
                 opacity: 0.75,
                 maxWidth: 220,
+                lineHeight: 1.6,
               }}
             >
-              Stay connected with LearnHub and
-              keep learning.
+              Stay connected with LearnHub and keep
+              learning.
             </Typography>
           </Box>
         </Stack>
       </Container>
 
-      {/* =========================
+      {/* =====================================================
           DIVIDER
-      ========================= */}
+      ===================================================== */}
 
       <Divider
         sx={{
-          borderColor:
-            "rgba(255,255,255,0.18)",
+          borderColor: "rgba(255,255,255,0.18)",
         }}
       />
 
-      {/* =========================
+      {/* =====================================================
           COPYRIGHT
-      ========================= */}
+      ===================================================== */}
 
       <Container
         maxWidth="xl"
@@ -386,15 +349,23 @@ const Footer = () => {
             alignItems: "center",
           }}
         >
+          {/* COPYRIGHT */}
+
           <Typography
             variant="body2"
             sx={{
               opacity: 0.75,
+              textAlign: {
+                xs: "center",
+                sm: "left",
+              },
             }}
           >
             © {new Date().getFullYear()} LearnHub.
             All rights reserved.
           </Typography>
+
+          {/* TAGLINE */}
 
           <Stack
             direction="row"
