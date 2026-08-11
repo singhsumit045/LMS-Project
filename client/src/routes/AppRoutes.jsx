@@ -73,17 +73,18 @@ import ManageCourses from "../pages/Admin/ManageCourses";
 import LiveClassRoom from "../pages/live-class/LiveClassRoom";
 import CreateLiveClass from "../pages/live-class/CreateLiveClass";
 
-
+// =========================
+// AI
+// =========================
 import AIAssistant from "../pages/AI/AIAssistant";
 import AIQuizGenerator from "../pages/Ai/AIQuizGenerator";
 
-
-
+// =========================
+// Support
+// =========================
 import HelpCenter from "../pages/support/HelpCenter";
 import ContactUs from "../pages/support/ContactUs";
 import PrivacyPolicy from "../pages/support/PrivacyPolicy";
-
-
 
 // =====================================================
 // APP ROUTES
@@ -92,7 +93,6 @@ import PrivacyPolicy from "../pages/support/PrivacyPolicy";
 const AppRoutes = ({ darkMode, toggleTheme }) => {
   return (
     <Routes>
-
       {/* =================================================
           PUBLIC ROUTES
       ================================================= */}
@@ -122,26 +122,25 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         element={<VerifyEmail />}
       />
 
-
-      <Route
-        path="/ai-assistant"
-        element={
-          <ProtectedRoute>
-            <AIAssistant />
-          </ProtectedRoute>
-        }
-      />
+      {/* =================================================
+          TEACHER AI QUIZ GENERATOR
+      ================================================= */}
 
       <Route
         path="/teacher/ai-quiz-generator"
         element={
-          <RoleProtectedRoute allowedRoles={["teacher"]}>
+          <RoleProtectedRoute
+            allowedRoles={["teacher"]}
+          >
             <AIQuizGenerator />
           </RoleProtectedRoute>
         }
       />
 
-      ```jsx
+      {/* =================================================
+          SUPPORT / PUBLIC PAGES
+      ================================================= */}
+
       <Route
         path="/help"
         element={<HelpCenter />}
@@ -156,13 +155,14 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         path="/privacy"
         element={<PrivacyPolicy />}
       />
-      ```
-
-
 
       {/* =================================================
           PROTECTED ROUTES
-          MainLayout
+          MAIN LAYOUT
+          
+          IMPORTANT:
+          AI ASSISTANT IS INSIDE MAINLAYOUT
+          SO NAVBAR WILL BE VISIBLE.
       ================================================= */}
 
       <Route
@@ -175,7 +175,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           </ProtectedRoute>
         }
       >
-
         {/* =================================================
             DASHBOARD
         ================================================= */}
@@ -184,7 +183,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/dashboard"
           element={<DashboardRouter />}
         />
-
 
         {/* =================================================
             PROFILE
@@ -195,6 +193,21 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           element={<Profile />}
         />
 
+        {/* =================================================
+            AI ASSISTANT
+            STUDENT ONLY
+
+            MainLayout ke andar hone ki wajah se
+            Navbar automatically visible rahega.
+        ================================================= */}
+
+        <Route
+          path="/ai-assistant"
+          element={
+              <AIAssistant />
+           
+          }
+        />
 
         {/* =================================================
             COURSES
@@ -210,20 +223,18 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           element={<CourseDetails />}
         />
 
-
         {/* =================================================
             LIVE CLASS
-            IMPORTANT:
-
-            /live-class/create MUST come before
-            /live-class/:liveClassId
         ================================================= */}
 
         <Route
           path="/live-class/create"
           element={
             <RoleProtectedRoute
-              allowedRoles={["teacher", "admin"]}
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
             >
               <CreateLiveClass />
             </RoleProtectedRoute>
@@ -235,7 +246,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           element={<LiveClassRoom />}
         />
 
-
         {/* =================================================
             CREATE COURSE
             TEACHER + ADMIN
@@ -245,13 +255,15 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/create"
           element={
             <RoleProtectedRoute
-              allowedRoles={["teacher", "admin"]}
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
             >
               <CreateCourse />
             </RoleProtectedRoute>
           }
         />
-
 
         {/* =================================================
             EDIT COURSE
@@ -262,13 +274,15 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/edit/:id"
           element={
             <RoleProtectedRoute
-              allowedRoles={["teacher", "admin"]}
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
             >
               <EditCourse />
             </RoleProtectedRoute>
           }
         />
-
 
         {/* =================================================
             MANAGE COURSE CONTENT
@@ -279,13 +293,15 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/:id/manage-content"
           element={
             <RoleProtectedRoute
-              allowedRoles={["teacher", "admin"]}
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
             >
               <ManageCourseContent />
             </RoleProtectedRoute>
           }
         />
-
 
         {/* =================================================
             MANAGE VIDEOS
@@ -296,13 +312,15 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/:id/manage-videos"
           element={
             <RoleProtectedRoute
-              allowedRoles={["teacher", "admin"]}
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
             >
               <ManageVideos />
             </RoleProtectedRoute>
           }
         />
-
 
         {/* =================================================
             MANAGE NOTES
@@ -313,13 +331,15 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/:id/manage-notes"
           element={
             <RoleProtectedRoute
-              allowedRoles={["teacher", "admin"]}
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
             >
               <ManageNotes />
             </RoleProtectedRoute>
           }
         />
-
 
         {/* =================================================
             MANAGE ANNOUNCEMENTS
@@ -330,13 +350,15 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/:id/manage-announcements"
           element={
             <RoleProtectedRoute
-              allowedRoles={["teacher", "admin"]}
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
             >
               <ManageAnnouncements />
             </RoleProtectedRoute>
           }
         />
-
 
         {/* =================================================
             MANAGE EXAMS
@@ -347,13 +369,15 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/courses/:id/manage-exams"
           element={
             <RoleProtectedRoute
-              allowedRoles={["teacher", "admin"]}
+              allowedRoles={[
+                "teacher",
+                "admin",
+              ]}
             >
               <ManageExams />
             </RoleProtectedRoute>
           }
         />
-
 
         {/* =================================================
             MANAGE QUESTIONS
@@ -364,7 +388,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           element={<ManageQuestions />}
         />
 
-
         {/* =================================================
             STUDENT EXAM ATTEMPT
         ================================================= */}
@@ -374,7 +397,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           element={<StudentExam />}
         />
 
-
         {/* =================================================
             STUDENT EXAM RESULT
         ================================================= */}
@@ -383,7 +405,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/exams/attempts/:attemptId/result"
           element={<StudentExamResult />}
         />
-
 
         {/* =================================================
             TEACHER EXAM RESULTS
@@ -400,7 +421,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           }
         />
 
-
         {/* =================================================
             MY COURSES
         ================================================= */}
@@ -410,7 +430,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           element={<MyCourses />}
         />
 
-
         {/* =================================================
             CERTIFICATE
         ================================================= */}
@@ -419,7 +438,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           path="/certificate/:certificateId"
           element={<CertificateDetails />}
         />
-
 
         {/* =================================================
             ADMIN - USERS
@@ -436,7 +454,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           }
         />
 
-
         {/* =================================================
             ADMIN - ENROLLMENTS
         ================================================= */}
@@ -452,7 +469,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           }
         />
 
-
         {/* =================================================
             ADMIN - COURSES
         ================================================= */}
@@ -467,9 +483,7 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
             </RoleProtectedRoute>
           }
         />
-
       </Route>
-
 
       {/* =================================================
           404
@@ -479,7 +493,6 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         path="*"
         element={<NotFound />}
       />
-
     </Routes>
   );
 };

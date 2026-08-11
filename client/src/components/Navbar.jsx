@@ -46,24 +46,36 @@ import { useEffect, useState } from "react";
 
 import { getProfile } from "../services/authService";
 
-import { Link, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom";
 
 import { useTheme } from "@mui/material/styles";
 
 import logo from "../assets/LearnHub.png";
 
-const Navbar = ({ darkMode, toggleTheme }) => {
+const Navbar = ({
+  darkMode,
+  toggleTheme,
+}) => {
   const [user, setUser] = useState(null);
 
+  const [notifications, setNotifications] =
+    useState([]);
 
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCount, setUnreadCount] =
+    useState(0);
 
-  const [notificationAnchor, setNotificationAnchor] =
-    useState(null);
+  const [
+    notificationAnchor,
+    setNotificationAnchor,
+  ] = useState(null);
 
-  const [mobileMenuOpen, setMobileMenuOpen] =
-    useState(false);
+  const [
+    mobileMenuOpen,
+    setMobileMenuOpen,
+  ] = useState(false);
 
   const navigate = useNavigate();
 
@@ -73,44 +85,92 @@ const Navbar = ({ darkMode, toggleTheme }) => {
     theme.breakpoints.down("md")
   );
 
+  // =====================================================
+  // LOAD NOTIFICATIONS
+  // =====================================================
 
   const loadNotifications = async () => {
     try {
-      const [listRes, countRes] =
-        await Promise.all([
-          getNotifications(),
-          getUnreadCount(),
-        ]);
+      const [
+        listRes,
+        countRes,
+      ] = await Promise.all([
+        getNotifications(),
+        getUnreadCount(),
+      ]);
 
-      setNotifications(listRes.data);
-      setUnreadCount(countRes.data);
+      setNotifications(
+        listRes?.data || []
+      );
+
+      setUnreadCount(
+        Number(countRes?.data || 0)
+      );
     } catch (error) {
-      console.log(error);
+      console.log(
+        "Notification loading error:",
+        error
+      );
     }
   };
 
+  // =====================================================
+  // OPEN NOTIFICATIONS
+  // =====================================================
+
   const openNotification = (event) => {
-    setNotificationAnchor(event.currentTarget);
+    setNotificationAnchor(
+      event.currentTarget
+    );
+
     loadNotifications();
   };
+
+  // =====================================================
+  // CLOSE NOTIFICATIONS
+  // =====================================================
 
   const closeNotification = () => {
     setNotificationAnchor(null);
   };
 
+  // =====================================================
+  // MARK NOTIFICATION AS READ
+  // =====================================================
+
   const handleRead = async (id) => {
-    await markAsRead(id);
-    loadNotifications();
+    try {
+      await markAsRead(id);
+
+      await loadNotifications();
+    } catch (error) {
+      console.log(
+        "Mark notification read error:",
+        error
+      );
+    }
   };
+
+  // =====================================================
+  // MARK ALL NOTIFICATIONS AS READ
+  // =====================================================
 
   const handleReadAll = async () => {
-    await markAllAsRead();
-    loadNotifications();
+    try {
+      await markAllAsRead();
+
+      await loadNotifications();
+    } catch (error) {
+      console.log(
+        "Mark all notifications read error:",
+        error
+      );
+    }
   };
 
-  // =========================
-  // LOAD USER FROM LOCALSTORAGE
-  // =========================
+  // =====================================================
+  // LOAD USER FROM LOCAL STORAGE
+  // =====================================================
 
   useEffect(() => {
     const storedUser =
@@ -118,7 +178,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
 
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        setUser(
+          JSON.parse(storedUser)
+        );
       } catch (error) {
         console.log(
           "Invalid stored user:",
@@ -128,58 +190,80 @@ const Navbar = ({ darkMode, toggleTheme }) => {
     }
   }, []);
 
-  // =========================
+  // =====================================================
   // FETCH LATEST PROFILE
-  // =========================
+  // =====================================================
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await getProfile();
+        const response =
+          await getProfile();
 
-        setUser(response.data);
+        const profileUser =
+          response?.data;
+
+        setUser(profileUser);
 
         localStorage.setItem(
           "user",
-          JSON.stringify(response.data)
+          JSON.stringify(
+            profileUser
+          )
         );
       } catch (error) {
         console.log(
           "Profile fetch error:",
-          error.response?.data ||
-          error.message
+          error?.response?.data ||
+            error?.message
         );
       }
     };
 
     const accessToken =
-      localStorage.getItem("access_token");
+      localStorage.getItem(
+        "access_token"
+      );
 
     if (accessToken) {
       fetchProfile();
     }
   }, []);
 
+  // =====================================================
+  // LOAD NOTIFICATIONS ON LOGIN
+  // =====================================================
+
   useEffect(() => {
-    if (localStorage.getItem("access_token")) {
+    const accessToken =
+      localStorage.getItem(
+        "access_token"
+      );
+
+    if (accessToken) {
       loadNotifications();
     }
   }, []);
 
-  // =========================
+  // =====================================================
   // SYNC PROFILE CHANGES
-  // =========================
+  // =====================================================
 
   useEffect(() => {
-    const handleProfileUpdated = (event) => {
-      const updatedUser = event.detail;
+    const handleProfileUpdated = (
+      event
+    ) => {
+      const updatedUser =
+        event.detail;
 
       if (updatedUser) {
         setUser(updatedUser);
 
         localStorage.setItem(
           "user",
-          JSON.stringify(updatedUser)
+          JSON.stringify(
+            updatedUser
+          )
         );
       }
     };
@@ -197,9 +281,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
     };
   }, []);
 
-  // =========================
+  // =====================================================
   // LOGOUT
-  // =========================
+  // =====================================================
 
   const handleLogout = () => {
     setMobileMenuOpen(false);
@@ -219,9 +303,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
     navigate("/login");
   };
 
-  // =========================
+  // =====================================================
   // USER INITIAL
-  // =========================
+  // =====================================================
 
   const getUserInitial = () => {
     if (!user?.name) {
@@ -233,28 +317,42 @@ const Navbar = ({ darkMode, toggleTheme }) => {
       .toUpperCase();
   };
 
-  // =========================
+  // =====================================================
   // CLOSE MOBILE MENU
-  // =========================
+  // =====================================================
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
   };
 
-  // =========================
+  // =====================================================
   // OPEN PROFILE
-  // =========================
+  // =====================================================
 
   const handleOpenProfile = () => {
     closeMobileMenu();
+
     navigate("/profile");
   };
 
+  // =====================================================
+  // OPEN AI ASSISTANT
+  // =====================================================
+
+  const handleOpenAIAssistant = () => {
+    closeMobileMenu();
+
+    navigate("/ai-assistant");
+  };
+
+  // =====================================================
+  // UI
+  // =====================================================
+
   return (
     <AppBar
-      position="static"
-      color="primary"
-      elevation={0}
+      position="sticky"
+      elevation={2}
     >
       <Toolbar
         sx={{
@@ -270,9 +368,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
           },
         }}
       >
-        {/* =========================
+        {/* =================================================
             LOGO
-        ========================= */}
+        ================================================= */}
 
         <Box
           component={Link}
@@ -280,9 +378,12 @@ const Navbar = ({ darkMode, toggleTheme }) => {
           onClick={closeMobileMenu}
           sx={{
             flexGrow: 1,
+
             display: "flex",
             alignItems: "center",
+
             textDecoration: "none",
+
             width: "fit-content",
             minWidth: 0,
           }}
@@ -305,15 +406,20 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               },
 
               objectFit: "contain",
-              objectPosition: "left center",
+
+              objectPosition:
+                "left center",
+
               display: "block",
+
               borderRadius: 1,
 
               transition:
                 "transform 0.2s ease",
 
               "&:hover": {
-                transform: "scale(1.03)",
+                transform:
+                  "scale(1.03)",
               },
             }}
           />
@@ -339,7 +445,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               color="inherit"
               component={Link}
               to="/dashboard"
-              startIcon={<DashboardIcon />}
+              startIcon={
+                <DashboardIcon />
+              }
             >
               Dashboard
             </Button>
@@ -352,36 +460,44 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               color="inherit"
               component={Link}
               to="/courses"
-              startIcon={<SchoolIcon />}
+              startIcon={
+                <SchoolIcon />
+              }
             >
               Courses
             </Button>
 
             {/* =========================
-    AI ASSISTANT
-    ALL USERS
-========================= */}
+                AI ASSISTANT
+                ALL AUTHENTICATED USERS
+            ========================= */}
 
-<Button
-  color="inherit"
-  component={Link}
-  to="/ai-assistant"
-  startIcon={<SmartToy />}
->
-  AI Assistant
-</Button>
+            <Button
+
+              color="inherit"
+              component={Link}
+              to="/ai-assistant"
+              startIcon={
+                <SmartToy />
+              }
+            >
+              AI Assistant
+            </Button>
 
             {/* =========================
                 MY COURSES
                 STUDENT ONLY
             ========================= */}
 
-            {user?.role === "student" && (
+            {user?.role ===
+              "student" && (
               <Button
                 color="inherit"
                 component={Link}
                 to="/my-courses"
-                startIcon={<LibraryBooks />}
+                startIcon={
+                  <LibraryBooks />
+                }
               >
                 My Courses
               </Button>
@@ -392,17 +508,20 @@ const Navbar = ({ darkMode, toggleTheme }) => {
                 TEACHER + ADMIN
             ========================= */}
 
-            {(user?.role === "teacher" ||
+            {(user?.role ===
+              "teacher" ||
               user?.role === "admin") && (
-                <Button
-                  color="inherit"
-                  component={Link}
-                  to="/courses/create"
-                  startIcon={<AddIcon />}
-                >
-                  Create Course
-                </Button>
-              )}
+              <Button
+                color="inherit"
+                component={Link}
+                to="/courses/create"
+                startIcon={
+                  <AddIcon />
+                }
+              >
+                Create Course
+              </Button>
+            )}
 
             {/* =========================
                 THEME TOGGLE
@@ -417,7 +536,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
             >
               <IconButton
                 color="inherit"
-                onClick={toggleTheme}
+                onClick={
+                  toggleTheme
+                }
                 aria-label={
                   darkMode
                     ? "Switch to light mode"
@@ -432,13 +553,21 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               </IconButton>
             </Tooltip>
 
+            {/* =========================
+                NOTIFICATIONS
+            ========================= */}
 
             <IconButton
               color="inherit"
-              onClick={openNotification}
+              onClick={
+                openNotification
+              }
+              aria-label="Notifications"
             >
               <Badge
-                badgeContent={unreadCount}
+                badgeContent={
+                  unreadCount
+                }
                 color="error"
                 max={99}
               >
@@ -458,7 +587,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               }
             >
               <IconButton
-                onClick={handleOpenProfile}
+                onClick={
+                  handleOpenProfile
+                }
                 color="inherit"
                 aria-label="Open profile"
                 sx={{
@@ -473,15 +604,20 @@ const Navbar = ({ darkMode, toggleTheme }) => {
                     undefined
                   }
                   alt={
-                    user?.name || "Profile"
+                    user?.name ||
+                    "Profile"
                   }
                   sx={{
                     width: 36,
                     height: 36,
+
                     bgcolor:
                       "secondary.main",
+
                     fontWeight: 600,
+
                     border: "2px solid",
+
                     borderColor:
                       "rgba(255,255,255,0.7)",
 
@@ -502,15 +638,17 @@ const Navbar = ({ darkMode, toggleTheme }) => {
           </Box>
         )}
 
-        {/* =========================
+        {/* =================================================
             MOBILE MENU BUTTON
-        ========================= */}
+        ================================================= */}
 
         {isMobile && (
           <IconButton
             color="inherit"
             onClick={() =>
-              setMobileMenuOpen(true)
+              setMobileMenuOpen(
+                true
+              )
             }
             aria-label="Open navigation menu"
           >
@@ -519,13 +657,27 @@ const Navbar = ({ darkMode, toggleTheme }) => {
         )}
       </Toolbar>
 
+      {/* =================================================
+          NOTIFICATION MENU
+      ================================================= */}
+
       <Menu
-        anchorEl={notificationAnchor}
-        open={Boolean(notificationAnchor)}
-        onClose={closeNotification}
+        anchorEl={
+          notificationAnchor
+        }
+        open={Boolean(
+          notificationAnchor
+        )}
+        onClose={
+          closeNotification
+        }
         PaperProps={{
           sx: {
-            width: 360,
+            width: {
+              xs: 300,
+              sm: 360,
+            },
+
             maxHeight: 450,
           },
         }}
@@ -534,37 +686,56 @@ const Navbar = ({ darkMode, toggleTheme }) => {
           <b>Notifications</b>
         </MenuItem>
 
-        <MenuItem onClick={handleReadAll}>
+        <MenuItem
+          onClick={
+            handleReadAll
+          }
+        >
           Mark All Read
         </MenuItem>
 
         <Divider />
 
-        {notifications.length === 0 ? (
-          <MenuItem>No Notifications</MenuItem>
+        {notifications.length ===
+        0 ? (
+          <MenuItem>
+            No Notifications
+          </MenuItem>
         ) : (
-          notifications.map((item) => (
-            <MenuItem
-              key={item.id}
-              onClick={() => handleRead(item.id)}
-            >
-              <ListItemText
-                primary={item.title}
-                secondary={item.message}
-              />
-            </MenuItem>
-          ))
+          notifications.map(
+            (item) => (
+              <MenuItem
+                key={item.id}
+                onClick={() =>
+                  handleRead(
+                    item.id
+                  )
+                }
+              >
+                <ListItemText
+                  primary={
+                    item.title
+                  }
+                  secondary={
+                    item.message
+                  }
+                />
+              </MenuItem>
+            )
+          )
         )}
-      </Menu> 
+      </Menu>
 
-      {/* =========================
+      {/* =================================================
           MOBILE DRAWER
-      ========================= */}
+      ================================================= */}
 
       <Drawer
         anchor="right"
         open={mobileMenuOpen}
-        onClose={closeMobileMenu}
+        onClose={
+          closeMobileMenu
+        }
       >
         <Box
           sx={{
@@ -579,8 +750,10 @@ const Navbar = ({ darkMode, toggleTheme }) => {
           <Box
             sx={{
               p: 2.5,
+
               display: "flex",
               alignItems: "center",
+
               gap: 1.5,
 
               backgroundColor:
@@ -596,11 +769,13 @@ const Navbar = ({ darkMode, toggleTheme }) => {
                 undefined
               }
               alt={
-                user?.name || "Profile"
+                user?.name ||
+                "Profile"
               }
               sx={{
                 bgcolor:
                   "secondary.main",
+
                 fontWeight: 600,
               }}
             >
@@ -608,30 +783,46 @@ const Navbar = ({ darkMode, toggleTheme }) => {
                 getUserInitial()}
             </Avatar>
 
-            <Box sx={{ minWidth: 0 }}>
+            <Box
+              sx={{
+                minWidth: 0,
+              }}
+            >
               <Box
                 sx={{
                   fontWeight: 600,
+
                   fontSize: "1rem",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
+
+                  whiteSpace:
+                    "nowrap",
+
+                  overflow:
+                    "hidden",
+
                   textOverflow:
                     "ellipsis",
+
                   maxWidth: 190,
                 }}
               >
-                {user?.name || "User"}
+                {user?.name ||
+                  "User"}
               </Box>
 
               <Box
                 sx={{
-                  fontSize: "0.75rem",
+                  fontSize:
+                    "0.75rem",
+
                   opacity: 0.8,
+
                   textTransform:
                     "capitalize",
                 }}
               >
-                {user?.role || "Student"}
+                {user?.role ||
+                  "Student"}
               </Box>
             </Box>
           </Box>
@@ -649,7 +840,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               <ListItemButton
                 component={Link}
                 to="/dashboard"
-                onClick={closeMobileMenu}
+                onClick={
+                  closeMobileMenu
+                }
               >
                 <ListItemIcon>
                   <DashboardIcon />
@@ -669,7 +862,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               <ListItemButton
                 component={Link}
                 to="/courses"
-                onClick={closeMobileMenu}
+                onClick={
+                  closeMobileMenu
+                }
               >
                 <ListItemIcon>
                   <SchoolIcon />
@@ -681,39 +876,43 @@ const Navbar = ({ darkMode, toggleTheme }) => {
               </ListItemButton>
             </ListItem>
 
-
             {/* =========================
-    AI ASSISTANT
-    ALL USERS
-========================= */}
+                AI ASSISTANT
+                ALL AUTHENTICATED USERS
+            ========================= */}
 
-<ListItem disablePadding>
-  <ListItemButton
-    component={Link}
-    to="/ai-assistant"
-    onClick={closeMobileMenu}
-  >
-    <ListItemIcon>
-      <SmartToy />
-    </ListItemIcon>
+            <ListItem disablePadding>
+              <ListItemButton
+                component={Link}
+                to="/ai-assistant"
+                onClick={
+                  closeMobileMenu
+                }
+              >
+                <ListItemIcon>
+                  <SmartToy />
+                </ListItemIcon>
 
-    <ListItemText>
-      AI Assistant
-    </ListItemText>
-  </ListItemButton>
-</ListItem>
+                <ListItemText>
+                  AI Assistant
+                </ListItemText>
+              </ListItemButton>
+            </ListItem>
 
             {/* =========================
                 MY COURSES
                 STUDENT ONLY
             ========================= */}
 
-            {user?.role === "student" && (
+            {user?.role ===
+              "student" && (
               <ListItem disablePadding>
                 <ListItemButton
                   component={Link}
                   to="/my-courses"
-                  onClick={closeMobileMenu}
+                  onClick={
+                    closeMobileMenu
+                  }
                 >
                   <ListItemIcon>
                     <LibraryBooks />
@@ -731,24 +930,27 @@ const Navbar = ({ darkMode, toggleTheme }) => {
                 TEACHER + ADMIN
             ========================= */}
 
-            {(user?.role === "teacher" ||
+            {(user?.role ===
+              "teacher" ||
               user?.role === "admin") && (
-                <ListItem disablePadding>
-                  <ListItemButton
-                    component={Link}
-                    to="/courses/create"
-                    onClick={closeMobileMenu}
-                  >
-                    <ListItemIcon>
-                      <AddIcon />
-                    </ListItemIcon>
+              <ListItem disablePadding>
+                <ListItemButton
+                  component={Link}
+                  to="/courses/create"
+                  onClick={
+                    closeMobileMenu
+                  }
+                >
+                  <ListItemIcon>
+                    <AddIcon />
+                  </ListItemIcon>
 
-                    <ListItemText>
-                      Create Course
-                    </ListItemText>
-                  </ListItemButton>
-                </ListItem>
-              )}
+                  <ListItemText>
+                    Create Course
+                  </ListItemText>
+                </ListItemButton>
+              </ListItem>
+            )}
 
             {/* =========================
                 PROFILE
@@ -756,7 +958,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
 
             <ListItem disablePadding>
               <ListItemButton
-                onClick={handleOpenProfile}
+                onClick={
+                  handleOpenProfile
+                }
               >
                 <ListItemIcon>
                   <Person />
@@ -780,7 +984,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
 
             <ListItem disablePadding>
               <ListItemButton
-                onClick={toggleTheme}
+                onClick={
+                  toggleTheme
+                }
               >
                 <ListItemIcon>
                   {darkMode ? (
@@ -804,7 +1010,9 @@ const Navbar = ({ darkMode, toggleTheme }) => {
 
             <ListItem disablePadding>
               <ListItemButton
-                onClick={handleLogout}
+                onClick={
+                  handleLogout
+                }
               >
                 <ListItemIcon>
                   <LogoutIcon />

@@ -139,7 +139,7 @@ const Footer = () => {
               <Email fontSize="small" />
 
               <Typography variant="body2">
-                support@learnhub.com
+                learnhub.lms@gmail.com
               </Typography>
             </Stack>
           </Box>

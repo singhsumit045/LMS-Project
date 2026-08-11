@@ -1,3 +1,4 @@
+
 import {
   Injectable,
   NotFoundException,
@@ -28,7 +29,6 @@ import { UpdateOptionDto } from './dto/update-option.dto';
 
 import { SubmitExamDto } from './dto/submit-exam.dto';
 
-// IMPORTANT: AI DTO
 import { SaveAiExamDto } from './dto/save-ai-exam.dto';
 
 import { NotificationsService } from 'src/notifications/notifications.service';
@@ -126,9 +126,7 @@ export class ExamsService {
 
     let totalMarks = 0;
 
-    for (
-      const questionDto of dto.questions
-    ) {
+    for (const questionDto of dto.questions) {
       const marks =
         Number(questionDto.marks) || 1;
 
@@ -154,9 +152,9 @@ export class ExamsService {
           question,
         );
 
-      // -----------------------------------------------
-      // OPTIONS
-      // -----------------------------------------------
+      // ---------------------------------------------------
+      // CREATE OPTIONS
+      // ---------------------------------------------------
 
       if (
         Array.isArray(
@@ -209,6 +207,7 @@ export class ExamsService {
               id: savedExam.courseId,
             },
           },
+
           relations: {
             user: true,
           },
@@ -234,9 +233,11 @@ export class ExamsService {
       message:
         'AI generated exam saved successfully.',
 
-      examId: savedExam.id,
+      examId:
+        savedExam.id,
 
-      exam: savedExam,
+      exam:
+        savedExam,
     };
   }
 
@@ -345,7 +346,8 @@ export class ExamsService {
 
     return await this.certificatesRepository.findOne({
       where: {
-        id: savedCertificate.id,
+        id:
+          savedCertificate.id,
       },
 
       relations: {
@@ -394,9 +396,15 @@ export class ExamsService {
     console.log(
       'Creating Exam:',
       {
-        title: exam.title,
-        courseId: exam.courseId,
-        teacherId: exam.teacherId,
+        title:
+          exam.title,
+
+        courseId:
+          exam.courseId,
+
+        teacherId:
+          exam.teacherId,
+
         isPublished:
           exam.isPublished,
       },
@@ -416,7 +424,8 @@ export class ExamsService {
         await this.enrollmentRepository.find({
           where: {
             course: {
-              id: savedExam.courseId,
+              id:
+                savedExam.courseId,
             },
           },
 
@@ -455,7 +464,8 @@ export class ExamsService {
       },
 
       order: {
-        createdAt: 'DESC',
+        createdAt:
+          'DESC',
       },
     });
   }
@@ -481,7 +491,8 @@ export class ExamsService {
       },
 
       order: {
-        createdAt: 'DESC',
+        createdAt:
+          'DESC',
       },
     });
   }
@@ -584,7 +595,10 @@ export class ExamsService {
       exam.isPublished =
         updateExamDto.isPublished;
 
-      // Notify only when newly published
+      // -------------------------------------------------
+      // NOTIFY WHEN NEWLY PUBLISHED
+      // -------------------------------------------------
+
       if (
         !wasPublished &&
         exam.isPublished
@@ -593,7 +607,8 @@ export class ExamsService {
           await this.enrollmentRepository.find({
             where: {
               course: {
-                id: exam.courseId,
+                id:
+                  exam.courseId,
               },
             },
 
@@ -653,7 +668,8 @@ export class ExamsService {
     const exam =
       await this.examsRepository.findOne({
         where: {
-          id: examId,
+          id:
+            examId,
         },
       });
 
@@ -693,7 +709,8 @@ export class ExamsService {
     const exam =
       await this.examsRepository.findOne({
         where: {
-          id: examId,
+          id:
+            examId,
         },
       });
 
@@ -713,7 +730,8 @@ export class ExamsService {
       },
 
       order: {
-        id: 'ASC',
+        id:
+          'ASC',
       },
     });
   }
@@ -728,7 +746,8 @@ export class ExamsService {
     const question =
       await this.questionsRepository.findOne({
         where: {
-          id: questionId,
+          id:
+            questionId,
         },
 
         relations: {
@@ -756,7 +775,8 @@ export class ExamsService {
     const question =
       await this.questionsRepository.findOne({
         where: {
-          id: questionId,
+          id:
+            questionId,
         },
       });
 
@@ -786,7 +806,8 @@ export class ExamsService {
     const question =
       await this.questionsRepository.findOne({
         where: {
-          id: questionId,
+          id:
+            questionId,
         },
       });
 
@@ -817,7 +838,8 @@ export class ExamsService {
     const question =
       await this.questionsRepository.findOne({
         where: {
-          id: questionId,
+          id:
+            questionId,
         },
       });
 
@@ -853,7 +875,8 @@ export class ExamsService {
     const question =
       await this.questionsRepository.findOne({
         where: {
-          id: questionId,
+          id:
+            questionId,
         },
       });
 
@@ -869,7 +892,8 @@ export class ExamsService {
       },
 
       order: {
-        id: 'ASC',
+        id:
+          'ASC',
       },
     });
   }
@@ -885,7 +909,8 @@ export class ExamsService {
     const option =
       await this.optionsRepository.findOne({
         where: {
-          id: optionId,
+          id:
+            optionId,
         },
       });
 
@@ -915,7 +940,8 @@ export class ExamsService {
     const option =
       await this.optionsRepository.findOne({
         where: {
-          id: optionId,
+          id:
+            optionId,
         },
       });
 
@@ -937,7 +963,7 @@ export class ExamsService {
 
   // =====================================================
   // START EXAM
-  // MAX 5 ATTEMPTS
+  // MAX 3 ATTEMPTS PER STUDENT PER EXAM
   // =====================================================
 
   async startExam(
@@ -947,7 +973,8 @@ export class ExamsService {
     const exam =
       await this.examsRepository.findOne({
         where: {
-          id: examId,
+          id:
+            examId,
         },
       });
 
@@ -957,19 +984,34 @@ export class ExamsService {
       );
     }
 
+    // ---------------------------------------------------
+    // CHECK PUBLISHED
+    // ---------------------------------------------------
+
     if (!exam.isPublished) {
       throw new BadRequestException(
         'This exam is not published yet',
       );
     }
 
-    // Existing unfinished attempt
+    // ---------------------------------------------------
+    // CHECK EXISTING UNFINISHED ATTEMPT
+    // ---------------------------------------------------
+    // Agar student ne exam start kiya hai lekin
+    // submit nahi kiya hai, wahi attempt continue hoga.
+
     const existingAttempt =
       await this.examAttemptsRepository.findOne({
         where: {
           examId,
           studentId,
-          submitted: false,
+          submitted:
+            false,
+        },
+
+        order: {
+          createdAt:
+            'DESC',
         },
       });
 
@@ -977,30 +1019,56 @@ export class ExamsService {
       return existingAttempt;
     }
 
-    // Count submitted attempts
+    // ---------------------------------------------------
+    // COUNT SUBMITTED ATTEMPTS
+    // ---------------------------------------------------
+
     const submittedAttempts =
       await this.examAttemptsRepository.count({
         where: {
           examId,
           studentId,
-          submitted: true,
+          submitted:
+            true,
         },
       });
 
-    if (submittedAttempts >= 5) {
+    // ---------------------------------------------------
+    // MAXIMUM 3 ATTEMPTS
+    // ---------------------------------------------------
+
+    const MAX_ATTEMPTS = 3;
+
+    if (
+      submittedAttempts >=
+      MAX_ATTEMPTS
+    ) {
       throw new BadRequestException(
-        'You have reached the maximum limit of 5 attempts for this exam.',
+        `You have reached the maximum limit of ${MAX_ATTEMPTS} attempts for this exam.`,
       );
     }
+
+    // ---------------------------------------------------
+    // CREATE NEW ATTEMPT
+    // ---------------------------------------------------
 
     const attempt =
       this.examAttemptsRepository.create({
         examId,
+
         studentId,
-        score: 0,
-        percentage: 0,
-        passed: false,
-        submitted: false,
+
+        score:
+          0,
+
+        percentage:
+          0,
+
+        passed:
+          false,
+
+        submitted:
+          false,
       });
 
     return await this.examAttemptsRepository.save(
@@ -1019,11 +1087,13 @@ export class ExamsService {
     const attempt =
       await this.examAttemptsRepository.findOne({
         where: {
-          id: attemptId,
+          id:
+            attemptId,
         },
 
         relations: {
-          exam: true,
+          exam:
+            true,
         },
       });
 
@@ -1033,24 +1103,35 @@ export class ExamsService {
       );
     }
 
+    // ---------------------------------------------------
+    // PREVENT DOUBLE SUBMISSION
+    // ---------------------------------------------------
+
     if (attempt.submitted) {
       throw new BadRequestException(
         'Exam already submitted',
       );
     }
 
+    // ---------------------------------------------------
+    // GET QUESTIONS
+    // ---------------------------------------------------
+
     const questions =
       await this.questionsRepository.find({
         where: {
-          examId: attempt.examId,
+          examId:
+            attempt.examId,
         },
 
         relations: {
-          options: true,
+          options:
+            true,
         },
 
         order: {
-          id: 'ASC',
+          id:
+            'ASC',
         },
       });
 
@@ -1061,7 +1142,12 @@ export class ExamsService {
     }
 
     let totalMarks = 0;
+
     let totalScore = 0;
+
+    // ---------------------------------------------------
+    // CHECK ANSWERS
+    // ---------------------------------------------------
 
     for (
       const question of questions
@@ -1089,11 +1175,14 @@ export class ExamsService {
         );
 
       const isCorrect =
-        selectedOption?.isCorrect === true;
+        selectedOption?.isCorrect ===
+        true;
 
       const marksObtained =
         isCorrect
-          ? Number(question.marks)
+          ? Number(
+              question.marks,
+            )
           : 0;
 
       if (isCorrect) {
@@ -1111,7 +1200,8 @@ export class ExamsService {
             question.id,
 
           selectedOptionId:
-            selectedOption?.id ?? null,
+            selectedOption?.id ??
+            null,
 
           isCorrect,
 
@@ -1122,6 +1212,10 @@ export class ExamsService {
         answer,
       );
     }
+
+    // ---------------------------------------------------
+    // CALCULATE RESULT
+    // ---------------------------------------------------
 
     const percentage =
       totalMarks > 0
@@ -1145,7 +1239,8 @@ export class ExamsService {
           .passingPercentage,
       );
 
-    attempt.submitted = true;
+    attempt.submitted =
+      true;
 
     const savedAttempt =
       await this.examAttemptsRepository.save(
@@ -1153,10 +1248,12 @@ export class ExamsService {
       );
 
     // ---------------------------------------------------
-    // CERTIFICATE
+    // CREATE CERTIFICATE IF PASSED
     // ---------------------------------------------------
 
-    if (savedAttempt.passed) {
+    if (
+      savedAttempt.passed
+    ) {
       await this.ensureCertificateForAttempt(
         savedAttempt,
       );
@@ -1175,16 +1272,20 @@ export class ExamsService {
     const attempt =
       await this.examAttemptsRepository.findOne({
         where: {
-          id: attemptId,
+          id:
+            attemptId,
         },
 
         relations: {
-          exam: true,
+          exam:
+            true,
 
           answers: {
-            question: true,
+            question:
+              true,
 
-            selectedOption: true,
+            selectedOption:
+              true,
           },
         },
       });
@@ -1203,15 +1304,18 @@ export class ExamsService {
     const questions =
       await this.questionsRepository.find({
         where: {
-          examId: attempt.examId,
+          examId:
+            attempt.examId,
         },
 
         relations: {
-          options: true,
+          options:
+            true,
         },
 
         order: {
-          id: 'ASC',
+          id:
+            'ASC',
         },
       });
 
@@ -1219,33 +1323,40 @@ export class ExamsService {
       questions.length;
 
     const attemptedQuestions =
-      attempt.answers?.length ?? 0;
+      attempt.answers?.length ??
+      0;
 
     const correctAnswers =
       attempt.answers?.filter(
         (answer) =>
-          answer.isCorrect === true,
-      ).length ?? 0;
+          answer.isCorrect ===
+          true,
+      ).length ??
+      0;
 
     const wrongAnswers =
       attempt.answers?.filter(
         (answer) =>
-          answer.isCorrect === false,
-      ).length ?? 0;
+          answer.isCorrect ===
+          false,
+      ).length ??
+      0;
 
     const totalMarks =
       questions.reduce(
         (total, question) =>
           total +
           Number(
-            question.marks || 0,
+            question.marks ||
+              0,
           ),
         0,
       );
 
     const obtainedMarks =
       Number(
-        attempt.score || 0,
+        attempt.score ||
+          0,
       );
 
     const percentage =
@@ -1260,41 +1371,48 @@ export class ExamsService {
         : 0;
 
     return {
-      id: attempt.id,
+      id:
+        attempt.id,
 
-      attemptId: attempt.id,
+      attemptId:
+        attempt.id,
 
-      examId: attempt.examId,
+      examId:
+        attempt.examId,
 
       studentId:
         attempt.studentId,
 
-      exam: attempt.exam,
+      exam:
+        attempt.exam,
 
       certificateId:
-        certificate?.id ?? null,
+        certificate?.id ??
+        null,
 
       certificateNumber:
         certificate?.certificateNumber ??
         null,
 
-      certificate: certificate
-        ? {
-            id: certificate.id,
+      certificate:
+        certificate
+          ? {
+              id:
+                certificate.id,
 
-            certificateNumber:
-              certificate.certificateNumber,
+              certificateNumber:
+                certificate.certificateNumber,
 
-            score:
-              certificate.score,
+              score:
+                certificate.score,
 
-            percentage:
-              certificate.percentage,
+              percentage:
+                certificate.percentage,
 
-            issuedAt:
-              certificate.issuedAt,
-          }
-        : null,
+              issuedAt:
+                certificate.issuedAt,
+            }
+          : null,
 
       totalQuestions,
 
@@ -1308,7 +1426,8 @@ export class ExamsService {
 
       obtainedMarks,
 
-      score: obtainedMarks,
+      score:
+        obtainedMarks,
 
       percentage,
 
@@ -1346,21 +1465,26 @@ export class ExamsService {
 
           studentId,
 
-          submitted: true,
+          submitted:
+            true,
         },
 
         relations: {
-          exam: true,
+          exam:
+            true,
 
           answers: {
-            question: true,
+            question:
+              true,
 
-            selectedOption: true,
+            selectedOption:
+              true,
           },
         },
 
         order: {
-          createdAt: 'DESC',
+          createdAt:
+            'DESC',
         },
       });
 
@@ -1382,11 +1506,13 @@ export class ExamsService {
         },
 
         relations: {
-          options: true,
+          options:
+            true,
         },
 
         order: {
-          id: 'ASC',
+          id:
+            'ASC',
         },
       });
 
@@ -1394,33 +1520,40 @@ export class ExamsService {
       questions.length;
 
     const attemptedQuestions =
-      attempt.answers?.length ?? 0;
+      attempt.answers?.length ??
+      0;
 
     const correctAnswers =
       attempt.answers?.filter(
         (answer) =>
-          answer.isCorrect === true,
-      ).length ?? 0;
+          answer.isCorrect ===
+          true,
+      ).length ??
+      0;
 
     const wrongAnswers =
       attempt.answers?.filter(
         (answer) =>
-          answer.isCorrect === false,
-      ).length ?? 0;
+          answer.isCorrect ===
+          false,
+      ).length ??
+      0;
 
     const totalMarks =
       questions.reduce(
         (total, question) =>
           total +
           Number(
-            question.marks || 0,
+            question.marks ||
+              0,
           ),
         0,
       );
 
     const obtainedMarks =
       Number(
-        attempt.score || 0,
+        attempt.score ||
+          0,
       );
 
     const percentage =
@@ -1435,41 +1568,48 @@ export class ExamsService {
         : 0;
 
     return {
-      id: attempt.id,
+      id:
+        attempt.id,
 
-      attemptId: attempt.id,
+      attemptId:
+        attempt.id,
 
-      examId: attempt.examId,
+      examId:
+        attempt.examId,
 
       studentId:
         attempt.studentId,
 
-      exam: attempt.exam,
+      exam:
+        attempt.exam,
 
       certificateId:
-        certificate?.id ?? null,
+        certificate?.id ??
+        null,
 
       certificateNumber:
         certificate?.certificateNumber ??
         null,
 
-      certificate: certificate
-        ? {
-            id: certificate.id,
+      certificate:
+        certificate
+          ? {
+              id:
+                certificate.id,
 
-            certificateNumber:
-              certificate.certificateNumber,
+              certificateNumber:
+                certificate.certificateNumber,
 
-            score:
-              certificate.score,
+              score:
+                certificate.score,
 
-            percentage:
-              certificate.percentage,
+              percentage:
+                certificate.percentage,
 
-            issuedAt:
-              certificate.issuedAt,
-          }
-        : null,
+              issuedAt:
+                certificate.issuedAt,
+            }
+          : null,
 
       totalQuestions,
 
@@ -1483,7 +1623,8 @@ export class ExamsService {
 
       obtainedMarks,
 
-      score: obtainedMarks,
+      score:
+        obtainedMarks,
 
       percentage,
 
@@ -1519,18 +1660,23 @@ export class ExamsService {
           teacherId,
         },
 
-        submitted: true,
+        submitted:
+          true,
       },
 
       relations: {
-        student: true,
+        student:
+          true,
 
-        exam: true,
+        exam:
+          true,
       },
 
       order: {
-        createdAt: 'DESC',
+        createdAt:
+          'DESC',
       },
     });
   }
 }
+
