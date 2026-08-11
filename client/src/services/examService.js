@@ -1,3 +1,4 @@
+
 import api from "./api";
 
 // =====================================================
@@ -14,10 +15,23 @@ export const createExam = async (examData) => {
 };
 
 // =====================================================
-// GET ALL EXAMS
+// SAVE AI GENERATED EXAM
 // =====================================================
 
-export const getTeacherExams  = async () => {
+export const saveAiExam = async (examData) => {
+  const response = await api.post(
+    "/exams/ai-save",
+    examData
+  );
+
+  return response.data;
+};
+
+// =====================================================
+// GET ALL TEACHER EXAMS
+// =====================================================
+
+export const getTeacherExams = async () => {
   const response = await api.get(
     "/exams/teacher"
   );
@@ -77,3 +91,4 @@ export const getTeacherExamResults =
 
     return response.data;
   };
+

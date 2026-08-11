@@ -75,6 +75,7 @@ import CreateLiveClass from "../pages/live-class/CreateLiveClass";
 
 
 import AIAssistant from "../pages/AI/AIAssistant";
+import AIQuizGenerator from "../pages/Ai/AIQuizGenerator";
 
 // =====================================================
 // APP ROUTES
@@ -120,6 +121,15 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
           <ProtectedRoute>
             <AIAssistant />
           </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/teacher/ai-quiz-generator"
+        element={
+          <RoleProtectedRoute allowedRoles={["teacher"]}>
+            <AIQuizGenerator />
+          </RoleProtectedRoute>
         }
       />
 

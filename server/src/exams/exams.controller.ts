@@ -26,7 +26,9 @@ import { CreateOptionDto } from './dto/create-option.dto';
 import { UpdateOptionDto } from './dto/update-option.dto';
 
 import { SubmitExamDto } from './dto/submit-exam.dto';
+import { SaveAiExamDto } from './dto/save-ai-exam.dto';
 
+// Auth
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('exams')
@@ -34,6 +36,24 @@ export class ExamsController {
   constructor(
     private readonly examsService: ExamsService,
   ) {}
+
+  // =====================================================
+  // SAVE AI GENERATED EXAM
+  // =====================================================
+
+  @UseGuards(JwtAuthGuard)
+  @Post('ai-save')
+  async saveAiExam(
+    @Body() dto: SaveAiExamDto,
+    @Req() req: Request,
+  ) {
+    const teacherId = (req.user as any).id;
+
+    return this.examsService.saveAiExam(
+      dto,
+      teacherId,
+    );
+  }
 
   // =====================================================
   // CREATE EXAM
@@ -62,27 +82,26 @@ export class ExamsController {
     return this.examsService.findAll();
   }
 
+  // =====================================================
+  // GET LOGGED-IN TEACHER EXAMS
+  // IMPORTANT: BEFORE /:id
+  // =====================================================
+
+  @UseGuards(JwtAuthGuard)
+  @Get('teacher')
+  getTeacherExams(
+    @Req() req: Request,
+  ) {
+    const teacherId = (req.user as any).id;
+
+    return this.examsService.getTeacherExams(
+      teacherId,
+    );
+  }
 
   // =====================================================
-// GET LOGGED-IN TEACHER EXAMS
-// =====================================================
-
-@UseGuards(JwtAuthGuard)
-@Get('teacher')
-getTeacherExams(
-  @Req() req: Request,
-) {
-  const teacherId = (req.user as any).id;
-
-  return this.examsService.getTeacherExams(
-    teacherId,
-  );
-}
-
-  // =====================================================
-  // GET TEACHER RESULTS
-  // IMPORTANT:
-  // This route must come BEFORE /:id
+  // GET ALL TEACHER EXAM RESULTS
+  // IMPORTANT: BEFORE /:id
   // =====================================================
 
   @UseGuards(JwtAuthGuard)

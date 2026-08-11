@@ -35,9 +35,10 @@ import {
     EventAvailable,
 } from "@mui/icons-material";
 
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import api from "../../services/api";
 
 import {
@@ -177,7 +178,7 @@ const TeacherDashboard = () => {
     ]);
 
     // ======================================================
-    // LIVE CLASS ACTION
+    // START LIVE CLASS
     // ======================================================
 
     const handleStartLiveClass = async (
@@ -273,7 +274,11 @@ const TeacherDashboard = () => {
 
         const parsedDate = new Date(date);
 
-        if (Number.isNaN(parsedDate.getTime())) {
+        if (
+            Number.isNaN(
+                parsedDate.getTime()
+            )
+        ) {
             return "Invalid date";
         }
 
@@ -290,7 +295,9 @@ const TeacherDashboard = () => {
     // LIVE CLASS STATUS
     // ======================================================
 
-    const getLiveClassStatus = (liveClass) => {
+    const getLiveClassStatus = (
+        liveClass
+    ) => {
         if (liveClass.isCompleted) {
             return {
                 label: "Completed",
@@ -323,26 +330,32 @@ const TeacherDashboard = () => {
     // ======================================================
 
     const sortedLiveClasses = useMemo(() => {
-        return [...liveClasses].sort((a, b) => {
-            // Live classes first
-            if (a.isLive && !b.isLive) {
-                return -1;
-            }
+        return [...liveClasses].sort(
+            (a, b) => {
+                if (
+                    a.isLive &&
+                    !b.isLive
+                ) {
+                    return -1;
+                }
 
-            if (!a.isLive && b.isLive) {
-                return 1;
-            }
+                if (
+                    !a.isLive &&
+                    b.isLive
+                ) {
+                    return 1;
+                }
 
-            // Then scheduled date
-            return (
-                new Date(
-                    a.scheduledAt || 0
-                ).getTime() -
-                new Date(
-                    b.scheduledAt || 0
-                ).getTime()
-            );
-        });
+                return (
+                    new Date(
+                        a.scheduledAt || 0
+                    ).getTime() -
+                    new Date(
+                        b.scheduledAt || 0
+                    ).getTime()
+                );
+            }
+        );
     }, [liveClasses]);
 
     // ======================================================
@@ -353,7 +366,8 @@ const TeacherDashboard = () => {
         dashboard.courses.reduce(
             (total, course) =>
                 total +
-                (course.students?.length || 0),
+                (course.students?.length ||
+                    0),
             0
         );
 
@@ -367,7 +381,8 @@ const TeacherDashboard = () => {
                 sx={{
                     minHeight: "70vh",
                     display: "flex",
-                    justifyContent: "center",
+                    justifyContent:
+                        "center",
                     alignItems: "center",
                 }}
             >
@@ -490,8 +505,9 @@ const TeacherDashboard = () => {
                             maxWidth: 650,
                         }}
                     >
-                        Manage your courses, students,
-                        exams and live classes from one
+                        Manage your courses,
+                        students, exams and
+                        live classes from one
                         place.
                     </Typography>
                 </Box>
@@ -548,7 +564,8 @@ const TeacherDashboard = () => {
                             },
                             borderRadius: 3,
                             border: "1px solid",
-                            borderColor: "divider",
+                            borderColor:
+                                "divider",
                             height: "100%",
                             transition:
                                 "all 0.25s ease",
@@ -565,7 +582,8 @@ const TeacherDashboard = () => {
                                 display: "flex",
                                 justifyContent:
                                     "space-between",
-                                alignItems: "center",
+                                alignItems:
+                                    "center",
                                 gap: 2,
                             }}
                         >
@@ -636,7 +654,8 @@ const TeacherDashboard = () => {
                             },
                             borderRadius: 3,
                             border: "1px solid",
-                            borderColor: "divider",
+                            borderColor:
+                                "divider",
                             height: "100%",
                             transition:
                                 "all 0.25s ease",
@@ -653,7 +672,8 @@ const TeacherDashboard = () => {
                                 display: "flex",
                                 justifyContent:
                                     "space-between",
-                                alignItems: "center",
+                                alignItems:
+                                    "center",
                                 gap: 2,
                             }}
                         >
@@ -724,7 +744,8 @@ const TeacherDashboard = () => {
                             },
                             borderRadius: 3,
                             border: "1px solid",
-                            borderColor: "divider",
+                            borderColor:
+                                "divider",
                             height: "100%",
                             transition:
                                 "all 0.25s ease",
@@ -741,7 +762,8 @@ const TeacherDashboard = () => {
                                 display: "flex",
                                 justifyContent:
                                     "space-between",
-                                alignItems: "center",
+                                alignItems:
+                                    "center",
                                 gap: 2,
                             }}
                         >
@@ -817,7 +839,8 @@ const TeacherDashboard = () => {
                             },
                             borderRadius: 3,
                             border: "1px solid",
-                            borderColor: "divider",
+                            borderColor:
+                                "divider",
                             height: "100%",
                             cursor: "pointer",
                             transition:
@@ -837,7 +860,8 @@ const TeacherDashboard = () => {
                                 display: "flex",
                                 justifyContent:
                                     "space-between",
-                                alignItems: "center",
+                                alignItems:
+                                    "center",
                                 gap: 2,
                             }}
                         >
@@ -903,6 +927,204 @@ const TeacherDashboard = () => {
             </Grid>
 
             {/* =====================================================
+                AI QUIZ GENERATOR
+            ===================================================== */}
+
+            <Box
+                sx={{
+                    mb: {
+                        xs: 4,
+                        md: 5,
+                    },
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: {
+                            xs: "flex-start",
+                            md: "center",
+                        },
+                        justifyContent:
+                            "space-between",
+                        flexDirection: {
+                            xs: "column",
+                            md: "row",
+                        },
+                        gap: 2,
+                        mb: 2.5,
+                    }}
+                >
+                    <Box>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                alignItems:
+                                    "center",
+                                gap: 1,
+                            }}
+                        >
+                            <AutoAwesomeIcon
+                                color="primary"
+                            />
+
+                            <Typography
+                                variant="h5"
+                                fontWeight={700}
+                                sx={{
+                                    fontSize: {
+                                        xs: "1.35rem",
+                                        sm: "1.5rem",
+                                    },
+                                }}
+                            >
+                                AI Teaching Tools
+                            </Typography>
+                        </Box>
+
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                                mt: 0.5,
+                            }}
+                        >
+                            Create quizzes and
+                            learning material
+                            quickly with AI.
+                        </Typography>
+                    </Box>
+                </Box>
+
+                <Grid
+                    container
+                    spacing={{
+                        xs: 2,
+                        sm: 2.5,
+                        md: 3,
+                    }}
+                >
+                    <Grid
+                        size={{
+                            xs: 12,
+                            md: 6,
+                            lg: 4,
+                        }}
+                    >
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: {
+                                    xs: 2.5,
+                                    sm: 3,
+                                },
+                                height: "100%",
+                                borderRadius: 3,
+                                border: "1px solid",
+                                borderColor:
+                                    "divider",
+                                position:
+                                    "relative",
+                                overflow:
+                                    "hidden",
+                                transition:
+                                    "all 0.25s ease",
+                                "&:hover": {
+                                    transform:
+                                        "translateY(-4px)",
+                                    boxShadow:
+                                        "0 12px 30px rgba(0,0,0,0.10)",
+                                    borderColor:
+                                        "primary.main",
+                                },
+                            }}
+                        >
+                            <Box
+                                sx={{
+                                    position:
+                                        "absolute",
+                                    width: 100,
+                                    height: 100,
+                                    borderRadius:
+                                        "50%",
+                                    bgcolor:
+                                        "primary.main",
+                                    opacity: 0.08,
+                                    right: -35,
+                                    top: -35,
+                                }}
+                            />
+
+                            <Avatar
+                                sx={{
+                                    width: 52,
+                                    height: 52,
+                                    bgcolor:
+                                        "primary.main",
+                                    mb: 2,
+                                }}
+                            >
+                                <AutoAwesomeIcon />
+                            </Avatar>
+
+                            <Typography
+                                variant="h6"
+                                fontWeight={700}
+                            >
+                                AI Quiz Generator
+                            </Typography>
+
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{
+                                    mt: 1,
+                                    mb: 2.5,
+                                    lineHeight: 1.6,
+                                }}
+                            >
+                                Generate
+                                multiple-choice
+                                quizzes
+                                automatically
+                                using AI. Choose
+                                the topic,
+                                difficulty and
+                                number of
+                                questions.
+                            </Typography>
+
+                            <Button
+                                variant="contained"
+                                startIcon={
+                                    <AutoAwesomeIcon />
+                                }
+                                onClick={() =>
+                                    navigate(
+                                        "/teacher/ai-quiz-generator"
+                                    )
+                                }
+                                sx={{
+                                    borderRadius: 2,
+                                    textTransform:
+                                        "none",
+                                    fontWeight: 700,
+                                    boxShadow:
+                                        "none",
+                                    "&:hover": {
+                                        boxShadow:
+                                            "none",
+                                    },
+                                }}
+                            >
+                                Generate Quiz
+                            </Button>
+                        </Paper>
+                    </Grid>
+                </Grid>
+            </Box>
+
+            {/* =====================================================
                 LIVE CLASSES
             ===================================================== */}
 
@@ -914,8 +1136,6 @@ const TeacherDashboard = () => {
                     },
                 }}
             >
-                {/* SECTION HEADER */}
-
                 <Box
                     sx={{
                         display: "flex",
@@ -967,8 +1187,9 @@ const TeacherDashboard = () => {
                                 mt: 0.5,
                             }}
                         >
-                            Schedule, start and manage
-                            your online classes.
+                            Schedule, start and
+                            manage your online
+                            classes.
                         </Typography>
                     </Box>
 
@@ -982,20 +1203,20 @@ const TeacherDashboard = () => {
                         }
                         sx={{
                             borderRadius: 2,
-                            textTransform: "none",
+                            textTransform:
+                                "none",
                             fontWeight: 700,
                             px: 2.5,
                             boxShadow: "none",
                             "&:hover": {
-                                boxShadow: "none",
+                                boxShadow:
+                                    "none",
                             },
                         }}
                     >
                         Schedule Live Class
                     </Button>
                 </Box>
-
-                {/* LIVE CLASS ERROR */}
 
                 {liveClassError && (
                     <Alert
@@ -1009,8 +1230,6 @@ const TeacherDashboard = () => {
                     </Alert>
                 )}
 
-                {/* LIVE CLASS LOADING */}
-
                 {liveClassesLoading ? (
                     <Paper
                         elevation={0}
@@ -1018,19 +1237,19 @@ const TeacherDashboard = () => {
                             minHeight: 220,
                             borderRadius: 3,
                             border: "1px solid",
-                            borderColor: "divider",
+                            borderColor:
+                                "divider",
                             display: "flex",
                             justifyContent:
                                 "center",
-                            alignItems: "center",
+                            alignItems:
+                                "center",
                         }}
                     >
                         <CircularProgress />
                     </Paper>
                 ) : sortedLiveClasses.length ===
                     0 ? (
-                    /* NO LIVE CLASSES */
-
                     <Paper
                         elevation={0}
                         sx={{
@@ -1041,7 +1260,8 @@ const TeacherDashboard = () => {
                             textAlign: "center",
                             borderRadius: 3,
                             border: "1px solid",
-                            borderColor: "divider",
+                            borderColor:
+                                "divider",
                         }}
                     >
                         <Avatar
@@ -1075,8 +1295,9 @@ const TeacherDashboard = () => {
                                 mb: 2.5,
                             }}
                         >
-                            Schedule your first live
-                            class and start teaching
+                            Schedule your first
+                            live class and
+                            start teaching
                             online.
                         </Typography>
 
@@ -1100,8 +1321,6 @@ const TeacherDashboard = () => {
                         </Button>
                     </Paper>
                 ) : (
-                    /* LIVE CLASS LIST */
-
                     <Grid
                         container
                         spacing={{
@@ -1139,8 +1358,7 @@ const TeacherDashboard = () => {
                                         <Paper
                                             elevation={0}
                                             sx={{
-                                                height:
-                                                    "100%",
+                                                height: "100%",
                                                 display:
                                                     "flex",
                                                 flexDirection:
@@ -1157,12 +1375,12 @@ const TeacherDashboard = () => {
                                                 transition:
                                                     "all 0.25s ease",
                                                 "&:hover":
-                                                {
-                                                    transform:
-                                                        "translateY(-4px)",
-                                                    boxShadow:
-                                                        "0 12px 30px rgba(0,0,0,0.10)",
-                                                },
+                                                    {
+                                                        transform:
+                                                            "translateY(-4px)",
+                                                        boxShadow:
+                                                            "0 12px 30px rgba(0,0,0,0.10)",
+                                                    },
                                             }}
                                         >
                                             {/* CARD HEADER */}
@@ -1404,8 +1622,6 @@ const TeacherDashboard = () => {
                                                         pt: 1,
                                                     }}
                                                 >
-                                                    {/* LIVE */}
-
                                                     {liveClass.isLive && (
                                                         <>
                                                             <Button
@@ -1429,10 +1645,10 @@ const TeacherDashboard = () => {
                                                                     boxShadow:
                                                                         "none",
                                                                     "&:hover":
-                                                                    {
-                                                                        boxShadow:
-                                                                            "none",
-                                                                    },
+                                                                        {
+                                                                            boxShadow:
+                                                                                "none",
+                                                                        },
                                                                 }}
                                                             >
                                                                 Open Classroom
@@ -1472,8 +1688,6 @@ const TeacherDashboard = () => {
                                                         </>
                                                     )}
 
-                                                    {/* SCHEDULED */}
-
                                                     {!liveClass.isLive &&
                                                         !liveClass.isCompleted &&
                                                         !liveClass.isCancelled && (
@@ -1509,10 +1723,10 @@ const TeacherDashboard = () => {
                                                                     boxShadow:
                                                                         "none",
                                                                     "&:hover":
-                                                                    {
-                                                                        boxShadow:
-                                                                            "none",
-                                                                    },
+                                                                        {
+                                                                            boxShadow:
+                                                                                "none",
+                                                                        },
                                                                 }}
                                                             >
                                                                 {isStarting
@@ -1520,8 +1734,6 @@ const TeacherDashboard = () => {
                                                                     : "Start Class"}
                                                             </Button>
                                                         )}
-
-                                                    {/* COMPLETED */}
 
                                                     {liveClass.isCompleted && (
                                                         <Button
@@ -1542,8 +1754,6 @@ const TeacherDashboard = () => {
                                                             Class Completed
                                                         </Button>
                                                     )}
-
-                                                    {/* CANCELLED */}
 
                                                     {liveClass.isCancelled && (
                                                         <Button
@@ -1623,8 +1833,8 @@ const TeacherDashboard = () => {
                                 mt: 0.5,
                             }}
                         >
-                            Manage and monitor your
-                            courses
+                            Manage and monitor
+                            your courses
                         </Typography>
                     </Box>
 
@@ -1636,7 +1846,8 @@ const TeacherDashboard = () => {
                     />
                 </Box>
 
-                {dashboard.courses.length === 0 ? (
+                {dashboard.courses.length ===
+                0 ? (
                     <Paper
                         elevation={0}
                         sx={{
@@ -1647,7 +1858,8 @@ const TeacherDashboard = () => {
                             textAlign: "center",
                             borderRadius: 3,
                             border: "1px solid",
-                            borderColor: "divider",
+                            borderColor:
+                                "divider",
                         }}
                     >
                         <MenuBook
@@ -1672,8 +1884,8 @@ const TeacherDashboard = () => {
                                 mt: 1,
                             }}
                         >
-                            Create a course to see it
-                            here.
+                            Create a course to
+                            see it here.
                         </Typography>
                     </Paper>
                 ) : (
@@ -1688,7 +1900,8 @@ const TeacherDashboard = () => {
                         {dashboard.courses.map(
                             (course) => {
                                 const studentCount =
-                                    course.students
+                                    course
+                                        .students
                                         ?.length ||
                                     0;
 
@@ -1721,14 +1934,14 @@ const TeacherDashboard = () => {
                                                 transition:
                                                     "all 0.25s ease",
                                                 "&:hover":
-                                                {
-                                                    transform:
-                                                        "translateY(-5px)",
-                                                    boxShadow:
-                                                        "0 12px 30px rgba(0,0,0,0.10)",
-                                                    borderColor:
-                                                        "primary.main",
-                                                },
+                                                    {
+                                                        transform:
+                                                            "translateY(-5px)",
+                                                        boxShadow:
+                                                            "0 12px 30px rgba(0,0,0,0.10)",
+                                                        borderColor:
+                                                            "primary.main",
+                                                    },
                                             }}
                                         >
                                             {/* THUMBNAIL */}
@@ -1767,10 +1980,10 @@ const TeacherDashboard = () => {
                                                             transition:
                                                                 "transform 0.4s ease",
                                                             "&:hover":
-                                                            {
-                                                                transform:
-                                                                    "scale(1.05)",
-                                                            },
+                                                                {
+                                                                    transform:
+                                                                        "scale(1.05)",
+                                                                },
                                                         }}
                                                         onError={(
                                                             event
@@ -1942,7 +2155,7 @@ const TeacherDashboard = () => {
                                                             }{" "}
                                                             Student
                                                             {studentCount !==
-                                                                1
+                                                            1
                                                                 ? "s"
                                                                 : ""}
                                                         </Typography>
@@ -1968,10 +2181,10 @@ const TeacherDashboard = () => {
                                                         display:
                                                             "flex",
                                                         flexDirection:
-                                                        {
-                                                            xs: "column",
-                                                            sm: "row",
-                                                        },
+                                                            {
+                                                                xs: "column",
+                                                                sm: "row",
+                                                            },
                                                         gap: 1,
                                                         mt: "auto",
                                                     }}
@@ -2030,10 +2243,10 @@ const TeacherDashboard = () => {
                                                             boxShadow:
                                                                 "none",
                                                             "&:hover":
-                                                            {
-                                                                boxShadow:
-                                                                    "none",
-                                                            },
+                                                                {
+                                                                    boxShadow:
+                                                                        "none",
+                                                                },
                                                         }}
                                                     >
                                                         Manage
@@ -2091,7 +2304,8 @@ const TeacherDashboard = () => {
                 My Students
             </Typography>
 
-            {dashboard.students.length === 0 ? (
+            {dashboard.students.length ===
+            0 ? (
                 <Paper
                     elevation={0}
                     sx={{
@@ -2102,13 +2316,15 @@ const TeacherDashboard = () => {
                         textAlign: "center",
                         borderRadius: 3,
                         border: "1px solid",
-                        borderColor: "divider",
+                        borderColor:
+                            "divider",
                     }}
                 >
                     <People
                         sx={{
                             fontSize: 55,
-                            color: "text.secondary",
+                            color:
+                                "text.secondary",
                         }}
                     />
 
@@ -2164,12 +2380,12 @@ const TeacherDashboard = () => {
                                             transition:
                                                 "all 0.25s ease",
                                             "&:hover":
-                                            {
-                                                transform:
-                                                    "translateY(-3px)",
-                                                boxShadow:
-                                                    "0 10px 25px rgba(0,0,0,0.08)",
-                                            },
+                                                {
+                                                    transform:
+                                                        "translateY(-3px)",
+                                                    boxShadow:
+                                                        "0 10px 25px rgba(0,0,0,0.08)",
+                                                },
                                         }}
                                     >
                                         <Box
@@ -2228,7 +2444,7 @@ const TeacherDashboard = () => {
                                                     }{" "}
                                                     Course
                                                     {courses.length !==
-                                                        1
+                                                    1
                                                         ? "s"
                                                         : ""}
                                                 </Typography>
