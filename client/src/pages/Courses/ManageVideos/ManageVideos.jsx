@@ -128,7 +128,7 @@ const ManageVideos = () => {
 
       setError(
         error.response?.data?.message ||
-          "Unable to load course."
+        "Unable to load course."
       );
     } finally {
       setLoading(false);
@@ -160,7 +160,7 @@ const ManageVideos = () => {
 
       setVideosError(
         error.response?.data?.message ||
-          "Unable to load videos."
+        "Unable to load videos."
       );
     } finally {
       setVideosLoading(false);
@@ -291,8 +291,8 @@ const ManageVideos = () => {
 
       setUploadError(
         error.response?.data?.message ||
-          error.message ||
-          "Something went wrong while uploading video."
+        error.message ||
+        "Something went wrong while uploading video."
       );
     } finally {
       setUploading(false);
@@ -332,7 +332,6 @@ const ManageVideos = () => {
 
     try {
       setDeletingId(selectedVideo.id);
-
       // Backend:
       // DELETE /videos/:id
 
@@ -362,7 +361,7 @@ const ManageVideos = () => {
 
       setVideosError(
         error.response?.data?.message ||
-          "Unable to delete video."
+        "Unable to delete video."
       );
     } finally {
       setDeletingId(null);
@@ -500,16 +499,21 @@ const ManageVideos = () => {
             sm: "row",
           }}
           spacing={2}
-          alignItems={{
-            xs: "flex-start",
-            sm: "center",
+          sx={{
+            alignItems: {
+              xs: "flex-start",
+              sm: "center",
+            },
+            justifyContent: "space-between",
           }}
-          justifyContent="space-between"
         >
           <Stack
             direction="row"
             spacing={1.5}
-            alignItems="center"
+            sx={{
+              alignItems: "center",
+            }}
+
           >
             <Box
               sx={{
@@ -787,10 +791,11 @@ const ManageVideos = () => {
       >
         <Stack
           direction="row"
-          alignItems="center"
-          justifyContent="space-between"
+
           sx={{
             mb: 2,
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
           <Box>
@@ -944,9 +949,11 @@ const ManageVideos = () => {
                         sm: "row",
                       }}
                       spacing={1.5}
-                      alignItems={{
-                        xs: "stretch",
-                        sm: "center",
+                      sx={{
+                        alignItems: {
+                          xs: "stretch",
+                          sm: "center",
+                        },
                       }}
                     >
                       {/* NUMBER / ICON */}
@@ -982,9 +989,12 @@ const ManageVideos = () => {
                         <Stack
                           direction="row"
                           spacing={1}
-                          alignItems="center"
-                          flexWrap="wrap"
-                          useFlexGap
+                          sx={{
+                            alignItems: "center",
+                            flexWrap: "wrap",
+                            columnGap: 1,
+                            rowGap: 1,
+                          }}
                         >
                           <Typography
                             fontWeight={800}
@@ -1035,9 +1045,11 @@ const ManageVideos = () => {
                       <Stack
                         direction="row"
                         spacing={0.5}
-                        justifyContent={{
-                          xs: "flex-end",
-                          sm: "initial",
+                        sx={{
+                          justifyContent: {
+                            xs: "flex-end",
+                            sm: "initial",
+                          },
                         }}
                       >
                         <Tooltip title="Watch Video">
@@ -1082,7 +1094,7 @@ const ManageVideos = () => {
                               }}
                             >
                               {deletingId ===
-                              video.id ? (
+                                video.id ? (
                                 <CircularProgress
                                   size={18}
                                 />

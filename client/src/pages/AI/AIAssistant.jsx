@@ -77,9 +77,7 @@ const AIAssistant = () => {
 
     try {
       const response = await aiService.chat(question);
-
       console.log("AI RESPONSE:", response);
-
       /*
        * Backend can return either:
        *
@@ -104,7 +102,7 @@ const AIAssistant = () => {
       } else if (response?.data?.message) {
         aiMessage = response.data.message;
       }
-
+      
       if (!aiMessage) {
         aiMessage =
           "Sorry, I could not generate a response.";
@@ -190,7 +188,7 @@ const AIAssistant = () => {
             sm: 3,
           },
         }}
-      >
+      > 
         {/* =========================
             HEADER
         ========================= */}
@@ -248,7 +246,6 @@ const AIAssistant = () => {
             flex: 1,
 
             overflowY: "auto",
-
             p: {
               xs: 2,
               sm: 3,

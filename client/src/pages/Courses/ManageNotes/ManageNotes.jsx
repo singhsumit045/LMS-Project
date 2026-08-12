@@ -1,4 +1,3 @@
-
 import {
   Alert,
   Box,
@@ -119,9 +118,15 @@ const ManageNotes = () => {
         response.data
       );
 
+      const data = response?.data;
+
       setNotes(
-        Array.isArray(response.data)
-          ? response.data
+        Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data?.notes)
+          ? data.notes
           : []
       );
     } catch (error) {
@@ -130,9 +135,14 @@ const ManageNotes = () => {
         error
       );
 
+      const message =
+        error?.response?.data?.message ||
+        "Unable to load notes.";
+
       setError(
-        error.response?.data?.message ||
-          "Unable to load notes."
+        Array.isArray(message)
+          ? message.join(", ")
+          : message
       );
     } finally {
       setLoading(false);
@@ -156,9 +166,14 @@ const ManageNotes = () => {
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
 
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
-    if (file.type !== "application/pdf") {
+    if (
+      file.type !== "application/pdf" &&
+      !file.name.toLowerCase().endsWith(".pdf")
+    ) {
       setError("Only PDF files are allowed.");
 
       event.target.value = "";
@@ -199,17 +214,33 @@ const ManageNotes = () => {
 
       const formData = new FormData();
 
-      formData.append("file", selectedFile);
-      formData.append("title", title.trim());
-      formData.append("content", content.trim());
-      formData.append("courseId", String(courseId));
+      formData.append(
+        "file",
+        selectedFile
+      );
+
+      formData.append(
+        "title",
+        title.trim()
+      );
+
+      formData.append(
+        "content",
+        content.trim()
+      );
+
+      formData.append(
+        "courseId",
+        String(courseId)
+      );
 
       await api.post(
         "/notes/upload",
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Content-Type":
+              "multipart/form-data",
           },
         }
       );
@@ -222,7 +253,9 @@ const ManageNotes = () => {
         fileInputRef.current.value = "";
       }
 
-      setSuccess("Note uploaded successfully.");
+      setSuccess(
+        "Note uploaded successfully."
+      );
 
       await fetchNotes();
     } catch (error) {
@@ -231,9 +264,14 @@ const ManageNotes = () => {
         error
       );
 
+      const message =
+        error?.response?.data?.message ||
+        "Unable to upload note.";
+
       setError(
-        error.response?.data?.message ||
-          "Unable to upload note."
+        Array.isArray(message)
+          ? message.join(", ")
+          : message
       );
     } finally {
       setUploading(false);
@@ -246,7 +284,9 @@ const ManageNotes = () => {
 
   const handleView = (url) => {
     if (!url) {
-      setError("PDF URL is not available.");
+      setError(
+        "PDF URL is not available."
+      );
       return;
     }
 
@@ -261,21 +301,31 @@ const ManageNotes = () => {
   // DOWNLOAD PDF
   // =====================================================
 
-  const handleDownload = (url, title) => {
+  const handleDownload = (
+    url,
+    noteTitle
+  ) => {
     if (!url) {
-      setError("PDF URL is not available.");
+      setError(
+        "PDF URL is not available."
+      );
       return;
     }
 
-    const link = document.createElement("a");
+    const link =
+      document.createElement("a");
 
     link.href = url;
     link.target = "_blank";
     link.rel = "noopener noreferrer";
-    link.download = `${title || "note"}.pdf`;
+    link.download = `${
+      noteTitle || "note"
+    }.pdf`;
 
     document.body.appendChild(link);
+
     link.click();
+
     document.body.removeChild(link);
   };
 
@@ -288,30 +338,42 @@ const ManageNotes = () => {
       `Are you sure you want to delete "${note.title}"?`
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     try {
       setDeletingId(note.id);
       setError("");
 
-      await api.delete(`/notes/${note.id}`);
+      await api.delete(
+        `/notes/${note.id}`
+      );
 
       setNotes((prev) =>
         prev.filter(
-          (item) => item.id !== note.id
+          (item) =>
+            item.id !== note.id
         )
       );
 
-      setSuccess("Note deleted successfully.");
+      setSuccess(
+        "Note deleted successfully."
+      );
     } catch (error) {
       console.error(
         "Delete note error:",
         error
       );
 
+      const message =
+        error?.response?.data?.message ||
+        "Unable to delete note.";
+
       setError(
-        error.response?.data?.message ||
-          "Unable to delete note."
+        Array.isArray(message)
+          ? message.join(", ")
+          : message
       );
     } finally {
       setDeletingId(null);
@@ -325,8 +387,13 @@ const ManageNotes = () => {
   const handleOpenEdit = (note) => {
     setEditingNote(note);
 
-    setEditTitle(note.title || "");
-    setEditContent(note.content || "");
+    setEditTitle(
+      note.title || ""
+    );
+
+    setEditContent(
+      note.content || ""
+    );
 
     setEditOpen(true);
   };
@@ -336,7 +403,9 @@ const ManageNotes = () => {
   // =====================================================
 
   const handleCloseEdit = () => {
-    if (savingId) return;
+    if (savingId) {
+      return;
+    }
 
     setEditOpen(false);
     setEditingNote(null);
@@ -350,10 +419,14 @@ const ManageNotes = () => {
   // =====================================================
 
   const handleSaveEdit = async () => {
-    if (!editingNote) return;
+    if (!editingNote) {
+      return;
+    }
 
     if (!editTitle.trim()) {
-      setError("Note title is required.");
+      setError(
+        "Note title is required."
+      );
       return;
     }
 
@@ -361,45 +434,60 @@ const ManageNotes = () => {
       setSavingId(editingNote.id);
       setError("");
 
-      const response = await api.put(
-        `/notes/${editingNote.id}`,
-        {
-          title: editTitle.trim(),
-          content: editContent.trim(),
-        }
-      );
+      const response =
+        await api.put(
+          `/notes/${editingNote.id}`,
+          {
+            title:
+              editTitle.trim(),
+            content:
+              editContent.trim(),
+          }
+        );
 
-      const updatedNote = response.data;
+      const updatedNote =
+        response?.data;
 
       setNotes((prev) =>
         prev.map((note) =>
-          note.id === editingNote.id
+          note.id ===
+          editingNote.id
             ? {
                 ...note,
-                ...updatedNote,
+                ...(updatedNote || {}),
                 title:
-                  updatedNote.title ??
+                  updatedNote?.title ??
                   editTitle.trim(),
                 content:
-                  updatedNote.content ??
+                  updatedNote?.content ??
                   editContent.trim(),
               }
             : note
         )
       );
 
-      setSuccess("Note updated successfully.");
+      setSuccess(
+        "Note updated successfully."
+      );
 
-      handleCloseEdit();
+      setEditOpen(false);
+      setEditingNote(null);
+      setEditTitle("");
+      setEditContent("");
     } catch (error) {
       console.error(
         "Update note error:",
         error
       );
 
+      const message =
+        error?.response?.data?.message ||
+        "Unable to update note.";
+
       setError(
-        error.response?.data?.message ||
-          "Unable to update note."
+        Array.isArray(message)
+          ? message.join(", ")
+          : message
       );
     } finally {
       setSavingId(null);
@@ -411,7 +499,9 @@ const ManageNotes = () => {
   // =====================================================
 
   const formatFileSize = (bytes) => {
-    if (!bytes) return "PDF";
+    if (!bytes) {
+      return "PDF";
+    }
 
     const units = [
       "Bytes",
@@ -421,15 +511,29 @@ const ManageNotes = () => {
     ];
 
     const index = Math.floor(
-      Math.log(bytes) / Math.log(1024)
+      Math.log(bytes) /
+        Math.log(1024)
+    );
+
+    const safeIndex = Math.min(
+      index,
+      units.length - 1
     );
 
     const size =
-      bytes / Math.pow(1024, index);
+      bytes /
+      Math.pow(
+        1024,
+        safeIndex
+      );
 
     return `${size.toFixed(
-      index === 0 ? 0 : 1
-    )} ${units[index]}`;
+      safeIndex === 0
+        ? 0
+        : 1
+    )} ${
+      units[safeIndex]
+    }`;
   };
 
   // =====================================================
@@ -437,10 +541,14 @@ const ManageNotes = () => {
   // =====================================================
 
   const formatDate = (date) => {
-    if (!date) return "Unknown date";
+    if (!date) {
+      return "Unknown date";
+    }
 
     try {
-      return new Date(date).toLocaleDateString(
+      return new Date(
+        date
+      ).toLocaleDateString(
         "en-IN",
         {
           day: "2-digit",
@@ -457,25 +565,38 @@ const ManageNotes = () => {
   // SEARCH
   // =====================================================
 
-  const filteredNotes = useMemo(() => {
-    const keyword =
-      search.trim().toLowerCase();
+  const filteredNotes =
+    useMemo(() => {
+      const keyword =
+        search
+          .trim()
+          .toLowerCase();
 
-    if (!keyword) return notes;
+      if (!keyword) {
+        return notes;
+      }
 
-    return notes.filter((note) => {
-      const noteTitle =
-        note.title?.toLowerCase() || "";
+      return notes.filter(
+        (note) => {
+          const noteTitle =
+            note.title?.toLowerCase() ||
+            "";
 
-      const noteContent =
-        note.content?.toLowerCase() || "";
+          const noteContent =
+            note.content?.toLowerCase() ||
+            "";
 
-      return (
-        noteTitle.includes(keyword) ||
-        noteContent.includes(keyword)
+          return (
+            noteTitle.includes(
+              keyword
+            ) ||
+            noteContent.includes(
+              keyword
+            )
+          );
+        }
       );
-    });
-  }, [notes, search]);
+    }, [notes, search]);
 
   // =====================================================
   // LOADING
@@ -488,7 +609,8 @@ const ManageNotes = () => {
           minHeight: "60vh",
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent:
+            "center",
         }}
       >
         <CircularProgress />
@@ -529,15 +651,27 @@ const ManageNotes = () => {
         }}
       >
         <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
+          direction={{
+            xs: "column",
+            sm: "row",
+          }}
           spacing={2}
+          sx={{
+            alignItems: {
+              xs: "flex-start",
+              sm: "center",
+            },
+            justifyContent:
+              "space-between",
+          }}
         >
           <Stack
             direction="row"
             spacing={1.5}
-            alignItems="center"
+            sx={{
+              alignItems:
+                "center",
+            }}
           >
             <Box
               sx={{
@@ -545,9 +679,12 @@ const ManageNotes = () => {
                 height: 46,
                 borderRadius: 2,
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                bgcolor: "primary.main",
+                alignItems:
+                  "center",
+                justifyContent:
+                  "center",
+                bgcolor:
+                  "primary.main",
                 color: "white",
               }}
             >
@@ -566,13 +703,16 @@ const ManageNotes = () => {
                 variant="body2"
                 color="text.secondary"
               >
-                Manage course PDF materials
+                Manage course PDF
+                materials
               </Typography>
             </Box>
           </Stack>
 
           <Chip
-            icon={<Description />}
+            icon={
+              <Description />
+            }
             label={`${notes.length} ${
               notes.length === 1
                 ? "Note"
@@ -592,7 +732,9 @@ const ManageNotes = () => {
       {error && (
         <Alert
           severity="error"
-          onClose={() => setError("")}
+          onClose={() =>
+            setError("")
+          }
           sx={{
             mb: 2.5,
             borderRadius: 2,
@@ -624,8 +766,11 @@ const ManageNotes = () => {
         <Stack
           direction="row"
           spacing={1}
-          alignItems="center"
-          sx={{ mb: 2 }}
+          sx={{
+            alignItems:
+              "center",
+            mb: 2,
+          }}
         >
           <Add color="primary" />
 
@@ -638,6 +783,8 @@ const ManageNotes = () => {
         </Stack>
 
         <Stack spacing={1.8}>
+          {/* TITLE */}
+
           <TextField
             size="small"
             fullWidth
@@ -645,9 +792,13 @@ const ManageNotes = () => {
             placeholder="e.g. Java OOP Notes"
             value={title}
             onChange={(event) =>
-              setTitle(event.target.value)
+              setTitle(
+                event.target.value
+              )
             }
           />
+
+          {/* DESCRIPTION */}
 
           <TextField
             size="small"
@@ -658,27 +809,37 @@ const ManageNotes = () => {
             placeholder="Short description..."
             value={content}
             onChange={(event) =>
-              setContent(event.target.value)
+              setContent(
+                event.target.value
+              )
             }
           />
+
+          {/* FILE */}
 
           <Box
             sx={{
               p: 1.5,
               border: "1px dashed",
-              borderColor: selectedFile
-                ? "success.main"
-                : "divider",
+              borderColor:
+                selectedFile
+                  ? "success.main"
+                  : "divider",
               borderRadius: 2,
-              bgcolor: "action.hover",
+              bgcolor:
+                "action.hover",
             }}
           >
             <input
               ref={fileInputRef}
               type="file"
               accept="application/pdf,.pdf"
-              onChange={handleFileChange}
-              style={{ display: "none" }}
+              onChange={
+                handleFileChange
+              }
+              style={{
+                display: "none",
+              }}
               id="note-pdf-upload"
             />
 
@@ -688,38 +849,57 @@ const ManageNotes = () => {
                 sm: "row",
               }}
               spacing={1.5}
-              alignItems={{
-                xs: "stretch",
-                sm: "center",
+              sx={{
+                alignItems: {
+                  xs: "stretch",
+                  sm: "center",
+                },
+                justifyContent:
+                  "space-between",
               }}
-              justifyContent="space-between"
             >
-              <Box sx={{ minWidth: 0 }}>
+              <Box
+                sx={{
+                  minWidth: 0,
+                }}
+              >
                 {selectedFile ? (
                   <Stack
                     direction="row"
                     spacing={1}
-                    alignItems="center"
+                    sx={{
+                      alignItems:
+                        "center",
+                    }}
                   >
                     <PictureAsPdf
                       color="error"
                     />
 
-                    <Box sx={{ minWidth: 0 }}>
+                    <Box
+                      sx={{
+                        minWidth: 0,
+                      }}
+                    >
                       <Typography
                         variant="body2"
                         fontWeight={700}
                         sx={{
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
+                          overflow:
+                            "hidden",
+                          textOverflow:
+                            "ellipsis",
+                          whiteSpace:
+                            "nowrap",
                           maxWidth: {
                             xs: 230,
                             sm: 400,
                           },
                         }}
                       >
-                        {selectedFile.name}
+                        {
+                          selectedFile.name
+                        }
                       </Typography>
 
                       <Typography
@@ -737,7 +917,8 @@ const ManageNotes = () => {
                     variant="body2"
                     color="text.secondary"
                   >
-                    Select a PDF file
+                    Select a PDF
+                    file
                   </Typography>
                 )}
               </Box>
@@ -747,9 +928,12 @@ const ManageNotes = () => {
                   component="span"
                   size="small"
                   variant="outlined"
-                  startIcon={<UploadFile />}
+                  startIcon={
+                    <UploadFile />
+                  }
                   sx={{
-                    textTransform: "none",
+                    textTransform:
+                      "none",
                     borderRadius: 2,
                   }}
                 >
@@ -758,6 +942,8 @@ const ManageNotes = () => {
               </label>
             </Stack>
           </Box>
+
+          {/* UPLOAD BUTTON */}
 
           <Button
             type="submit"
@@ -779,7 +965,8 @@ const ManageNotes = () => {
                 xs: "stretch",
                 sm: "flex-start",
               },
-              textTransform: "none",
+              textTransform:
+                "none",
               borderRadius: 2,
               fontWeight: 700,
             }}
@@ -811,12 +998,15 @@ const ManageNotes = () => {
             sm: "row",
           }}
           spacing={1.5}
-          alignItems={{
-            xs: "stretch",
-            sm: "center",
+          sx={{
+            alignItems: {
+              xs: "stretch",
+              sm: "center",
+            },
+            justifyContent:
+              "space-between",
           }}
-          justifyContent="space-between"
-        >
+        >  
           <Box>
             <Typography
               variant="h6"
@@ -829,8 +1019,9 @@ const ManageNotes = () => {
               variant="caption"
               color="text.secondary"
             >
-              {filteredNotes.length} of{" "}
-              {notes.length} displayed
+              {filteredNotes.length}{" "}
+              of {notes.length}{" "}
+              displayed
             </Typography>
           </Box>
 
@@ -839,8 +1030,10 @@ const ManageNotes = () => {
             placeholder="Search notes..."
             value={search}
             onChange={(event) =>
-              setSearch(event.target.value)
-            }
+              setSearch(
+                event.target.value
+              )
+            } 
             sx={{
               width: {
                 xs: "100%",
@@ -854,18 +1047,21 @@ const ManageNotes = () => {
                     <Search fontSize="small" />
                   </InputAdornment>
                 ),
-                endAdornment: search ? (
-                  <InputAdornment position="end">
-                    <IconButton
-                      size="small"
-                      onClick={() =>
-                        setSearch("")
-                      }
-                    >
-                      <Close fontSize="small" />
-                    </IconButton>
-                  </InputAdornment>
-                ) : null,
+                endAdornment:
+                  search ? (
+                    <InputAdornment position="end">
+                      <IconButton
+                        size="small"
+                        onClick={() =>
+                          setSearch(
+                            ""
+                          )
+                        }
+                      >
+                        <Close fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : null,
               },
             }}
           />
@@ -876,7 +1072,8 @@ const ManageNotes = () => {
           EMPTY STATE
       ===================================================== */}
 
-      {filteredNotes.length === 0 && (
+      {filteredNotes.length ===
+        0 && (
         <Paper
           elevation={0}
           sx={{
@@ -884,13 +1081,15 @@ const ManageNotes = () => {
             textAlign: "center",
             borderRadius: 3,
             border: "1px solid",
-            borderColor: "divider",
+            borderColor:
+              "divider",
           }}
         >
           <Description
             sx={{
               fontSize: 50,
-              color: "text.disabled",
+              color:
+                "text.disabled",
               mb: 1,
             }}
           />
@@ -907,7 +1106,9 @@ const ManageNotes = () => {
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{ mt: 0.5 }}
+            sx={{
+              mt: 0.5,
+            }}
           >
             {search
               ? "Try another search."
@@ -920,7 +1121,8 @@ const ManageNotes = () => {
           NOTES LIST
       ===================================================== */}
 
-      {filteredNotes.length > 0 && (
+      {filteredNotes.length >
+        0 && (
         <Stack spacing={1.5}>
           {filteredNotes.map(
             (note, index) => (
@@ -933,11 +1135,15 @@ const ManageNotes = () => {
                     sm: 2,
                   },
                   borderRadius: 2.5,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  transition: "0.2s",
+                  border:
+                    "1px solid",
+                  borderColor:
+                    "divider",
+                  transition:
+                    "0.2s",
                   "&:hover": {
-                    borderColor: "primary.main",
+                    borderColor:
+                      "primary.main",
                     boxShadow:
                       "0 5px 18px rgba(0,0,0,0.07)",
                   },
@@ -949,9 +1155,11 @@ const ManageNotes = () => {
                     sm: "row",
                   }}
                   spacing={1.5}
-                  alignItems={{
-                    xs: "stretch",
-                    sm: "center",
+                  sx={{
+                    alignItems: {
+                      xs: "stretch",
+                      sm: "center",
+                    },
                   }}
                 >
                   {/* PDF ICON */}
@@ -962,16 +1170,21 @@ const ManageNotes = () => {
                       height: 48,
                       borderRadius: 2,
                       flexShrink: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      display:
+                        "flex",
+                      alignItems:
+                        "center",
+                      justifyContent:
+                        "center",
                       bgcolor:
                         "rgba(211,47,47,0.08)",
                     }}
                   >
                     <PictureAsPdf
                       color="error"
-                      sx={{ fontSize: 27 }}
+                      sx={{
+                        fontSize: 27,
+                      }}
                     />
                   </Box>
 
@@ -986,9 +1199,12 @@ const ManageNotes = () => {
                     <Stack
                       direction="row"
                       spacing={0.8}
-                      alignItems="center"
-                      flexWrap="wrap"
-                      useFlexGap
+                      sx={{
+                        alignItems:
+                          "center",
+                        flexWrap:
+                          "wrap",
+                      }}
                     >
                       <Typography
                         variant="subtitle1"
@@ -1028,7 +1244,8 @@ const ManageNotes = () => {
                           WebkitLineClamp: 1,
                           WebkitBoxOrient:
                             "vertical",
-                          overflow: "hidden",
+                          overflow:
+                            "hidden",
                         }}
                       >
                         {note.content}
@@ -1038,14 +1255,19 @@ const ManageNotes = () => {
                     <Stack
                       direction="row"
                       spacing={1.5}
-                      flexWrap="wrap"
-                      useFlexGap
-                      sx={{ mt: 0.7 }}
+                      sx={{
+                        mt: 0.7,
+                        flexWrap:
+                          "wrap",
+                      }}
                     >
                       <Stack
                         direction="row"
                         spacing={0.4}
-                        alignItems="center"
+                        sx={{
+                          alignItems:
+                            "center",
+                        }}
                       >
                         <CalendarMonth
                           sx={{
@@ -1067,7 +1289,10 @@ const ManageNotes = () => {
                       <Stack
                         direction="row"
                         spacing={0.4}
-                        alignItems="center"
+                        sx={{
+                          alignItems:
+                            "center",
+                        }}
                       >
                         <Storage
                           sx={{
@@ -1098,6 +1323,8 @@ const ManageNotes = () => {
                       },
                     }}
                   >
+                    {/* VIEW */}
+
                     <Tooltip title="View PDF">
                       <IconButton
                         size="small"
@@ -1108,7 +1335,8 @@ const ManageNotes = () => {
                           )
                         }
                         sx={{
-                          border: "1px solid",
+                          border:
+                            "1px solid",
                           borderColor:
                             "divider",
                         }}
@@ -1116,6 +1344,8 @@ const ManageNotes = () => {
                         <Visibility fontSize="small" />
                       </IconButton>
                     </Tooltip>
+
+                    {/* DOWNLOAD */}
 
                     <Tooltip title="Download PDF">
                       <IconButton
@@ -1128,7 +1358,8 @@ const ManageNotes = () => {
                           )
                         }
                         sx={{
-                          border: "1px solid",
+                          border:
+                            "1px solid",
                           borderColor:
                             "divider",
                         }}
@@ -1137,18 +1368,24 @@ const ManageNotes = () => {
                       </IconButton>
                     </Tooltip>
 
+                    {/* EDIT */}
+
                     <Tooltip title="Edit Note">
                       <IconButton
                         size="small"
                         color="warning"
                         onClick={() =>
-                          handleOpenEdit(note)
+                          handleOpenEdit(
+                            note
+                          )
                         }
                         disabled={
-                          savingId === note.id
+                          savingId ===
+                          note.id
                         }
                         sx={{
-                          border: "1px solid",
+                          border:
+                            "1px solid",
                           borderColor:
                             "divider",
                         }}
@@ -1156,6 +1393,8 @@ const ManageNotes = () => {
                         <Edit fontSize="small" />
                       </IconButton>
                     </Tooltip>
+
+                    {/* DELETE */}
 
                     <Tooltip title="Delete Note">
                       <span>
@@ -1167,10 +1406,13 @@ const ManageNotes = () => {
                             note.id
                           }
                           onClick={() =>
-                            handleDelete(note)
+                            handleDelete(
+                              note
+                            )
                           }
                           sx={{
-                            border: "1px solid",
+                            border:
+                              "1px solid",
                             borderColor:
                               "divider",
                           }}
@@ -1213,7 +1455,12 @@ const ManageNotes = () => {
         </DialogTitle>
 
         <DialogContent>
-          <Stack spacing={2} sx={{ pt: 1 }}>
+          <Stack
+            spacing={2}
+            sx={{
+              pt: 1,
+            }}
+          >
             <TextField
               size="small"
               fullWidth
@@ -1242,10 +1489,13 @@ const ManageNotes = () => {
 
             <Alert
               severity="info"
-              sx={{ borderRadius: 2 }}
+              sx={{
+                borderRadius: 2,
+              }}
             >
-              Editing the title and description
-              does not change the PDF file.
+              Editing the title and
+              description does not
+              change the PDF file.
             </Alert>
           </Stack>
         </DialogContent>
@@ -1258,9 +1508,12 @@ const ManageNotes = () => {
         >
           <Button
             onClick={handleCloseEdit}
-            disabled={Boolean(savingId)}
+            disabled={Boolean(
+              savingId
+            )}
             sx={{
-              textTransform: "none",
+              textTransform:
+                "none",
             }}
           >
             Cancel
@@ -1268,7 +1521,9 @@ const ManageNotes = () => {
 
           <Button
             variant="contained"
-            onClick={handleSaveEdit}
+            onClick={
+              handleSaveEdit
+            }
             disabled={
               !editTitle.trim() ||
               Boolean(savingId)
@@ -1284,7 +1539,8 @@ const ManageNotes = () => {
               )
             }
             sx={{
-              textTransform: "none",
+              textTransform:
+                "none",
               fontWeight: 700,
               borderRadius: 2,
             }}
@@ -1303,7 +1559,9 @@ const ManageNotes = () => {
       <Snackbar
         open={Boolean(success)}
         autoHideDuration={3000}
-        onClose={() => setSuccess("")}
+        onClose={() =>
+          setSuccess("")
+        }
         message={success}
         anchorOrigin={{
           vertical: "bottom",
@@ -1315,4 +1573,3 @@ const ManageNotes = () => {
 };
 
 export default ManageNotes;
-

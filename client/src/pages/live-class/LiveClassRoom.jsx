@@ -1,1518 +1,1615 @@
-
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { io } from "socket.io-client";
+import api from "../../services/api";
 
 import {
+  Alert,
+  Avatar,
   Box,
   Button,
+  Card,
+  CardContent,
   Chip,
+  CircularProgress,
   Divider,
   IconButton,
   Paper,
+  Snackbar,
   Stack,
-  TextField,
+  Tooltip,
   Typography,
-  Alert,
-  CircularProgress,
 } from "@mui/material";
 
-import {
-  Videocam,
-  VideocamOff,
-  Mic,
-  MicOff,
-  ScreenShare,
-  StopScreenShare,
-  CallEnd,
-  Send,
-  Chat,
-  People,
-  ArrowBack,
-} from "@mui/icons-material";
-
-import {
-  getLiveClass,
-  startLiveClass,
-  endLiveClass,
-} from "../../services/liveClassService";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import VideocamIcon from "@mui/icons-material/Videocam";
+import VideocamOffIcon from "@mui/icons-material/VideocamOff";
+import MicIcon from "@mui/icons-material/Mic";
+import MicOffIcon from "@mui/icons-material/MicOff";
+import CallEndIcon from "@mui/icons-material/CallEnd";
+import PeopleIcon from "@mui/icons-material/People";
+import SchoolIcon from "@mui/icons-material/School";
+import PersonIcon from "@mui/icons-material/Person";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
 
-// =====================================================
+// ============================================================
 // CONFIG
-// =====================================================
+// ============================================================
 
-const SOCKET_URL = (
-  import.meta.env.VITE_API_BASE_URL ||
-  "http://localhost:3000"
-).replace(/\/+$/, "");
+const SOCKET_URL =
+  import.meta.env.VITE_SOCKET_URL ||
+  "http://localhost:3000";
 
 
-// =====================================================
-// LIVE CLASS ROOM
-// =====================================================
+// ============================================================
+// HELPERS
+// ============================================================
+
+const getToken = () => {
+  return localStorage.getItem("access_token");
+};
+// ============================================================
+// VIDEO COMPONENT
+// ============================================================
+
+const VideoTile = ({
+  stream,
+  muted = false,
+  name = "Participant",
+  role = "",
+  isLocal = false,
+  cameraOn = true,
+}) => {
+  const videoRef = useRef(null);
+useEffect(() => {
+  const video = videoRef.current;
+
+  if (!video) {
+    return;
+  }
+
+  if (!stream) {
+    video.srcObject = null;
+    return;
+  }
+
+  video.srcObject = stream;
+
+  const playVideo = async () => {
+    try {
+      await video.play();
+    } catch (error) {
+      if (error?.name !== "AbortError") {
+        console.warn("Video play error:", error);
+      }
+    }
+  };
+
+  playVideo();
+
+  return () => {
+    if (video) {
+      video.pause();
+      video.srcObject = null;
+    }
+  };
+}, [stream]);
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: 3,
+        backgroundColor: "#111",
+        aspectRatio: "16 / 9",
+        border: "1px solid",
+        borderColor: "divider",
+        minHeight: 220,
+      }}
+    >
+      {stream && cameraOn ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted={muted}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
+      ) : (
+        <Box
+          sx={{
+            width: "100%",
+            height: "100%",
+            minHeight: 220,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background:
+              "linear-gradient(135deg, #1f2937, #111827)",
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 80,
+              height: 80,
+              fontSize: 30,
+              bgcolor: "primary.main",
+            }}
+          >
+            {name?.charAt(0)?.toUpperCase() || "P"}
+          </Avatar>
+        </Box>
+      )}
+
+      {/* Name */}
+      <Box
+        sx={{
+          position: "absolute",
+          left: 12,
+          bottom: 12,
+          px: 1.5,
+          py: 0.7,
+          borderRadius: 2,
+          backgroundColor: "rgba(0,0,0,0.65)",
+          backdropFilter: "blur(6px)",
+        }}
+      >
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              color: "#fff",
+              fontWeight: 600,
+            }}
+          >
+            {isLocal ? "You" : name}
+          </Typography>
+
+          {role && (
+            <Chip
+              size="small"
+              label={role}
+              sx={{
+                height: 22,
+                color: "#fff",
+                backgroundColor:
+                  role === "teacher"
+                    ? "rgba(25,118,210,0.9)"
+                    : "rgba(76,175,80,0.9)",
+                textTransform: "capitalize",
+                fontSize: 11,
+              }}
+            />
+          )}
+        </Stack>
+      </Box>
+
+      {/* Camera status */}
+      {!cameraOn && (
+        <Box
+          sx={{
+            position: "absolute",
+            right: 12,
+            bottom: 12,
+            width: 34,
+            height: 34,
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: "rgba(211,47,47,0.9)",
+            color: "#fff",
+          }}
+        >
+          <VideocamOffIcon fontSize="small" />
+        </Box>
+      )}
+    </Paper>
+  );
+};
+
+
+// ============================================================
+// MAIN COMPONENT
+// ============================================================
 
 const LiveClassRoom = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
 
-  const { liveClassId } = useParams();
+  const liveClassId = Number(id);
 
-  // ===================================================
-  // ID VALIDATION
-  // ===================================================
-
-  const numericLiveClassId = Number(liveClassId);
-
-  const isValidLiveClassId =
-    liveClassId &&
-    liveClassId !== "create" &&
-    Number.isInteger(numericLiveClassId) &&
-    numericLiveClassId > 0;
-
-  // ===================================================
+  // ==========================================================
   // REFS
-  // ===================================================
+  // ==========================================================
 
   const socketRef = useRef(null);
 
-  const localVideoRef = useRef(null);
-
-  const remoteVideoRef = useRef(null);
-
   const localStreamRef = useRef(null);
 
-  const screenStreamRef = useRef(null);
+  const peerConnectionsRef = useRef(new Map());
 
-  const peerConnectionRef = useRef(null);
+  const remoteStreamsRef = useRef(new Map());
 
-  const chatEndRef = useRef(null);
+  const participantsRef = useRef(new Map());
 
-  // ===================================================
-  // STATE
-  // ===================================================
+  const mountedRef = useRef(true);
+
+  // ==========================================================
+  // STATES
+  // ==========================================================
 
   const [liveClass, setLiveClass] = useState(null);
 
   const [loading, setLoading] = useState(true);
 
-  const [error, setError] = useState("");
+  const [connecting, setConnecting] = useState(false);
+
+  const [joined, setJoined] = useState(false);
 
   const [socketConnected, setSocketConnected] =
     useState(false);
 
-  const [isTeacher, setIsTeacher] = useState(false);
+  const [localStream, setLocalStream] =
+    useState(null);
 
-  const [isLive, setIsLive] = useState(false);
-
-  const [isCameraOn, setIsCameraOn] =
-    useState(false);
-
-  const [isMicOn, setIsMicOn] =
-    useState(false);
-
-  const [isScreenSharing, setIsScreenSharing] =
-    useState(false);
-
-  const [participants, setParticipants] =
+  const [remoteParticipants, setRemoteParticipants] =
     useState([]);
 
-  const [messages, setMessages] =
-    useState([]);
+  const [cameraOn, setCameraOn] = useState(true);
 
-  const [message, setMessage] =
-    useState("");
+  const [micOn, setMicOn] = useState(true);
 
-  const [starting, setStarting] =
-    useState(false);
+  const [role, setRole] = useState("");
 
-  const [ending, setEnding] =
-    useState(false);
+  const [userId, setUserId] = useState(null);
 
+  const [error, setError] = useState("");
 
-  // ===================================================
-  // CURRENT USER
-  // ===================================================
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
 
-  const getCurrentUser = () => {
-    try {
-      const user =
-        JSON.parse(
-          localStorage.getItem("user")
-        );
-
-      return user || null;
-    } catch {
-      return null;
-    }
-  };
+  const [endingClass, setEndingClass] = useState(false);
 
 
-  // ===================================================
-  // INITIALIZE USER ROLE
-  // ===================================================
+  // ==========================================================
+  // GET CURRENT USER
+  // ==========================================================
 
-  useEffect(() => {
-    const user = getCurrentUser();
+  const getCurrentUser = useCallback(async () => {
+    const token = getToken();
 
-    if (!user) {
-      return;
+    if (!token) {
+      throw new Error(
+        "Authentication token not found. Please login again."
+      );
     }
 
-    const role =
-      String(user.role || "").toLowerCase();
+    // Shared api instance automatically adds the access token and
+    // refreshes it when the server returns 401.
+    const response = await api.get("/auth/profile");
+    const result = response?.data;
 
-    setIsTeacher(
-      role === "teacher" ||
-      role === "admin"
-    );
+    const user =
+      result?.data ||
+      result?.user ||
+      result;
+
+    if (!user?.id && !user?.userId) {
+      throw new Error("Unable to load user profile.");
+    }
+
+    return user;
   }, []);
 
 
-  // ===================================================
-  // INVALID ID PROTECTION
-  // ===================================================
+  // ==========================================================
+  // GET LIVE CLASS
+  // ==========================================================
 
-  useEffect(() => {
-    if (!isValidLiveClassId) {
-      console.error(
-        "========================================"
+  const loadLiveClass = useCallback(async () => {
+    const token = getToken();
+
+    if (!token) {
+      throw new Error(
+        "Authentication token not found. Please login again."
       );
-
-      console.error(
-        "❌ INVALID LIVE CLASS ID"
-      );
-
-      console.error(
-        "URL ID:",
-        liveClassId
-      );
-
-      console.error(
-        "Numeric ID:",
-        numericLiveClassId
-      );
-
-      console.error(
-        "========================================"
-      );
-
-      setLoading(false);
-
-      setError(
-        "Invalid live class ID. Please open the live class from the correct link."
-      );
-
-      return;
-    }
-  }, [
-    liveClassId,
-    numericLiveClassId,
-    isValidLiveClassId,
-  ]);
-
-
-  // =====================================================
-  // LOAD LIVE CLASS
-  // =====================================================
-
-  useEffect(() => {
-    if (!isValidLiveClassId) {
-      return;
     }
 
-    let cancelled = false;
+    if (
+      !Number.isInteger(liveClassId) ||
+      liveClassId <= 0
+    ) {
+      throw new Error(
+        `Invalid live class ID: ${id || "missing"}`
+      );
+    }
 
-    const loadLiveClass = async () => {
-      try {
-        setLoading(true);
+    const response = await api.get(
+      `/live-classes/${liveClassId}`
+    );
 
-        setError("");
+    const result = response?.data;
 
-        console.log(
-          "========================================"
+    return (
+      result?.data ||
+      result?.liveClass ||
+      result
+    );
+  }, [liveClassId, id]);
+
+
+  // ==========================================================
+  // SHOW MESSAGE
+  // ==========================================================
+
+  const showMessage = useCallback(
+    (message, severity = "info") => {
+      if (!mountedRef.current) {
+        return;
+      }
+
+      setSnackbar({
+        open: true,
+        message,
+        severity,
+      });
+    },
+    []
+  );
+
+
+  // ==========================================================
+  // UPDATE REMOTE PARTICIPANTS
+  // ==========================================================
+
+  const updateRemoteParticipants = useCallback(
+    () => {
+      const participants = Array.from(
+        participantsRef.current.values()
+      );
+
+      setRemoteParticipants(
+        participants
+      );
+    },
+    []
+  );
+
+
+  // ==========================================================
+  // CREATE PEER CONNECTION
+  // ==========================================================
+
+  const createPeerConnection = useCallback(
+    (targetSocketId, targetUserId, targetRole) => {
+      if (!socketRef.current) {
+        return null;
+      }
+
+      // Existing connection
+      const existing =
+        peerConnectionsRef.current.get(
+          targetSocketId
         );
 
-        console.log(
-          "📡 Loading Live Class"
-        );
+      if (existing) {
+        return existing;
+      }
 
-        console.log(
-          "Live Class ID:",
-          numericLiveClassId
-        );
+      const peerConnection =
+        new RTCPeerConnection({
+          iceServers: [
+            {
+              urls: "stun:stun.l.google.com:19302",
+            },
+            {
+              urls: "stun:stun1.l.google.com:19302",
+            },
+          ],
+        });
 
-        console.log(
-          "========================================"
-        );
+      // ------------------------------------------------------
+      // Add local tracks
+      // ------------------------------------------------------
 
-        const response =
-          await getLiveClass(
-            numericLiveClassId
-          );
+      if (localStreamRef.current) {
+        localStreamRef.current
+          .getTracks()
+          .forEach((track) => {
+            peerConnection.addTrack(
+              track,
+              localStreamRef.current
+            );
+          });
+      }
 
-        if (cancelled) {
+      // ------------------------------------------------------
+      // ICE candidate
+      // ------------------------------------------------------
+
+      peerConnection.onicecandidate = (
+        event
+      ) => {
+        if (!event.candidate) {
           return;
         }
 
-        const data =
-          response?.data?.data ||
-          response?.data;
-
-        console.log(
-          "📥 Live Class:",
-          data
-        );
-
-        if (!data) {
-          throw new Error(
-            "Live class not found"
-          );
-        }
-
-        setLiveClass(data);
-
-        setIsLive(
-          Boolean(data.isLive)
-        );
-
-        // =============================================
-        // DETERMINE TEACHER
-        // =============================================
-
-        const user =
-          getCurrentUser();
-
-        const currentUserId =
-          Number(user?.id);
-
-        const teacherId =
-          Number(data.teacherId);
-
-        if (
-          Number.isInteger(currentUserId) &&
-          Number.isInteger(teacherId)
-        ) {
-          setIsTeacher(
-            currentUserId === teacherId
-          );
-        }
-
-      } catch (err) {
-        console.error(
-          "❌ Failed to load live class:",
-          err
-        );
-
-        if (!cancelled) {
-          setError(
-            err?.response?.data?.message ||
-            err?.message ||
-            "Failed to load live class"
-          );
-        }
-
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadLiveClass();
-
-    return () => {
-      cancelled = true;
-    };
-
-  }, [
-    numericLiveClassId,
-    isValidLiveClassId,
-  ]);
-
-
-  // =====================================================
-  // CREATE PEER CONNECTION
-  // =====================================================
-
-  const peerConnectionsRef = useRef(
-    new Map()
-  );
-
-  const getActivePeerConnection = () => {
-    if (peerConnectionRef.current) {
-      return peerConnectionRef.current;
-    }
-
-    return (
-      peerConnectionsRef.current.values()
-        .next().value || null
-    );
-  };
-
-  const closePeerConnection = (
-    targetSocketId
-  ) => {
-    if (!targetSocketId) {
-      return;
-    }
-
-    const peerConnection =
-      peerConnectionsRef.current.get(
-        targetSocketId
-      );
-
-    if (!peerConnection) {
-      return;
-    }
-
-    peerConnection.ontrack = null;
-    peerConnection.onicecandidate = null;
-    peerConnection.onconnectionstatechange = null;
-    peerConnection.close();
-
-    peerConnectionsRef.current.delete(
-      targetSocketId
-    );
-
-    if (
-      peerConnectionRef.current ===
-      peerConnection
-    ) {
-      peerConnectionRef.current = null;
-    }
-  };
-
-  const createPeerConnection = (
-    targetSocketId = null
-  ) => {
-    const connectionKey =
-      targetSocketId || "default";
-
-    const existingConnection =
-      targetSocketId
-        ? peerConnectionsRef.current.get(
-            targetSocketId
-          )
-        : peerConnectionRef.current;
-
-    if (existingConnection) {
-      return existingConnection;
-    }
-
-    const peerConnection =
-      new RTCPeerConnection({
-        iceServers: [
+        socketRef.current?.emit(
+          "webrtc-ice-candidate",
           {
-            urls: "stun:stun.l.google.com:19302",
-          },
-          {
-            urls: "stun:stun1.l.google.com:19302",
-          },
-        ],
-      });
-
-    if (localStreamRef.current) {
-      localStreamRef.current
-        .getTracks()
-        .forEach((track) => {
-          peerConnection.addTrack(
-            track,
-            localStreamRef.current
-          );
-        });
-    }
-
-    peerConnection.ontrack = (event) => {
-      console.log(
-        "📺 Remote track received",
-        event.streams?.[0]
-      );
-
-      if (
-        remoteVideoRef.current &&
-        event.streams?.[0]
-      ) {
-        remoteVideoRef.current.srcObject =
-          event.streams[0];
-      }
-    };
-
-    peerConnection.onicecandidate =
-      (event) => {
-        if (
-          event.candidate &&
-          socketRef.current &&
-          socketRef.current.connected &&
-          targetSocketId
-        ) {
-          socketRef.current.emit(
-            "webrtc-ice-candidate",
-            {
-              liveClassId:
-                numericLiveClassId,
-              targetSocketId,
-              candidate:
-                event.candidate,
-            }
-          );
-        }
-      };
-
-    peerConnection.onconnectionstatechange =
-      () => {
-        console.log(
-          "🔗 Peer connection:",
-          peerConnection.connectionState,
-          connectionKey
+            liveClassId,
+            targetSocketId,
+            candidate: event.candidate,
+          }
         );
       };
 
-    if (targetSocketId) {
+      // ------------------------------------------------------
+      // Remote track
+      // ------------------------------------------------------
+
+      peerConnection.ontrack = (event) => {
+        const [stream] =
+          event.streams;
+
+        if (!stream) {
+          return;
+        }
+
+        remoteStreamsRef.current.set(
+          targetSocketId,
+          stream
+        );
+
+        participantsRef.current.set(
+          targetSocketId,
+          {
+            socketId: targetSocketId,
+            userId: targetUserId,
+            role: targetRole,
+            stream,
+            cameraOn: true,
+          }
+        );
+
+        updateRemoteParticipants();
+      };
+
+      // ------------------------------------------------------
+      // Connection state
+      // ------------------------------------------------------
+
+      peerConnection.onconnectionstatechange =
+        () => {
+          const state =
+            peerConnection.connectionState;
+
+          console.log(
+            `Peer ${targetSocketId} state:`,
+            state
+          );
+
+          if (
+            state === "failed" ||
+            state === "closed" ||
+            state === "disconnected"
+          ) {
+            participantsRef.current.delete(
+              targetSocketId
+            );
+
+            remoteStreamsRef.current.delete(
+              targetSocketId
+            );
+
+            updateRemoteParticipants();
+          }
+        };
+
       peerConnectionsRef.current.set(
         targetSocketId,
         peerConnection
       );
-    } else {
-      peerConnectionRef.current =
-        peerConnection;
-    }
 
-    return peerConnection;
-  };
+      return peerConnection;
+    },
+    [
+      liveClassId,
+      updateRemoteParticipants,
+    ]
+  );
 
-  const createAndSendOffer = async (
-    targetSocketId
-  ) => {
-    if (
-      !targetSocketId ||
-      !socketRef.current ||
-      !socketRef.current.connected ||
-      !localStreamRef.current
-    ) {
-      return;
-    }
 
-    const peerConnection =
-      createPeerConnection(
-        targetSocketId
-      );
+  // ==========================================================
+  // CREATE OFFER
+  // ==========================================================
 
-    if (!peerConnection) {
-      return;
-    }
+  const createOffer = useCallback(
+    async (
+      targetSocketId,
+      targetUserId,
+      targetRole
+    ) => {
+      try {
+        const peerConnection =
+          createPeerConnection(
+            targetSocketId,
+            targetUserId,
+            targetRole
+          );
 
-    try {
-      const offer =
-        await peerConnection.createOffer();
-
-      await peerConnection.setLocalDescription(
-        offer
-      );
-
-      socketRef.current.emit(
-        "webrtc-offer",
-        {
-          liveClassId:
-            numericLiveClassId,
-          targetSocketId,
-          offer,
+        if (!peerConnection) {
+          return;
         }
-      );
-    } catch (err) {
-      console.error(
-        "❌ Offer creation error:",
-        err
-      );
-    }
-  };
 
+        const offer =
+          await peerConnection.createOffer();
 
-  // =====================================================
-  // GET CAMERA + MICROPHONE
-  // =====================================================
-
-const startCameraAndMicrophone = async () => {
-  try {
-    if (localStreamRef.current) {
-      return localStreamRef.current;
-    }
-
-    // Browser support check
-    if (!navigator.mediaDevices) {
-      throw new Error(
-        "Camera/Microphone API is not available. HTTPS may be required."
-      );
-    }
-
-    console.log("🌐 Current URL:", window.location.href);
-    console.log(
-      "🔐 Secure Context:",
-      window.isSecureContext
-    );
-
-    const stream =
-      await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-
-    localStreamRef.current = stream;
-
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = stream;
-    }
-
-    setIsCameraOn(true);
-    setIsMicOn(true);
-
-    console.log("🎥 Camera + microphone started");
-
-    return stream;
-
-  } catch (err) {
-    console.error(
-      "❌ Camera/Microphone error:",
-      err
-    );
-
-    console.error(
-      "Error name:",
-      err?.name
-    );
-
-    console.error(
-      "Error message:",
-      err?.message
-    );
-
-    if (err?.name === "NotAllowedError") {
-      setError(
-        "Camera or microphone permission was denied. Please allow camera and microphone access in Chrome."
-      );
-    } else if (err?.name === "NotFoundError") {
-      setError(
-        "No camera or microphone was found on this device."
-      );
-    } else if (err?.name === "NotReadableError") {
-      setError(
-        "Camera or microphone is already being used by another application."
-      );
-    } else if (err?.name === "SecurityError") {
-      setError(
-        "Camera/microphone access is blocked because this page is not using a secure connection."
-      );
-    } else {
-      setError(
-        `Camera/Microphone error: ${
-          err?.name || "Unknown error"
-        }`
-      );
-    }
-
-    return null;
-  }
-};
-  // =====================================================
-  // SOCKET CONNECTION
-  // =====================================================
-
-  useEffect(() => {
-    if (!isValidLiveClassId) {
-      console.warn(
-        "⚠️ Socket setup stopped. Invalid ID:",
-        liveClassId
-      );
-
-      return;
-    }
-
-    const token =
-      localStorage.getItem("token");
-
-    if (!token) {
-      console.error(
-        "❌ No access token found"
-      );
-      return;
-    }
-
-    console.log(
-      "========================================"
-    );
-
-    console.log(
-      "🔌 Setting up Live Class Socket"
-    );
-
-    console.log(
-      "Live Class ID:",
-      numericLiveClassId
-    );
-
-    console.log(
-      "Socket URL:",
-      SOCKET_URL
-    );
-
-    console.log(
-      "========================================"
-    );
-
-
-    const socket =
-      io(SOCKET_URL, {
-        transports: [
-          "websocket",
-          "polling",
-        ],
-
-        auth: {
-          token,
-        },
-
-        query: {
-          liveClassId:
-            String(numericLiveClassId),
-        },
-
-        autoConnect: true,
-      });
-
-
-    socketRef.current =
-      socket;
-
-
-    // =================================================
-    // CONNECT
-    // =================================================
-
-    socket.on(
-      "connect",
-      () => {
-        console.log(
-          "🟢 Live Class Socket connected:",
-          socket.id
+        await peerConnection.setLocalDescription(
+          offer
         );
 
-        setSocketConnected(true);
-
-        socket.emit(
-          "join-live-class",
+        socketRef.current?.emit(
+          "webrtc-offer",
           {
-            liveClassId:
-              numericLiveClassId,
+            liveClassId,
+            targetSocketId,
+            offer,
           }
         );
-      }
-    );
-
-
-    // =================================================
-    // CONNECT ERROR
-    // =================================================
-
-    socket.on(
-      "connect_error",
-      (err) => {
+      } catch (error) {
         console.error(
-          "❌ Live Class Socket error:",
-          err
+          "Create offer error:",
+          error
         );
-
-        setSocketConnected(false);
       }
-    );
+    },
+    [
+      createPeerConnection,
+      liveClassId,
+    ]
+  );
 
 
-    // =================================================
-    // DISCONNECT
-    // =================================================
+  // ==========================================================
+  // HANDLE OFFER
+  // ==========================================================
 
-    socket.on(
-      "disconnect",
-      (reason) => {
-        console.log(
-          "🔴 Live Class Socket disconnected:",
-          reason
-        );
+  const handleOffer = useCallback(
+    async (data) => {
+      try {
+        const {
+          senderSocketId,
+          senderUserId,
+          senderRole,
+          offer,
+        } = data;
 
-        setSocketConnected(false);
-      }
-    );
+        if (!senderSocketId || !offer) {
+          return;
+        }
 
+        const peerConnection =
+          createPeerConnection(
+            senderSocketId,
+            senderUserId,
+            senderRole
+          );
 
-    // =================================================
-    // PARTICIPANTS
-    // =================================================
+        if (!peerConnection) {
+          return;
+        }
 
-    socket.on(
-      "joined-live-class",
-      (data) => {
-        console.log(
-          "✅ Joined live class:",
-          data
-        );
-
-        const existingParticipants =
-          Array.isArray(
-            data?.participants
+        await peerConnection.setRemoteDescription(
+          new RTCSessionDescription(
+            offer
           )
-            ? data.participants
-            : [];
-
-        if (existingParticipants.length) {
-          setParticipants(
-            existingParticipants
-          );
-
-          existingParticipants.forEach(
-            (participant) => {
-              const remoteSocketId =
-                participant?.socketId ||
-                participant?.id;
-
-              if (
-                remoteSocketId &&
-                remoteSocketId !==
-                  socket.id &&
-                localStreamRef.current
-              ) {
-                createAndSendOffer(
-                  remoteSocketId
-                );
-              }
-            }
-          );
-        }
-      }
-    );
-
-    socket.on(
-      "participants",
-      (data) => {
-        console.log(
-          "👥 Participants:",
-          data
         );
 
-        if (Array.isArray(data)) {
-          setParticipants(data);
-        } else if (
-          Array.isArray(data?.participants)
-        ) {
-          setParticipants(
-            data.participants
-          );
-        }
-      }
-    );
+        const answer =
+          await peerConnection.createAnswer();
 
-
-    socket.on(
-      "participant-joined",
-      (participant) => {
-        console.log(
-          "👤 Participant joined:",
-          participant
+        await peerConnection.setLocalDescription(
+          answer
         );
 
-        setParticipants(
-          (prev) => {
-            const exists =
-              prev.some(
-                (item) =>
-                  item?.id ===
-                    participant?.id ||
-                  item?.socketId ===
-                    participant?.socketId
-              );
-
-            if (exists) {
-              return prev;
-            }
-
-            return [
-              ...prev,
-              participant,
-            ];
+        socketRef.current?.emit(
+          "webrtc-answer",
+          {
+            liveClassId,
+            targetSocketId:
+              senderSocketId,
+            answer,
           }
         );
+      } catch (error) {
+        console.error(
+          "Handle offer error:",
+          error
+        );
+      }
+    },
+    [
+      createPeerConnection,
+      liveClassId,
+    ]
+  );
 
-        const remoteSocketId =
-          participant?.socketId ||
-          participant?.id;
+
+  // ==========================================================
+  // HANDLE ANSWER
+  // ==========================================================
+
+  const handleAnswer = useCallback(
+    async (data) => {
+      try {
+        const {
+          senderSocketId,
+          answer,
+        } = data;
+
+        const peerConnection =
+          peerConnectionsRef.current.get(
+            senderSocketId
+          );
+
+        if (!peerConnection) {
+          return;
+        }
+
+        await peerConnection.setRemoteDescription(
+          new RTCSessionDescription(
+            answer
+          )
+        );
+      } catch (error) {
+        console.error(
+          "Handle answer error:",
+          error
+        );
+      }
+    },
+    []
+  );
+
+
+  // ==========================================================
+  // HANDLE ICE
+  // ==========================================================
+
+  const handleIceCandidate = useCallback(
+    async (data) => {
+      try {
+        const {
+          senderSocketId,
+          candidate,
+        } = data;
+
+        if (!candidate) {
+          return;
+        }
+
+        const peerConnection =
+          peerConnectionsRef.current.get(
+            senderSocketId
+          );
+
+        if (!peerConnection) {
+          return;
+        }
+
+        await peerConnection.addIceCandidate(
+          new RTCIceCandidate(candidate)
+        );
+      } catch (error) {
+        console.error(
+          "Add ICE candidate error:",
+          error
+        );
+      }
+    },
+    []
+  );
+
+
+  // ==========================================================
+  // REMOVE PARTICIPANT
+  // ==========================================================
+
+  const removeParticipant = useCallback(
+    (socketId) => {
+      const peerConnection =
+        peerConnectionsRef.current.get(
+          socketId
+        );
+
+      if (peerConnection) {
+        peerConnection.close();
+      }
+
+      peerConnectionsRef.current.delete(
+        socketId
+      );
+
+      remoteStreamsRef.current.delete(
+        socketId
+      );
+
+      participantsRef.current.delete(
+        socketId
+      );
+
+      updateRemoteParticipants();
+    },
+    [updateRemoteParticipants]
+  );
+
+
+  // ==========================================================
+  // GET MEDIA
+  // ==========================================================
+
+  const getUserMedia = useCallback(
+    async () => {
+      try {
+        if (
+          !navigator.mediaDevices ||
+          !navigator.mediaDevices.getUserMedia
+        ) {
+          throw new Error(
+            "Camera and microphone are not supported by this browser."
+          );
+        }
+
+        const stream =
+          await navigator.mediaDevices.getUserMedia(
+            {
+              video: {
+                width: {
+                  ideal: 1280,
+                },
+                height: {
+                  ideal: 720,
+                },
+                facingMode: "user",
+              },
+              audio: true,
+            }
+          );
+
+        localStreamRef.current =
+          stream;
+
+        setLocalStream(stream);
+
+        setCameraOn(true);
+        setMicOn(true);
+
+        return stream;
+      } catch (error) {
+        console.error(
+          "getUserMedia error:",
+          error
+        );
 
         if (
-          remoteSocketId &&
-          remoteSocketId !== socket.id &&
-          localStreamRef.current
+          error?.name ===
+          "NotAllowedError"
         ) {
-          createAndSendOffer(
-            remoteSocketId
-          );
-        }
-      }
-    );
-
-
-    socket.on(
-      "participant-left",
-      (participant) => {
-        console.log(
-          "👋 Participant left:",
-          participant
-        );
-
-        const remoteSocketId =
-          participant?.socketId ||
-          participant?.id;
-
-        if (remoteSocketId) {
-          closePeerConnection(
-            remoteSocketId
+          throw new Error(
+            "Camera/Microphone permission denied. Please allow permission in browser settings."
           );
         }
 
-        setParticipants(
-          (prev) =>
-            prev.filter(
-              (item) =>
-                item?.id !==
-                  participant?.id &&
-                item?.socketId !==
-                  remoteSocketId
-            )
-        );
-      }
-    );
-
-
-    // =================================================
-    // CLASS STARTED
-    // =================================================
-
-    socket.on(
-      "live-class-started",
-      (data) => {
-        console.log(
-          "🔴 Live class started:",
-          data
-        );
-
-        setIsLive(true);
-      }
-    );
-
-
-    // =================================================
-    // CLASS ENDED
-    // =================================================
-
-    socket.on(
-      "live-class-ended",
-      (data) => {
-        console.log(
-          "⏹ Live class ended:",
-          data
-        );
-
-        setIsLive(false);
-      }
-    );
-
-
-    // =================================================
-    // CHAT
-    // =================================================
-
-    socket.on(
-      "chat-message",
-      (data) => {
-        console.log(
-          "💬 Chat:",
-          data
-        );
-
-        setMessages(
-          (prev) => [
-            ...prev,
-            data,
-          ]
-        );
-      }
-    );
-
-
-    // =================================================
-    // WEBRTC OFFER
-    // =================================================
-
-    socket.on(
-      "webrtc-offer",
-      async (data) => {
-        try {
-          console.log(
-            "📨 WebRTC offer received",
-            data
-          );
-
-          if (!data?.offer) {
-            return;
-          }
-
-          const peerConnection =
-            createPeerConnection(
-              data.senderSocketId
-            );
-
-          await peerConnection.setRemoteDescription(
-            new RTCSessionDescription(
-              data.offer
-            )
-          );
-
-          const answer =
-            await peerConnection.createAnswer();
-
-          await peerConnection.setLocalDescription(
-            answer
-          );
-
-          socket.emit(
-            "webrtc-answer",
-            {
-              liveClassId:
-                numericLiveClassId,
-              targetSocketId:
-                data.senderSocketId,
-              answer,
-            }
-          );
-        } catch (err) {
-          console.error(
-            "❌ Offer handling error:",
-            err
+        if (
+          error?.name ===
+          "NotFoundError"
+        ) {
+          throw new Error(
+            "Camera or microphone not found."
           );
         }
-      }
-    );
 
-
-    // =================================================
-    // WEBRTC ANSWER
-    // =================================================
-
-    socket.on(
-      "webrtc-answer",
-      async (data) => {
-        try {
-          console.log(
-            "📨 WebRTC answer received",
-            data
-          );
-
-          if (
-            data?.senderSocketId &&
-            data?.answer
-          ) {
-            const peerConnection =
-              createPeerConnection(
-                data.senderSocketId
-              );
-
-            if (peerConnection) {
-              await peerConnection.setRemoteDescription(
-                new RTCSessionDescription(
-                  data.answer
-                )
-              );
-            }
-          }
-        } catch (err) {
-          console.error(
-            "❌ Answer handling error:",
-            err
+        if (
+          error?.name ===
+          "NotReadableError"
+        ) {
+          throw new Error(
+            "Camera or microphone is already being used by another application."
           );
         }
+
+        throw error;
       }
-    );
+    },
+    []
+  );
 
 
-    // =================================================
-    // ICE CANDIDATE
-    // =================================================
+  // ==========================================================
+  // TOGGLE CAMERA
+  // ==========================================================
 
-    socket.on(
-      "webrtc-ice-candidate",
-      async (data) => {
-        try {
-          const peerConnection =
-            data?.senderSocketId
-              ? createPeerConnection(
-                  data.senderSocketId
-                )
-              : peerConnectionRef.current;
+  const toggleCamera = () => {
+    const stream =
+      localStreamRef.current;
 
-          if (
-            peerConnection &&
-            data?.candidate
-          ) {
-            await peerConnection.addIceCandidate(
-              new RTCIceCandidate(
-                data.candidate
-              )
-            );
-          }
-        } catch (err) {
-          console.error(
-            "❌ ICE candidate error:",
-            err
-          );
-        }
-      }
-    );
-
-
-    // =================================================
-    // CLEANUP
-    // =================================================
-
-    return () => {
-      console.log(
-        "🧹 Cleaning Live Class Socket"
-      );
-
-      socket.emit(
-        "leave-live-class",
-        {
-          liveClassId:
-            numericLiveClassId,
-        }
-      );
-
-      socket.disconnect();
-
-      if (
-        socketRef.current === socket
-      ) {
-        socketRef.current = null;
-      }
-    };
-
-  }, [
-    liveClassId,
-    numericLiveClassId,
-    isValidLiveClassId,
-  ]);
-
-
-  // =====================================================
-  // SCROLL CHAT
-  // =====================================================
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
-  }, [messages]);
-
-
-  // =====================================================
-  // START CLASS
-  // =====================================================
-
-  const handleStartClass = async () => {
-    if (!isValidLiveClassId) {
-      return;
-    }
-
-    try {
-      setStarting(true);
-
-      await startCameraAndMicrophone();
-
-      await startLiveClass(
-        numericLiveClassId
-      );
-
-      setIsLive(true);
-
-      socketRef.current?.emit(
-        "live-class-started",
-        {
-          liveClassId:
-            numericLiveClassId,
-        }
-      );
-
-    } catch (err) {
-      console.error(
-        "❌ Start Live Class Error:",
-        err
-      );
-
-      setError(
-        err?.response?.data?.message ||
-        err?.message ||
-        "Unable to start live class"
-      );
-
-    } finally {
-      setStarting(false);
-    }
-  };
-
-
-  // =====================================================
-  // END CLASS
-  // =====================================================
-
-  const handleEndClass = async () => {
-    if (!isValidLiveClassId) {
-      return;
-    }
-
-    try {
-      setEnding(true);
-
-      await endLiveClass(
-        numericLiveClassId
-      );
-
-      setIsLive(false);
-
-      socketRef.current?.emit(
-        "live-class-ended",
-        {
-          liveClassId:
-            numericLiveClassId,
-        }
-      );
-
-    } catch (err) {
-      console.error(
-        "❌ End Live Class Error:",
-        err
-      );
-
-      setError(
-        err?.response?.data?.message ||
-        err?.message ||
-        "Unable to end live class"
-      );
-
-    } finally {
-      setEnding(false);
-    }
-  };
-
-
-  // =====================================================
-  // CAMERA TOGGLE
-  // =====================================================
-
-  const toggleCamera = async () => {
-    if (!localStreamRef.current) {
-      await startCameraAndMicrophone();
+    if (!stream) {
       return;
     }
 
     const videoTracks =
-      localStreamRef.current.getVideoTracks();
+      stream.getVideoTracks();
 
     if (!videoTracks.length) {
       return;
     }
 
-    const enabled =
-      !videoTracks[0].enabled;
+    const newState =
+      !cameraOn;
 
     videoTracks.forEach(
       (track) => {
-        track.enabled =
-          enabled;
+        track.enabled = newState;
       }
     );
 
-    setIsCameraOn(enabled);
+    setCameraOn(newState);
   };
 
 
-  // =====================================================
-  // MICROPHONE TOGGLE
-  // =====================================================
+  // ==========================================================
+  // TOGGLE MIC
+  // ==========================================================
 
-  const toggleMicrophone = async () => {
-    if (!localStreamRef.current) {
-      await startCameraAndMicrophone();
+  const toggleMic = () => {
+    const stream =
+      localStreamRef.current;
+
+    if (!stream) {
       return;
     }
 
     const audioTracks =
-      localStreamRef.current.getAudioTracks();
+      stream.getAudioTracks();
 
     if (!audioTracks.length) {
       return;
     }
 
-    const enabled =
-      !audioTracks[0].enabled;
+    const newState =
+      !micOn;
 
     audioTracks.forEach(
       (track) => {
-        track.enabled =
-          enabled;
+        track.enabled = newState;
       }
     );
 
-    setIsMicOn(enabled);
+    setMicOn(newState);
   };
 
 
-  // =====================================================
-  // SCREEN SHARE
-  // =====================================================
+  // ==========================================================
+  // JOIN CLASS
+  // ==========================================================
 
-  const toggleScreenShare =
+  const joinLiveClass = useCallback(
     async () => {
+      if (!socketRef.current) {
+        return;
+      }
+
+      if (!liveClassId) {
+        return;
+      }
+
       try {
-        if (
-          isScreenSharing
-        ) {
-          stopScreenShare();
-          return;
+        setConnecting(true);
+
+        // Get camera
+        if (!localStreamRef.current) {
+          await getUserMedia();
         }
 
-        const screenStream =
-          await navigator.mediaDevices.getDisplayMedia(
-            {
-              video: true,
+        socketRef.current.emit(
+          "join-live-class",
+          {
+            liveClassId,
+          }
+        );
+      } catch (error) {
+        console.error(
+          "Join live class error:",
+          error
+        );
+
+        setError(
+          error?.message ||
+            "Unable to join live class."
+        );
+
+        setConnecting(false);
+      }
+    },
+    [
+      getUserMedia,
+      liveClassId,
+    ]
+  );
+
+
+  // ==========================================================
+  // CONNECT SOCKET
+  // ==========================================================
+
+  const connectSocket = useCallback(
+    async () => {
+      const token = getToken();
+
+      if (!token) {
+        setError(
+          "You are not authenticated. Please login again."
+        );
+
+        return;
+      }
+
+      try {
+        setConnecting(true);
+
+        const socket = io(
+          SOCKET_URL,
+          {
+            transports: ["websocket"],
+            auth: {
+              access_token: token,
+              token,
+            },
+            reconnection: true,
+            reconnectionAttempts: 5,
+          }
+        );
+
+        socketRef.current =
+          socket;
+
+        // ----------------------------------------------------
+        // CONNECT
+        // ----------------------------------------------------
+
+        socket.on(
+          "connect",
+          () => {
+            console.log(
+              "Socket connected:",
+              socket.id
+            );
+
+            setSocketConnected(true);
+          }
+        );
+
+        // ----------------------------------------------------
+        // AUTH SUCCESS
+        // ----------------------------------------------------
+
+        socket.on(
+          "socket-authenticated",
+          (data) => {
+            console.log(
+              "Socket authenticated:",
+              data
+            );
+
+            // If role not loaded from profile
+            if (data?.role) {
+              setRole(
+                data.role
+              );
             }
-          );
 
-        screenStreamRef.current =
-          screenStream;
-
-        const screenTrack =
-          screenStream.getVideoTracks()[0];
-
-        if (
-          localVideoRef.current
-        ) {
-          localVideoRef.current.srcObject =
-            screenStream;
-        }
-
-        const activePeerConnection =
-          getActivePeerConnection();
-
-        if (activePeerConnection) {
-          const sender =
-            activePeerConnection
-              .getSenders()
-              .find(
-                (item) =>
-                  item.track?.kind ===
-                  "video"
+            if (data?.userId) {
+              setUserId(
+                Number(data.userId)
               );
+            }
 
-          if (sender) {
-            await sender.replaceTrack(
-              screenTrack
+            // Join after socket auth
+            joinLiveClass();
+          }
+        );
+
+        // ----------------------------------------------------
+        // AUTH ERROR
+        // ----------------------------------------------------
+
+        socket.on(
+          "socket-auth-error",
+          (data) => {
+            console.error(
+              "Socket auth error:",
+              data
+            );
+
+            setError(
+              data?.message ||
+                "Socket authentication failed."
+            );
+
+            setConnecting(false);
+          }
+        );
+
+        // ----------------------------------------------------
+        // JOINED
+        // ----------------------------------------------------
+
+        socket.on(
+          "joined-live-class",
+          (data) => {
+            console.log(
+              "Joined live class:",
+              data
+            );
+
+            setJoined(true);
+            setConnecting(false);
+
+            // Existing participants
+            const participants =
+              data?.participants ||
+              [];
+
+            participants.forEach(
+              (participant) => {
+                participantsRef.current.set(
+                  participant.socketId,
+                  {
+                    socketId:
+                      participant.socketId,
+                    userId:
+                      participant.userId,
+                    role:
+                      participant.role,
+                    stream:
+                      null,
+                    cameraOn:
+                      true,
+                  }
+                );
+              }
+            );
+
+            updateRemoteParticipants();
+
+            // ------------------------------------------------
+            // IMPORTANT:
+            // Existing participant creates offer.
+            // This avoids both sides creating offer.
+            // ------------------------------------------------
+
+            participants.forEach(
+              (participant) => {
+                createOffer(
+                  participant.socketId,
+                  participant.userId,
+                  participant.role
+                );
+              }
             );
           }
-        }
-
-        screenTrack.onended = () => {
-          stopScreenShare();
-        };
-
-        setIsScreenSharing(true);
-
-      } catch (err) {
-        console.error(
-          "❌ Screen share error:",
-          err
         );
-      }
-    };
 
+        // ----------------------------------------------------
+        // PARTICIPANT JOINED
+        // ----------------------------------------------------
 
-  // =====================================================
-  // STOP SCREEN SHARE
-  // =====================================================
+        socket.on(
+          "participant-joined",
+          (data) => {
+            console.log(
+              "Participant joined:",
+              data
+            );
 
-  const stopScreenShare =
-    async () => {
-      try {
-        screenStreamRef.current
-          ?.getTracks()
-          .forEach(
-            (track) =>
-              track.stop()
-          );
+            const {
+              socketId,
+              userId,
+              role,
+            } = data;
 
-        screenStreamRef.current =
-          null;
+            if (!socketId) {
+              return;
+            }
 
-        const cameraTrack =
-          localStreamRef.current
-            ?.getVideoTracks()
-            ?. [0];
+            participantsRef.current.set(
+              socketId,
+              {
+                socketId,
+                userId,
+                role,
+                stream: null,
+                cameraOn: true,
+              }
+            );
 
-        const activePeerConnection =
-          getActivePeerConnection();
+            updateRemoteParticipants();
 
-        if (
-          cameraTrack &&
-          activePeerConnection
-        ) {
-          const sender =
-            activePeerConnection
-              .getSenders()
-              .find(
-                (item) =>
-                  item.track?.kind ===
-                  "video"
+            // Do NOT create offer here.
+            // Existing participant already
+            // receives this event and creates offer.
+          }
+        );
+
+        // ----------------------------------------------------
+        // PARTICIPANT LEFT
+        // ----------------------------------------------------
+
+        socket.on(
+          "participant-left",
+          (data) => {
+            console.log(
+              "Participant left:",
+              data
+            );
+
+            if (
+              data?.socketId
+            ) {
+              removeParticipant(
+                data.socketId
               );
+            }
+          }
+        );
 
-          if (sender) {
-            await sender.replaceTrack(
-              cameraTrack
+        // ----------------------------------------------------
+        // OFFER
+        // ----------------------------------------------------
+
+        socket.on(
+          "webrtc-offer",
+          handleOffer
+        );
+
+        // ----------------------------------------------------
+        // ANSWER
+        // ----------------------------------------------------
+
+        socket.on(
+          "webrtc-answer",
+          handleAnswer
+        );
+
+        // ----------------------------------------------------
+        // ICE
+        // ----------------------------------------------------
+
+        socket.on(
+          "webrtc-ice-candidate",
+          handleIceCandidate
+        );
+
+        // ----------------------------------------------------
+        // LIVE CLASS ERROR
+        // ----------------------------------------------------
+
+        socket.on(
+          "live-class-error",
+          (data) => {
+            console.error(
+              "Live class error:",
+              data
+            );
+
+            showMessage(
+              data?.message ||
+                "Live class error.",
+              "error"
             );
           }
-        }
+        );
 
-        if (
-          localVideoRef.current &&
-          localStreamRef.current
-        ) {
-          localVideoRef.current.srcObject =
-            localStreamRef.current;
-        }
+        // ----------------------------------------------------
+        // DISCONNECT
+        // ----------------------------------------------------
 
-        setIsScreenSharing(false);
+        socket.on(
+          "disconnect",
+          (reason) => {
+            console.log(
+              "Socket disconnected:",
+              reason
+            );
 
-      } catch (err) {
+            setSocketConnected(
+              false
+            );
+            setJoined(false);
+          }
+        );
+
+        // ----------------------------------------------------
+        // CONNECT ERROR
+        // ----------------------------------------------------
+
+        socket.on(
+          "connect_error",
+          (error) => {
+            console.error(
+              "Socket connection error:",
+              error
+            );
+
+            setConnecting(false);
+
+            setError(
+              "Unable to connect to live class server."
+            );
+          }
+        );
+      } catch (error) {
         console.error(
-          "❌ Stop screen share error:",
-          err
+          "Socket setup error:",
+          error
+        );
+
+        setConnecting(false);
+
+        setError(
+          error?.message ||
+            "Unable to connect."
         );
       }
-    };
+    },
+    [
+      createOffer,
+      handleAnswer,
+      handleIceCandidate,
+      handleOffer,
+      joinLiveClass,
+      removeParticipant,
+      showMessage,
+      updateRemoteParticipants,
+    ]
+  );
 
 
-  // =====================================================
-  // SEND CHAT
-  // =====================================================
+  // ==========================================================
+  // END LIVE CLASS API
+  // ==========================================================
 
-  const sendMessage = (e) => {
-    e?.preventDefault();
-
-    const trimmed =
-      message.trim();
-
-    if (!trimmed) {
+  const endLiveClass = async () => {
+    if (role !== "teacher") {
       return;
     }
 
-    if (
-      !socketRef.current ||
-      !socketRef.current.connected
-    ) {
-      console.warn(
-        "⚠️ Socket not connected"
+    if (!liveClassId) {
+      return;
+    }
+
+    try {
+      setEndingClass(true);
+
+      const token = getToken();
+
+      if (!token) {
+        throw new Error(
+          "Authentication token not found. Please login again."
+        );
+      }
+
+      await api.post(
+        `/live-classes/${liveClassId}/end`
       );
 
-      return;
+      showMessage(
+        "Live class ended successfully.",
+        "success"
+      );
+
+      setLiveClass(
+        (previous) => ({
+          ...previous,
+          isLive: false,
+          isCompleted: true,
+        })
+      );
+
+      // Leave socket room
+      socketRef.current?.emit(
+        "leave-live-class",
+        {
+          liveClassId,
+        }
+      );
+
+      // Cleanup
+      cleanupConnections();
+
+      setTimeout(() => {
+        navigate(
+          "/dashboard"
+        );
+      }, 800);
+    } catch (error) {
+      console.error(
+        "End live class error:",
+        error
+      );
+
+      showMessage(
+        error?.message ||
+          "Unable to end live class.",
+        "error"
+      );
+    } finally {
+      setEndingClass(false);
     }
-
-    const user =
-      getCurrentUser();
-
-    const chatData = {
-      liveClassId:
-        numericLiveClassId,
-
-      message: trimmed,
-
-      senderId:
-        user?.id || null,
-
-      senderName:
-        user?.name ||
-        user?.fullName ||
-        "User",
-
-      createdAt:
-        new Date().toISOString(),
-    };
-
-    socketRef.current.emit(
-      "chat-message",
-      chatData
-    );
-
-    setMessage("");
   };
 
 
-  // =====================================================
-  // CLEANUP MEDIA
-  // =====================================================
+  // ==========================================================
+  // CLEANUP CONNECTIONS
+  // ==========================================================
+
+  const cleanupConnections = useCallback(
+    () => {
+      console.log(
+        "Cleaning WebRTC connections..."
+      );
+
+      // ------------------------------------------------------
+      // Stop local media
+      // ------------------------------------------------------
+
+      if (
+        localStreamRef.current
+      ) {
+        localStreamRef.current
+          .getTracks()
+          .forEach((track) => {
+            track.stop();
+          });
+
+        localStreamRef.current =
+          null;
+      }
+
+      setLocalStream(null);
+
+      // ------------------------------------------------------
+      // Close peer connections
+      // ------------------------------------------------------
+
+      peerConnectionsRef.current.forEach(
+        (peerConnection) => {
+          try {
+            peerConnection.close();
+          } catch (error) {
+            console.warn(
+              "Peer close error:",
+              error
+            );
+          }
+        }
+      );
+
+      peerConnectionsRef.current.clear();
+
+      // ------------------------------------------------------
+      // Clear remote
+      // ------------------------------------------------------
+
+      remoteStreamsRef.current.clear();
+
+      participantsRef.current.clear();
+
+      setRemoteParticipants([]);
+
+      // ------------------------------------------------------
+      // Disconnect socket
+      // ------------------------------------------------------
+
+      if (socketRef.current) {
+        socketRef.current.removeAllListeners();
+
+        socketRef.current.disconnect();
+
+        socketRef.current =
+          null;
+      }
+
+      setSocketConnected(false);
+      setJoined(false);
+    },
+    []
+  );
+
+
+  // ==========================================================
+  // INITIAL LOAD
+  // ==========================================================
 
   useEffect(() => {
-    return () => {
-      console.log(
-        "🧹 Cleaning media resources"
-      );
+    mountedRef.current = true;
 
-      localStreamRef.current
-        ?.getTracks()
-        .forEach(
-          (track) =>
-            track.stop()
+    const initialize = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        // ----------------------------------------------------
+        // Validate ID
+        // ----------------------------------------------------
+        console.log("🔎 LiveClassRoom route id:", id);
+        console.log("🔎 Parsed liveClassId:", liveClassId);
+
+        if (
+          !Number.isInteger(
+            liveClassId
+          ) ||
+          liveClassId <= 0
+        ) {
+          throw new Error(
+            "Invalid live class ID."
+          );
+        }
+
+        // ----------------------------------------------------
+        // Load user
+        // ----------------------------------------------------
+
+        const user =
+          await getCurrentUser();
+
+        const currentRole =
+          String(
+            user?.role ||
+              user?.userRole ||
+              ""
+          ).toLowerCase();
+
+        const currentUserId =
+          Number(
+            user?.id ||
+              user?.userId
+          );
+
+        setRole(
+          currentRole
         );
 
-      screenStreamRef.current
-        ?.getTracks()
-        .forEach(
-          (track) =>
-            track.stop()
+        setUserId(
+          currentUserId
         );
 
-      peerConnectionRef.current
-        ?.close();
+        // ----------------------------------------------------
+        // Load live class
+        // ----------------------------------------------------
 
-      localStreamRef.current =
-        null;
+        const classData =
+          await loadLiveClass();
 
-      screenStreamRef.current =
-        null;
+        setLiveClass(
+          classData
+        );
 
-      peerConnectionRef.current =
-        null;
+        // ----------------------------------------------------
+        // Validate status
+        // ----------------------------------------------------
+
+        if (
+          classData?.isCancelled
+        ) {
+          throw new Error(
+            "This live class has been cancelled."
+          );
+        }
+
+        if (
+          classData?.isCompleted
+        ) {
+          throw new Error(
+            "This live class has already ended."
+          );
+        }
+
+        // ----------------------------------------------------
+        // Connect socket
+        // ----------------------------------------------------
+
+        await connectSocket();
+      } catch (error) {
+        console.error(
+          "Initialize LiveClassRoom error:",
+          error
+        );
+
+        if (
+          mountedRef.current
+        ) {
+          setError(
+            error?.message ||
+              "Unable to load live class."
+          );
+        }
+      } finally {
+        if (
+          mountedRef.current
+        ) {
+          setLoading(false);
+        }
+      }
     };
-  }, []);
+
+    initialize();
+
+    return () => {
+      mountedRef.current = false;
+
+      cleanupConnections();
+    };
+  }, [
+    cleanupConnections,
+    connectSocket,
+    getCurrentUser,
+    liveClassId,
+    loadLiveClass,
+  ]);
 
 
-  // =====================================================
+  // ==========================================================
+  // LEAVE ROOM
+  // ==========================================================
+
+  const handleLeave = () => {
+    if (socketRef.current) {
+      socketRef.current.emit(
+        "leave-live-class",
+        {
+          liveClassId,
+        }
+      );
+    }
+
+    cleanupConnections();
+
+    navigate(-1);
+  };
+
+
+  // ==========================================================
   // LOADING
-  // =====================================================
+  // ==========================================================
 
-  if (
-    loading &&
-    isValidLiveClassId
-  ) {
+  if (loading) {
     return (
       <Box
         sx={{
-          minHeight:
-            "calc(100vh - 80px)",
+          minHeight: "100vh",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          bgcolor:
+            "background.default",
         }}
       >
         <Stack
@@ -1521,9 +1618,7 @@ const startCameraAndMicrophone = async () => {
         >
           <CircularProgress />
 
-          <Typography
-            color="text.secondary"
-          >
+          <Typography>
             Loading live class...
           </Typography>
         </Stack>
@@ -1532,519 +1627,442 @@ const startCameraAndMicrophone = async () => {
   }
 
 
-  // =====================================================
-  // INVALID ID
-  // =====================================================
-
-  if (!isValidLiveClassId) {
-    return (
-      <Box
-        sx={{
-          p: 4,
-        }}
-      >
-        <Alert
-          severity="error"
-          sx={{
-            mb: 2,
-          }}
-        >
-          Invalid Live Class ID:{" "}
-          {liveClassId || "missing"}
-        </Alert>
-
-        <Button
-          variant="contained"
-          startIcon={<ArrowBack />}
-          onClick={() =>
-            navigate("/dashboard")
-          }
-        >
-          Back to Dashboard
-        </Button>
-      </Box>
-    );
-  }
-
-
-  // =====================================================
+  // ==========================================================
   // ERROR
-  // =====================================================
+  // ==========================================================
 
-  if (
-    error &&
-    !liveClass
-  ) {
+  if (error && !liveClass) {
     return (
       <Box
         sx={{
-          p: 4,
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          px: 2,
+          bgcolor:
+            "background.default",
         }}
       >
-        <Alert
-          severity="error"
+        <Card
           sx={{
-            mb: 2,
+            maxWidth: 500,
+            width: "100%",
+            borderRadius: 4,
           }}
         >
-          {error}
-        </Alert>
+          <CardContent>
+            <Stack
+              spacing={3}
+              alignItems="center"
+            >
+              <WarningAmberIcon
+                color="error"
+                sx={{
+                  fontSize: 60,
+                }}
+              />
 
-        <Button
-          variant="contained"
-          startIcon={<ArrowBack />}
-          onClick={() =>
-            navigate(-1)
-          }
-        >
-          Go Back
-        </Button>
+              <Typography
+                variant="h6"
+                fontWeight={700}
+                sx={{ textAlign: "center" }}
+              >
+                Unable to Open Live Class
+              </Typography>
+
+              <Alert
+                severity="error"
+                sx={{
+                  width: "100%",
+                }}
+              >
+                {error}
+              </Alert>
+
+              <Button
+                variant="contained"
+                startIcon={
+                  <ArrowBackIcon />
+                }
+                onClick={() =>
+                  navigate(-1)
+                }
+              >
+                Go Back
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
       </Box>
     );
   }
 
 
-  // =====================================================
+  // ==========================================================
   // MAIN UI
-  // =====================================================
+  // ==========================================================
 
   return (
     <Box
       sx={{
-        minHeight:
-          "calc(100vh - 80px)",
-        p: {
-          xs: 1.5,
-          md: 3,
-        },
+        minHeight: "100vh",
+        bgcolor:
+          "background.default",
+        pb: 5,
       }}
     >
-
-      {/* =================================================
+      {/* ====================================================
           HEADER
-      ================================================= */}
+      ==================================================== */}
 
-      <Paper
-        elevation={0}
+      <Box
         sx={{
-          p: 2,
-          mb: 2,
-          borderRadius: 3,
-          border: "1px solid",
-          borderColor: "divider",
+          px: {
+            xs: 2,
+            md: 4,
+          },
+          py: 2,
+          borderBottom: "1px solid",
+          borderColor:
+            "divider",
+          bgcolor:
+            "background.paper",
+          position: "sticky",
+          top: 0,
+          zIndex: 20,
         }}
       >
         <Stack
           direction={{
             xs: "column",
-            md: "row",
+            sm: "row",
           }}
+          spacing={2}
           justifyContent="space-between"
           alignItems={{
             xs: "flex-start",
-            md: "center",
+            sm: "center",
           }}
-          spacing={2}
         >
-
-          <Box>
-            <Typography
-              variant="h5"
-              fontWeight={800}
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+          >
+            <IconButton
+              onClick={handleLeave}
             >
-              {liveClass?.title ||
-                "Live Class"}
-            </Typography>
+              <ArrowBackIcon />
+            </IconButton>
 
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                mt: 0.5,
-              }}
-            >
-              {liveClass?.description ||
-                "Live classroom"}
-            </Typography>
-          </Box>
+            <Box>
+              <Typography
+                variant="h6"
+                fontWeight={700}
+              >
+                {liveClass?.title ||
+                  "Live Class"}
+              </Typography>
+
+              <Stack
+                direction="row"
+                spacing={1}
+                mt={0.5}
+              >
+                <Chip
+                  size="small"
+                  icon={
+                    <PeopleIcon />
+                  }
+                  label={`${remoteParticipants.length + 1} participant${
+                    remoteParticipants.length !==
+                    0
+                      ? "s"
+                      : ""
+                  }`}
+                />
+
+                <Chip
+                  size="small"
+                  color={
+                    socketConnected
+                      ? "success"
+                      : "default"
+                  }
+                  label={
+                    socketConnected
+                      ? "Connected"
+                      : "Connecting..."
+                  }
+                />
+              </Stack>
+            </Box>
+          </Stack>
 
           <Stack
             direction="row"
             spacing={1}
             alignItems="center"
           >
+            {role && (
+              <Chip
+                icon={
+                  role ===
+                  "teacher" ? (
+                    <SchoolIcon />
+                  ) : (
+                    <PersonIcon />
+                  )
+                }
+                label={
+                  role === "teacher"
+                    ? "Teacher"
+                    : "Student"
+                }
+                color="primary"
+              />
+            )}
 
-            <Chip
-              label={
-                isLive
-                  ? "LIVE"
-                  : "Not Live"
-              }
-              color={
-                isLive
-                  ? "error"
-                  : "default"
-              }
-              variant={
-                isLive
-                  ? "filled"
-                  : "outlined"
-              }
-            />
-
-            <Chip
-              icon={<People />}
-              label={`${participants.length} Participants`}
-              variant="outlined"
-            />
-
-            <Chip
-              label={
-                socketConnected
-                  ? "Connected"
-                  : "Offline"
-              }
-              color={
-                socketConnected
-                  ? "success"
-                  : "default"
-              }
-              variant="outlined"
-            />
-
+            {liveClass?.isLive ? (
+              <Chip
+                label="LIVE"
+                color="error"
+                sx={{
+                  fontWeight: 700,
+                }}
+              />
+            ) : (
+              <Chip
+                label="Not Started"
+                color="warning"
+              />
+            )}
           </Stack>
-
         </Stack>
-      </Paper>
+      </Box>
 
 
-      {error && (
-        <Alert
-          severity="warning"
-          sx={{
-            mb: 2,
-          }}
-        >
-          {error}
-        </Alert>
-      )}
-
-
-      {/* =================================================
-          MAIN CONTENT
-      ================================================= */}
+      {/* ====================================================
+          CONTENT
+      ==================================================== */}
 
       <Box
         sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "1fr",
-            lg: "minmax(0, 1fr) 340px",
+          maxWidth: 1500,
+          mx: "auto",
+          px: {
+            xs: 2,
+            md: 4,
           },
-          gap: 2,
+          pt: 3,
         }}
       >
+        {/* Error */}
+        {error && (
+          <Alert
+            severity="error"
+            sx={{
+              mb: 3,
+            }}
+            onClose={() =>
+              setError("")
+            }
+          >
+            {error}
+          </Alert>
+        )}
 
-        {/* =================================================
-            VIDEO AREA
-        ================================================= */}
 
-        <Paper
+        {/* ==================================================
+            CLASS INFO
+        ================================================== */}
+
+        <Card
           elevation={0}
           sx={{
-            p: 2,
+            mb: 3,
             borderRadius: 3,
             border: "1px solid",
-            borderColor: "divider",
+            borderColor:
+              "divider",
           }}
         >
+          <CardContent>
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              spacing={2}
+              justifyContent="space-between"
+            >
+              <Box>
+                <Typography
+                  variant="h5"
+                  fontWeight={700}
+                >
+                  {liveClass?.title}
+                </Typography>
 
-          <Box
+                {liveClass?.description && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      mt: 1,
+                    }}
+                  >
+                    {
+                      liveClass.description
+                    }
+                  </Typography>
+                )}
+              </Box>
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+              >
+                Scheduled:{" "}
+                {liveClass?.scheduledAt
+                  ? new Date(
+                      liveClass.scheduledAt
+                    ).toLocaleString()
+                  : "N/A"}
+              </Typography>
+            </Stack>
+          </CardContent>
+        </Card>
+
+
+        {/* ==================================================
+            VIDEO GRID
+        ================================================== */}
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm:
+                remoteParticipants.length ===
+                0
+                  ? "1fr"
+                  : "repeat(2, 1fr)",
+              lg:
+                remoteParticipants.length <=
+                1
+                  ? "repeat(2, 1fr)"
+                  : "repeat(3, 1fr)",
+            },
+            gap: 2,
+          }}
+        >
+          {/* LOCAL VIDEO */}
+
+          <VideoTile
+            stream={localStream}
+            muted
+            name="You"
+            role={role}
+            isLocal
+            cameraOn={cameraOn}
+          />
+
+
+          {/* REMOTE VIDEOS */}
+
+          {remoteParticipants.map(
+            (participant) => (
+              <VideoTile
+                key={
+                  participant.socketId
+                }
+                stream={
+                  participant.stream
+                }
+                name={`User ${participant.userId}`}
+                role={
+                  participant.role
+                }
+                cameraOn={
+                  participant.cameraOn !==
+                  false
+                }
+              />
+            )
+          )}
+        </Box>
+
+
+        {/* ==================================================
+            WAITING MESSAGE
+        ================================================== */}
+
+        {remoteParticipants.length ===
+          0 && (
+          <Card
+            elevation={0}
             sx={{
-              position: "relative",
-              backgroundColor: "black",
+              mt: 3,
               borderRadius: 3,
-              overflow: "hidden",
-              aspectRatio: "16 / 9",
-              width: "100%",
+              border: "1px solid",
+              borderColor:
+                "divider",
             }}
           >
-
-            {/* REMOTE VIDEO */}
-
-            <video
-              ref={remoteVideoRef}
-              autoPlay
-              playsInline
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                background: "#000",
-              }}
-            />
-
-            {/* LOCAL VIDEO */}
-
-            <Box
-              sx={{
-                position: "absolute",
-                right: 16,
-                bottom: 16,
-                width: {
-                  xs: 120,
-                  sm: 180,
-                  md: 220,
-                },
-                aspectRatio:
-                  "16 / 9",
-                borderRadius: 2,
-                overflow: "hidden",
-                backgroundColor:
-                  "#111",
-                border:
-                  "2px solid rgba(255,255,255,0.4)",
-                boxShadow:
-                  "0 8px 30px rgba(0,0,0,0.5)",
-              }}
-            >
-
-              <video
-                ref={localVideoRef}
-                autoPlay
-                muted
-                playsInline
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
-              />
-
-            </Box>
-
-
-            {/* NO VIDEO MESSAGE */}
-
-            {!isLive && (
-              <Box
-                sx={{
-                  position:
-                    "absolute",
-                  inset: 0,
-                  display: "flex",
-                  alignItems:
-                    "center",
-                  justifyContent:
-                    "center",
-                  flexDirection:
-                    "column",
-                  color: "white",
-                  background:
-                    "rgba(0,0,0,0.45)",
-                  textAlign: "center",
-                  p: 3,
-                }}
+            <CardContent>
+              <Stack
+                alignItems="center"
+                spacing={1}
+                py={2}
               >
-                <Videocam
+                <PeopleIcon
+                  color="disabled"
                   sx={{
-                    fontSize: 52,
-                    mb: 1,
+                    fontSize: 40,
                   }}
                 />
 
                 <Typography
-                  variant="h6"
-                  fontWeight={700}
+                  fontWeight={600}
                 >
-                  Live class hasn't started
+                  Waiting for participants
                 </Typography>
 
                 <Typography
                   variant="body2"
-                  sx={{
-                    mt: 0.5,
-                    opacity: 0.8,
-                  }}
+                  color="text.secondary"
+                  sx={{ textAlign: "center" }}
                 >
-                  Waiting for the teacher...
+                  Other participants will
+                  appear here when they join
+                  the live class.
                 </Typography>
-              </Box>
-            )}
-
-          </Box>
-
-
-          {/* =================================================
-              CONTROLS
-          ================================================= */}
-
-          <Stack
-            direction="row"
-            justifyContent="center"
-            spacing={1}
-            sx={{
-              mt: 2,
-              flexWrap: "wrap",
-              gap: 1,
-            }}
-          >
-
-            {/* CAMERA */}
-
-            <IconButton
-              onClick={toggleCamera}
-              color={
-                isCameraOn
-                  ? "primary"
-                  : "error"
-              }
-              sx={{
-                border: "1px solid",
-                borderColor:
-                  "divider",
-              }}
-            >
-              {isCameraOn ? (
-                <Videocam />
-              ) : (
-                <VideocamOff />
-              )}
-            </IconButton>
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
 
 
-            {/* MICROPHONE */}
+        {/* ==================================================
+            CONTROLS
+        ================================================== */}
 
-            <IconButton
-              onClick={toggleMicrophone}
-              color={
-                isMicOn
-                  ? "primary"
-                  : "error"
-              }
-              sx={{
-                border: "1px solid",
-                borderColor:
-                  "divider",
-              }}
-            >
-              {isMicOn ? (
-                <Mic />
-              ) : (
-                <MicOff />
-              )}
-            </IconButton>
-
-
-            {/* SCREEN SHARE */}
-
-            <IconButton
-              onClick={
-                toggleScreenShare
-              }
-              color={
-                isScreenSharing
-                  ? "success"
-                  : "default"
-              }
-              sx={{
-                border: "1px solid",
-                borderColor:
-                  "divider",
-              }}
-            >
-              {isScreenSharing ? (
-                <StopScreenShare />
-              ) : (
-                <ScreenShare />
-              )}
-            </IconButton>
-
-
-            {/* TEACHER START */}
-
-            {isTeacher &&
-              !isLive && (
-                <Button
-                  variant="contained"
-                  color="success"
-                  disabled={starting}
-                  onClick={
-                    handleStartClass
-                  }
-                  sx={{
-                    borderRadius: 2,
-                    textTransform:
-                      "none",
-                    fontWeight: 700,
-                  }}
-                >
-                  {starting
-                    ? "Starting..."
-                    : "Start Class"}
-                </Button>
-              )}
-
-
-            {/* TEACHER END */}
-
-            {isTeacher &&
-              isLive && (
-                <Button
-                  variant="contained"
-                  color="error"
-                  disabled={ending}
-                  startIcon={
-                    <CallEnd />
-                  }
-                  onClick={
-                    handleEndClass
-                  }
-                  sx={{
-                    borderRadius: 2,
-                    textTransform:
-                      "none",
-                    fontWeight: 700,
-                  }}
-                >
-                  {ending
-                    ? "Ending..."
-                    : "End Class"}
-                </Button>
-              )}
-
-          </Stack>
-
-        </Paper>
-
-
-        {/* =================================================
-            CHAT
-        ================================================= */}
-
-        <Paper
-          elevation={0}
+        <Box
           sx={{
-            borderRadius: 3,
-            border: "1px solid",
-            borderColor: "divider",
             display: "flex",
-            flexDirection: "column",
-            minHeight: {
-              xs: 450,
-              lg: 620,
-            },
-            maxHeight: {
-              lg: 700,
-            },
+            justifyContent: "center",
+            mt: 4,
           }}
         >
-
-          {/* CHAT HEADER */}
-
-          <Box
+          <Paper
+            elevation={4}
             sx={{
-              p: 2,
+              borderRadius: 5,
+              px: 2,
+              py: 1.5,
             }}
           >
             <Stack
@@ -2052,151 +2070,238 @@ const startCameraAndMicrophone = async () => {
               spacing={1}
               alignItems="center"
             >
-              <Chat />
+              {/* MIC */}
 
-              <Typography
-                variant="h6"
-                fontWeight={700}
+              <Tooltip
+                title={
+                  micOn
+                    ? "Mute microphone"
+                    : "Unmute microphone"
+                }
               >
-                Live Chat
-              </Typography>
-            </Stack>
-          </Box>
-
-          <Divider />
-
-
-          {/* MESSAGES */}
-
-          <Box
-            sx={{
-              flex: 1,
-              overflowY: "auto",
-              p: 2,
-            }}
-          >
-
-            {messages.length === 0 ? (
-              <Box
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  alignItems:
-                    "center",
-                  justifyContent:
-                    "center",
-                  textAlign: "center",
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
+                <IconButton
+                  onClick={
+                    toggleMic
+                  }
+                  sx={{
+                    width: 52,
+                    height: 52,
+                    bgcolor:
+                      micOn
+                        ? "action.hover"
+                        : "error.main",
+                    color:
+                      micOn
+                        ? "text.primary"
+                        : "#fff",
+                    "&:hover": {
+                      bgcolor:
+                        micOn
+                          ? "action.selected"
+                          : "error.dark",
+                    },
+                  }}
                 >
-                  No messages yet.
-                  <br />
-                  Start the conversation.
-                </Typography>
-              </Box>
-            ) : (
-              <Stack spacing={1.5}>
+                  {micOn ? (
+                    <MicIcon />
+                  ) : (
+                    <MicOffIcon />
+                  )}
+                </IconButton>
+              </Tooltip>
 
-                {messages.map(
-                  (item, index) => (
-                    <Box
-                      key={
-                        item?.id ||
-                        `${index}-${item?.createdAt || ""}`
-                      }
-                      sx={{
-                        p: 1.5,
-                        borderRadius: 2,
-                        backgroundColor:
-                          "action.hover",
-                      }}
-                    >
 
-                      <Typography
-                        variant="caption"
-                        fontWeight={700}
-                      >
-                        {item?.senderName ||
-                          "User"}
-                      </Typography>
+              {/* CAMERA */}
 
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          mt: 0.3,
-                          wordBreak:
-                            "break-word",
-                        }}
-                      >
-                        {item?.message ||
-                          ""}
-                      </Typography>
-
-                    </Box>
-                  )
-                )}
-
-                <div
-                  ref={chatEndRef}
-                />
-
-              </Stack>
-            )}
-
-          </Box>
-
-          {/* CHAT INPUT */}
-
-          <Divider />
-
-          <Box
-            component="form"
-            onSubmit={sendMessage}
-            sx={{
-              p: 1.5,
-            }}
-          >
-            <Stack
-              direction="row"
-              spacing={1}
-            >
-
-              <TextField
-                fullWidth
-                size="small"
-                value={message}
-                onChange={(e) =>
-                  setMessage(
-                    e.target.value
-                  )
-                }
-                placeholder="Type a message..."
-              />
-
-              <IconButton
-                type="submit"
-                color="primary"
-                disabled={
-                  !message.trim() ||
-                  !socketConnected
+              <Tooltip
+                title={
+                  cameraOn
+                    ? "Turn camera off"
+                    : "Turn camera on"
                 }
               >
-                <Send />
-              </IconButton>
+                <IconButton
+                  onClick={
+                    toggleCamera
+                  }
+                  sx={{
+                    width: 52,
+                    height: 52,
+                    bgcolor:
+                      cameraOn
+                        ? "action.hover"
+                        : "error.main",
+                    color:
+                      cameraOn
+                        ? "text.primary"
+                        : "#fff",
+                    "&:hover": {
+                      bgcolor:
+                        cameraOn
+                          ? "action.selected"
+                          : "error.dark",
+                    },
+                  }}
+                >
+                  {cameraOn ? (
+                    <VideocamIcon />
+                  ) : (
+                    <VideocamOffIcon />
+                  )}
+                </IconButton>
+              </Tooltip>
 
+
+              {/* LEAVE / END */}
+
+              {role ===
+              "teacher" ? (
+                <Tooltip title="End live class">
+                  <IconButton
+                    onClick={
+                      endLiveClass
+                    }
+                    disabled={
+                      endingClass
+                    }
+                    sx={{
+                      width: 58,
+                      height: 52,
+                      ml: 1,
+                      bgcolor:
+                        "error.main",
+                      color: "#fff",
+                      "&:hover": {
+                        bgcolor:
+                          "error.dark",
+                      },
+                    }}
+                  >
+                    {endingClass ? (
+                      <CircularProgress
+                        size={22}
+                        color="inherit"
+                      />
+                    ) : (
+                      <CallEndIcon />
+                    )}
+                  </IconButton>
+                </Tooltip>
+              ) : (
+                <Tooltip title="Leave live class">
+                  <IconButton
+                    onClick={
+                      handleLeave
+                    }
+                    sx={{
+                      width: 58,
+                      height: 52,
+                      ml: 1,
+                      bgcolor:
+                        "error.main",
+                      color: "#fff",
+                      "&:hover": {
+                        bgcolor:
+                          "error.dark",
+                      },
+                    }}
+                  >
+                    <CallEndIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
             </Stack>
-          </Box>
+          </Paper>
+        </Box>
 
-        </Paper>
 
+        {/* ==================================================
+            CONNECTING
+        ================================================== */}
+
+        {connecting && (
+          <Stack
+            direction="row"
+            spacing={1}
+            justifyContent="center"
+            alignItems="center"
+            sx={{
+              mt: 2,
+            }}
+          >
+            <CircularProgress
+              size={18}
+            />
+
+            <Typography
+              variant="body2"
+              color="text.secondary"
+            >
+              Connecting to live class...
+            </Typography>
+          </Stack>
+        )}
+
+
+        {/* ==================================================
+            STATUS
+        ================================================== */}
+
+        <Box
+          sx={{
+            mt: 3,
+            textAlign: "center",
+          }}
+        >
+          <Typography
+            variant="caption"
+            color="text.secondary"
+          >
+            {joined
+              ? "You are connected to the live class."
+              : "Connecting..."}
+          </Typography>
+        </Box>
       </Box>
 
+
+      {/* ====================================================
+          SNACKBAR
+      ==================================================== */}
+
+      <Snackbar
+        open={
+          snackbar.open
+        }
+        autoHideDuration={3500}
+        onClose={() =>
+          setSnackbar(
+            (prev) => ({
+              ...prev,
+              open: false,
+            })
+          )
+        }
+      >
+        <Alert
+          severity={
+            snackbar.severity
+          }
+          variant="filled"
+          onClose={() =>
+            setSnackbar(
+              (prev) => ({
+                ...prev,
+                open: false,
+              })
+            )
+          }
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
 
 export default LiveClassRoom;
-

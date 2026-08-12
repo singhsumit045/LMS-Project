@@ -204,8 +204,8 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         <Route
           path="/ai-assistant"
           element={
-              <AIAssistant />
-           
+            <AIAssistant />
+
           }
         />
 
@@ -242,10 +242,9 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
         />
 
         <Route
-          path="/live-class/:liveClassId"
+          path="/live-class/:id"
           element={<LiveClassRoom />}
         />
-
         {/* =================================================
             CREATE COURSE
             TEACHER + ADMIN

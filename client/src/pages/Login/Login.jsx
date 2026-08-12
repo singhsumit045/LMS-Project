@@ -86,14 +86,6 @@ const Login = () => {
 
             console.log("LOGIN SUCCESS:", response.data);
 
-            // Save token if backend returns it
-            if (response.data?.access_token) {
-                localStorage.setItem(
-                    "token",
-                    response.data.access_token
-                );
-            }
-
             // Save user information if available
             if (response.data?.user) {
                 localStorage.setItem(
@@ -101,7 +93,7 @@ const Login = () => {
                     JSON.stringify(response.data.user)
                 );
             }
-
+            
             navigate("/dashboard");
         } catch (error) {
             console.log("LOGIN ERROR:", error);

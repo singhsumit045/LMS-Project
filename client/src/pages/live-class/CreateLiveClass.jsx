@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -23,10 +22,6 @@ import VideoCallIcon from "@mui/icons-material/VideoCall";
 import SchoolIcon from "@mui/icons-material/School";
 
 import { createLiveClass } from "../../services/liveClassService";
-
-// IMPORTANT:
-// Apne existing courseService.js ke according function name check karo.
-// Agar tumhare paas getMyCourses nahi hai to mujhe courseService.js bhejna.
 import { getCourses } from "../../services/courseService";
 
 const CreateLiveClass = () => {
@@ -48,7 +43,6 @@ const CreateLiveClass = () => {
   // ==========================================
 
   const [courses, setCourses] = useState([]);
-
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [loading, setLoading] = useState(false);
 
@@ -56,7 +50,7 @@ const CreateLiveClass = () => {
   const [success, setSuccess] = useState("");
 
   // ==========================================
-  // GET TEACHER COURSES
+  // LOAD TEACHER COURSES
   // ==========================================
 
   useEffect(() => {
@@ -70,13 +64,15 @@ const CreateLiveClass = () => {
         console.log("Teacher Courses Response:", response);
 
         const data =
-          response?.data?.data ||
-          response?.data ||
+          response?.data?.data ??
+          response?.data ??
           [];
 
         const courseList = Array.isArray(data)
           ? data
-          : data?.courses || [];
+          : Array.isArray(data?.courses)
+          ? data.courses
+          : [];
 
         setCourses(courseList);
 
@@ -84,9 +80,15 @@ const CreateLiveClass = () => {
       } catch (err) {
         console.error("Load Courses Error:", err);
 
-        setError(
+        const message =
           err?.response?.data?.message ||
-            "Unable to load your courses."
+          err?.message ||
+          "Unable to load your courses.";
+
+        setError(
+          Array.isArray(message)
+            ? message.join(", ")
+            : message
         );
       } finally {
         setLoadingCourses(false);
@@ -97,7 +99,7 @@ const CreateLiveClass = () => {
   }, []);
 
   // ==========================================
-  // HANDLE INPUT CHANGE
+  // HANDLE INPUT
   // ==========================================
 
   const handleChange = (event) => {
@@ -123,7 +125,7 @@ const CreateLiveClass = () => {
     setSuccess("");
 
     // ------------------------------------------
-    // BASIC VALIDATION
+    // VALIDATION
     // ------------------------------------------
 
     if (!form.title.trim()) {
@@ -152,7 +154,7 @@ const CreateLiveClass = () => {
       setLoading(true);
 
       // ------------------------------------------
-      // CREATE LIVE CLASS
+      // PAYLOAD
       // ------------------------------------------
 
       const payload = {
@@ -164,6 +166,10 @@ const CreateLiveClass = () => {
 
       console.log("Creating Live Class:", payload);
 
+      // ------------------------------------------
+      // CREATE LIVE CLASS
+      // ------------------------------------------
+
       const response = await createLiveClass(payload);
 
       console.log(
@@ -171,17 +177,38 @@ const CreateLiveClass = () => {
         response
       );
 
+      console.log(
+        "Response Data:",
+        response?.data
+      );
+
       // ------------------------------------------
       // GET CREATED LIVE CLASS
       // ------------------------------------------
 
       const createdLiveClass =
+        response?.data?.data?.liveClass ||
         response?.data?.data ||
         response?.data?.liveClass ||
         response?.data;
 
+      console.log(
+        "Created Live Class:",
+        createdLiveClass
+      );
+
+      // ------------------------------------------
+      // GET ID
+      // ------------------------------------------
+
       const liveClassId = Number(
-        createdLiveClass?.id
+        createdLiveClass?.id ??
+          createdLiveClass?.liveClassId
+      );
+
+      console.log(
+        "Created Live Class ID:",
+        liveClassId
       );
 
       // ------------------------------------------
@@ -202,10 +229,9 @@ const CreateLiveClass = () => {
         );
       }
 
-      console.log(
-        "Created Live Class ID:",
-        liveClassId
-      );
+      // ------------------------------------------
+      // SUCCESS
+      // ------------------------------------------
 
       setSuccess(
         "Live class created successfully!"
@@ -222,10 +248,15 @@ const CreateLiveClass = () => {
         err
       );
 
-      setError(
+      const message =
         err?.response?.data?.message ||
-          err?.message ||
-          "Failed to create live class."
+        err?.message ||
+        "Failed to create live class.";
+
+      setError(
+        Array.isArray(message)
+          ? message.join(", ")
+          : message
       );
     } finally {
       setLoading(false);
@@ -241,6 +272,16 @@ const CreateLiveClass = () => {
   };
 
   // ==========================================
+  // SELECTED COURSE
+  // ==========================================
+
+  const selectedCourse = courses.find(
+    (course) =>
+      Number(course.id) ===
+      Number(form.courseId)
+  );
+
+  // ==========================================
   // UI
   // ==========================================
 
@@ -248,8 +289,14 @@ const CreateLiveClass = () => {
     <Box
       sx={{
         minHeight: "100vh",
-        py: { xs: 3, md: 6 },
-        px: { xs: 2, md: 4 },
+        py: {
+          xs: 3,
+          md: 6,
+        },
+        px: {
+          xs: 2,
+          md: 4,
+        },
         bgcolor: "background.default",
       }}
     >
@@ -260,7 +307,7 @@ const CreateLiveClass = () => {
         }}
       >
         {/* ======================================
-            BACK BUTTON
+            BACK
         ====================================== */}
 
         <Button
@@ -294,7 +341,10 @@ const CreateLiveClass = () => {
 
           <Box
             sx={{
-              px: { xs: 3, md: 5 },
+              px: {
+                xs: 3,
+                md: 5,
+              },
               py: 4,
               background:
                 "linear-gradient(135deg, #1565c0, #42a5f5)",
@@ -304,7 +354,9 @@ const CreateLiveClass = () => {
             <Stack
               direction="row"
               spacing={2}
-              alignItems="center"
+              sx={{
+                alignItems: "center",
+              }}
             >
               <Box
                 sx={{
@@ -314,7 +366,9 @@ const CreateLiveClass = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  bgcolor: "rgba(255,255,255,0.18)",
+                  bgcolor:
+                    "rgba(255,255,255,0.18)",
+                  flexShrink: 0,
                 }}
               >
                 <VideoCallIcon fontSize="large" />
@@ -335,15 +389,23 @@ const CreateLiveClass = () => {
                     opacity: 0.9,
                   }}
                 >
-                  Schedule a live class for your students
+                  Schedule a live class for your
+                  students
                 </Typography>
               </Box>
             </Stack>
           </Box>
 
+          {/* ====================================
+              CONTENT
+          ==================================== */}
+
           <CardContent
             sx={{
-              p: { xs: 3, md: 5 },
+              p: {
+                xs: 3,
+                md: 5,
+              },
             }}
           >
             <Box
@@ -351,25 +413,18 @@ const CreateLiveClass = () => {
               onSubmit={handleSubmit}
             >
               <Stack spacing={3}>
-
-                {/* ==================================
-                    ERROR
-                ================================== */}
+                {/* ERROR */}
 
                 {error && (
                   <Alert
                     severity="error"
                     onClose={() => setError("")}
                   >
-                    {Array.isArray(error)
-                      ? error.join(", ")
-                      : error}
+                    {error}
                   </Alert>
                 )}
 
-                {/* ==================================
-                    SUCCESS
-                ================================== */}
+                {/* SUCCESS */}
 
                 {success && (
                   <Alert severity="success">
@@ -377,9 +432,7 @@ const CreateLiveClass = () => {
                   </Alert>
                 )}
 
-                {/* ==================================
-                    TITLE
-                ================================== */}
+                {/* TITLE */}
 
                 <TextField
                   fullWidth
@@ -392,9 +445,7 @@ const CreateLiveClass = () => {
                   disabled={loading}
                 />
 
-                {/* ==================================
-                    COURSE DROPDOWN
-                ================================== */}
+                {/* COURSE */}
 
                 <FormControl
                   fullWidth
@@ -424,12 +475,16 @@ const CreateLiveClass = () => {
                       />
                     }
                   >
+                    {/* LOADING COURSES */}
+
                     {loadingCourses ? (
                       <MenuItem disabled>
                         <Stack
                           direction="row"
                           spacing={1}
-                          alignItems="center"
+                          sx={{
+                            alignItems: "center",
+                          }}
                         >
                           <CircularProgress
                             size={20}
@@ -441,10 +496,14 @@ const CreateLiveClass = () => {
                         </Stack>
                       </MenuItem>
                     ) : courses.length === 0 ? (
+                      /* NO COURSES */
+
                       <MenuItem disabled>
                         No courses found
                       </MenuItem>
                     ) : (
+                      /* COURSES */
+
                       courses.map((course) => (
                         <MenuItem
                           key={course.id}
@@ -459,35 +518,24 @@ const CreateLiveClass = () => {
                   </Select>
                 </FormControl>
 
-                {/* ==================================
-                    SELECTED COURSE INFO
-                ================================== */}
+                {/* SELECTED COURSE */}
 
-                {form.courseId && (
-                  <Alert
-                    severity="info"
-                    icon={<SchoolIcon />}
-                  >
-                    <strong>
-                      Selected Course:
-                    </strong>{" "}
-                    {courses.find(
-                      (course) =>
-                        Number(course.id) ===
-                        Number(form.courseId)
-                    )?.title ||
-                      courses.find(
-                        (course) =>
-                          Number(course.id) ===
-                          Number(form.courseId)
-                      )?.name ||
-                      "Selected course"}
-                  </Alert>
-                )}
+                {form.courseId &&
+                  selectedCourse && (
+                    <Alert
+                      severity="info"
+                      icon={<SchoolIcon />}
+                    >
+                      <strong>
+                        Selected Course:
+                      </strong>{" "}
+                      {selectedCourse.title ||
+                        selectedCourse.name ||
+                        `Course #${selectedCourse.id}`}
+                    </Alert>
+                  )}
 
-                {/* ==================================
-                    DESCRIPTION
-                ================================== */}
+                {/* DESCRIPTION */}
 
                 <TextField
                   fullWidth
@@ -501,9 +549,7 @@ const CreateLiveClass = () => {
                   disabled={loading}
                 />
 
-                {/* ==================================
-                    SCHEDULE
-                ================================== */}
+                {/* SCHEDULE */}
 
                 <TextField
                   fullWidth
@@ -512,16 +558,14 @@ const CreateLiveClass = () => {
                   name="scheduledAt"
                   value={form.scheduledAt}
                   onChange={handleChange}
-                  InputLabelProps={{
+                  slotProps={{
                     shrink: true,
                   }}
                   required
                   disabled={loading}
                 />
 
-                {/* ==================================
-                    BUTTONS
-                ================================== */}
+                {/* BUTTONS */}
 
                 <Stack
                   direction={{
@@ -529,9 +573,10 @@ const CreateLiveClass = () => {
                     sm: "row",
                   }}
                   spacing={2}
-                  justifyContent="flex-end"
+                  
                   sx={{
                     pt: 2,
+                    justifyContent: "flex-end",
                   }}
                 >
                   <Button
@@ -588,4 +633,3 @@ const CreateLiveClass = () => {
 };
 
 export default CreateLiveClass;
-

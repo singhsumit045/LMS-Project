@@ -75,6 +75,7 @@ export class PresenceGateway
       // =================================================
 
       const accessToken =
+        socket.handshake.auth?.token ||
         socket.handshake.auth?.access_token;
 
       if (!accessToken) {

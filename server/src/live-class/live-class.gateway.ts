@@ -8,16 +8,10 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 
-import {
-  Logger,
-} from '@nestjs/common';
-
+import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import {
-  Server,
-  Socket,
-} from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
 // ======================================================
 // AUTHENTICATED SOCKET
@@ -38,23 +32,23 @@ interface AuthenticatedSocket extends Socket {
 // ======================================================
 
 interface LiveClassPayload {
-  liveClassId: number;
+  liveClassId: number | string;
 }
 
 interface WebRTCOfferPayload {
-  liveClassId: number;
+  liveClassId: number | string;
   targetSocketId: string;
   offer: RTCSessionDescriptionInit;
 }
 
 interface WebRTCAnswerPayload {
-  liveClassId: number;
+  liveClassId: number | string;
   targetSocketId: string;
   answer: RTCSessionDescriptionInit;
 }
 
 interface WebRTCIcePayload {
-  liveClassId: number;
+  liveClassId: number | string;
   targetSocketId: string;
   candidate: RTCIceCandidateInit;
 }
@@ -69,17 +63,15 @@ interface WebRTCIcePayload {
     origin:
       process.env.FRONTEND_URL ||
       'http://localhost:5173',
-
     credentials: true,
   },
 })
 export class LiveClassGateway
-  implements
-    OnGatewayConnection,
-    OnGatewayDisconnect
+  implements OnGatewayConnection, OnGatewayDisconnect
 {
-  private readonly logger =
-    new Logger(LiveClassGateway.name);
+  private readonly logger = new Logger(
+    LiveClassGateway.name,
+  );
 
   @WebSocketServer()
   server!: Server;
@@ -97,24 +89,23 @@ export class LiveClassGateway
   ): Promise<void> {
     try {
       // ------------------------------------------------
-      // Get token
+      // GET TOKEN
+      // Accept BOTH token and access_token
       // ------------------------------------------------
 
       const token =
-        socket.handshake.auth?.token;
+        socket.handshake.auth?.token ||
+        socket.handshake.auth?.access_token;
 
       if (!token) {
         this.logger.warn(
           `Socket rejected: JWT token missing - ${socket.id}`,
         );
 
-        socket.emit(
-          'socket-auth-error',
-          {
-            message:
-              'Authentication token is missing.',
-          },
-        );
+        socket.emit('socket-auth-error', {
+          message:
+            'Authentication token is missing.',
+        });
 
         socket.disconnect(true);
 
@@ -122,14 +113,14 @@ export class LiveClassGateway
       }
 
       // ------------------------------------------------
-      // Verify JWT
+      // VERIFY JWT
       // ------------------------------------------------
 
       const payload =
         await this.jwtService.verifyAsync(token);
 
       // ------------------------------------------------
-      // Validate user id
+      // VALIDATE JWT PAYLOAD
       // ------------------------------------------------
 
       if (!payload?.sub) {
@@ -137,13 +128,10 @@ export class LiveClassGateway
           `Socket rejected: Invalid JWT payload - ${socket.id}`,
         );
 
-        socket.emit(
-          'socket-auth-error',
-          {
-            message:
-              'Invalid authentication token.',
-          },
-        );
+        socket.emit('socket-auth-error', {
+          message:
+            'Invalid authentication token.',
+        });
 
         socket.disconnect(true);
 
@@ -151,17 +139,17 @@ export class LiveClassGateway
       }
 
       // ------------------------------------------------
-      // Attach user to socket
+      // ATTACH USER
       // ------------------------------------------------
 
       socket.user = {
         id: Number(payload.sub),
-        role: payload.role,
+        role: payload.role || 'student',
         email: payload.email,
       };
 
       // ------------------------------------------------
-      // Connection success
+      // LOG
       // ------------------------------------------------
 
       this.logger.log(
@@ -173,23 +161,15 @@ export class LiveClassGateway
       );
 
       // ------------------------------------------------
-      // Send authentication success
+      // AUTH SUCCESS
       // ------------------------------------------------
 
-      socket.emit(
-        'socket-authenticated',
-        {
-          socketId: socket.id,
-          userId: socket.user.id,
-          role: socket.user.role,
-        },
-      );
+      socket.emit('socket-authenticated', {
+        socketId: socket.id,
+        userId: socket.user.id,
+        role: socket.user.role,
+      });
     } catch (error: unknown) {
-      // =================================================
-      // IMPORTANT:
-      // TypeScript safe error handling
-      // =================================================
-
       let message =
         'Socket authentication failed.';
 
@@ -201,12 +181,9 @@ export class LiveClassGateway
         `WebSocket access token rejected: ${message}`,
       );
 
-      socket.emit(
-        'socket-auth-error',
-        {
-          message,
-        },
-      );
+      socket.emit('socket-auth-error', {
+        message,
+      });
 
       socket.disconnect(true);
     }
@@ -219,20 +196,16 @@ export class LiveClassGateway
   handleDisconnect(
     socket: AuthenticatedSocket,
   ): void {
-    const userId =
-      socket.user?.id;
+    const userId = socket.user?.id;
 
     const liveClassId =
       socket.liveClassId;
 
     // --------------------------------------------------
-    // Notify room before leaving
+    // NOTIFY ROOM
     // --------------------------------------------------
 
-    if (
-      liveClassId &&
-      userId
-    ) {
+    if (liveClassId && userId) {
       const room =
         this.getRoomName(liveClassId);
 
@@ -270,23 +243,20 @@ export class LiveClassGateway
     socket: AuthenticatedSocket,
   ): void {
     // --------------------------------------------------
-    // Authentication check
+    // AUTHENTICATION
     // --------------------------------------------------
 
     if (!socket.user) {
-      socket.emit(
-        'socket-auth-error',
-        {
-          message:
-            'Socket is not authenticated.',
-        },
-      );
+      socket.emit('socket-auth-error', {
+        message:
+          'Socket is not authenticated.',
+      });
 
       return;
     }
 
     // --------------------------------------------------
-    // Validate live class id
+    // VALIDATE LIVE CLASS ID
     // --------------------------------------------------
 
     const liveClassId =
@@ -296,20 +266,20 @@ export class LiveClassGateway
       !Number.isInteger(liveClassId) ||
       liveClassId <= 0
     ) {
-      socket.emit(
-        'live-class-error',
-        {
-          message:
-            'Invalid live class ID.',
-        },
+      socket.emit('live-class-error', {
+        message:
+          'Invalid live class ID.',
+      });
+
+      this.logger.warn(
+        `Invalid live class ID received from ${socket.id}: ${data?.liveClassId}`,
       );
 
       return;
     }
 
     // --------------------------------------------------
-    // If already joined another class,
-    // leave previous room first.
+    // LEAVE PREVIOUS ROOM
     // --------------------------------------------------
 
     if (
@@ -323,26 +293,29 @@ export class LiveClassGateway
 
       socket.leave(previousRoom);
 
-      socket.to(previousRoom).emit(
-        'participant-left',
-        {
-          userId:
-            socket.user.id,
-          socketId:
-            socket.id,
-        },
-      );
+      socket
+        .to(previousRoom)
+        .emit(
+          'participant-left',
+          {
+            userId:
+              socket.user.id,
+
+            socketId:
+              socket.id,
+          },
+        );
     }
 
     // --------------------------------------------------
-    // Room
+    // ROOM NAME
     // --------------------------------------------------
 
     const room =
       this.getRoomName(liveClassId);
 
     // --------------------------------------------------
-    // Join room
+    // JOIN ROOM
     // --------------------------------------------------
 
     socket.join(room);
@@ -355,15 +328,17 @@ export class LiveClassGateway
     );
 
     // --------------------------------------------------
-    // Get existing sockets
+    // GET ROOM SOCKETS SAFELY
     // --------------------------------------------------
 
     const roomSockets =
-      this.server
-        .sockets
-        .adapter
-        .rooms
-        .get(room);
+      this.server?.sockets?.adapter?.rooms?.get(
+        room,
+      );
+
+    // --------------------------------------------------
+    // EXISTING PARTICIPANTS
+    // --------------------------------------------------
 
     const participants =
       roomSockets
@@ -374,7 +349,7 @@ export class LiveClassGateway
             )
             .map((socketId) => {
               const participant =
-                this.server.sockets.sockets.get(
+                this.server?.sockets?.sockets?.get(
                   socketId,
                 ) as
                   | AuthenticatedSocket
@@ -382,8 +357,10 @@ export class LiveClassGateway
 
               return {
                 socketId,
+
                 userId:
                   participant?.user?.id,
+
                 role:
                   participant?.user?.role,
               };
@@ -391,7 +368,7 @@ export class LiveClassGateway
         : [];
 
     // --------------------------------------------------
-    // Notify existing participants
+    // NOTIFY EXISTING PARTICIPANTS
     // --------------------------------------------------
 
     socket.to(room).emit(
@@ -409,14 +386,16 @@ export class LiveClassGateway
     );
 
     // --------------------------------------------------
-    // Confirm current user
+    // CONFIRM JOIN
     // --------------------------------------------------
 
     socket.emit(
       'joined-live-class',
       {
         liveClassId,
+
         room,
+
         socketId:
           socket.id,
 
@@ -428,6 +407,10 @@ export class LiveClassGateway
 
         participants,
       },
+    );
+
+    this.logger.log(
+      `User ${socket.user.id} successfully joined ${room}. Participants: ${participants.length}`,
     );
   }
 
@@ -461,13 +444,13 @@ export class LiveClassGateway
       this.getRoomName(liveClassId);
 
     // --------------------------------------------------
-    // Leave room
+    // LEAVE ROOM
     // --------------------------------------------------
 
     socket.leave(room);
 
     // --------------------------------------------------
-    // Clear current live class
+    // CLEAR CLASS
     // --------------------------------------------------
 
     if (
@@ -479,7 +462,7 @@ export class LiveClassGateway
     }
 
     // --------------------------------------------------
-    // Notify other participants
+    // NOTIFY
     // --------------------------------------------------
 
     socket.to(room).emit(
@@ -499,6 +482,132 @@ export class LiveClassGateway
   }
 
   // ====================================================
+  // LIVE CLASS STARTED
+  // ====================================================
+
+  @SubscribeMessage('live-class-started')
+  handleLiveClassStarted(
+    @MessageBody()
+    data: LiveClassPayload,
+
+    @ConnectedSocket()
+    socket: AuthenticatedSocket,
+  ): void {
+    if (!socket.user) {
+      return;
+    }
+
+    const liveClassId =
+      Number(data?.liveClassId);
+
+    if (
+      !Number.isInteger(liveClassId) ||
+      liveClassId <= 0
+    ) {
+      return;
+    }
+
+    const room =
+      this.getRoomName(liveClassId);
+
+    // --------------------------------------------------
+    // CHECK USER IS IN ROOM
+    // --------------------------------------------------
+
+    if (!socket.rooms.has(room)) {
+      this.logger.warn(
+        `User ${socket.user.id} tried to start class ${liveClassId} without joining room`,
+      );
+
+      return;
+    }
+
+    // --------------------------------------------------
+    // BROADCAST
+    // --------------------------------------------------
+
+    this.server.to(room).emit(
+      'live-class-started',
+      {
+        liveClassId,
+
+        startedBy:
+          socket.user.id,
+
+        startedByRole:
+          socket.user.role,
+      },
+    );
+
+    this.logger.log(
+      `Live class ${liveClassId} started by user ${socket.user.id}`,
+    );
+  }
+
+  // ====================================================
+  // LIVE CLASS ENDED
+  // ====================================================
+
+  @SubscribeMessage('live-class-ended')
+  handleLiveClassEnded(
+    @MessageBody()
+    data: LiveClassPayload,
+
+    @ConnectedSocket()
+    socket: AuthenticatedSocket,
+  ): void {
+    if (!socket.user) {
+      return;
+    }
+
+    const liveClassId =
+      Number(data?.liveClassId);
+
+    if (
+      !Number.isInteger(liveClassId) ||
+      liveClassId <= 0
+    ) {
+      return;
+    }
+
+    const room =
+      this.getRoomName(liveClassId);
+
+    // --------------------------------------------------
+    // CHECK USER IS IN ROOM
+    // --------------------------------------------------
+
+    if (!socket.rooms.has(room)) {
+      this.logger.warn(
+        `User ${socket.user.id} tried to end class ${liveClassId} without joining room`,
+      );
+
+      return;
+    }
+
+    // --------------------------------------------------
+    // BROADCAST
+    // --------------------------------------------------
+
+    this.server.to(room).emit(
+      'live-class-ended',
+      {
+        liveClassId,
+
+        endedBy:
+          socket.user.id,
+
+        endedByRole:
+          socket.user.role,
+      },
+    );
+
+    this.logger.log(
+      `Live class ${liveClassId} ended by user ${socket.user.id}`,
+    );
+  }
+
+  // ====================================================
   // WEBRTC OFFER
   // ====================================================
 
@@ -510,31 +619,30 @@ export class LiveClassGateway
     @ConnectedSocket()
     socket: AuthenticatedSocket,
   ): void {
-    // --------------------------------------------------
-    // Authentication
-    // --------------------------------------------------
-
     if (!socket.user) {
       return;
     }
 
-    // --------------------------------------------------
-    // Validate live class
-    // --------------------------------------------------
-
     const liveClassId =
       Number(data?.liveClassId);
 
+    // --------------------------------------------------
+    // CHECK SENDER
+    // --------------------------------------------------
+
     if (
       !socket.liveClassId ||
-      socket.liveClassId !==
-        liveClassId
+      socket.liveClassId !== liveClassId
     ) {
+      this.logger.warn(
+        `Offer rejected: user ${socket.user.id} is not in class ${liveClassId}`,
+      );
+
       return;
     }
 
     // --------------------------------------------------
-    // Validate payload
+    // VALIDATE
     // --------------------------------------------------
 
     if (
@@ -545,7 +653,7 @@ export class LiveClassGateway
     }
 
     // --------------------------------------------------
-    // Make sure target belongs to same room
+    // CHECK TARGET
     // --------------------------------------------------
 
     if (
@@ -554,11 +662,15 @@ export class LiveClassGateway
         liveClassId,
       )
     ) {
+      this.logger.warn(
+        `Offer target ${data.targetSocketId} is not in class ${liveClassId}`,
+      );
+
       return;
     }
 
     // --------------------------------------------------
-    // Send offer
+    // SEND OFFER
     // --------------------------------------------------
 
     this.server
@@ -581,6 +693,10 @@ export class LiveClassGateway
             data.offer,
         },
       );
+
+    this.logger.debug(
+      `WebRTC offer: ${socket.id} -> ${data.targetSocketId}`,
+    );
   }
 
   // ====================================================
@@ -595,31 +711,30 @@ export class LiveClassGateway
     @ConnectedSocket()
     socket: AuthenticatedSocket,
   ): void {
-    // --------------------------------------------------
-    // Authentication
-    // --------------------------------------------------
-
     if (!socket.user) {
       return;
     }
 
-    // --------------------------------------------------
-    // Validate live class
-    // --------------------------------------------------
-
     const liveClassId =
       Number(data?.liveClassId);
 
+    // --------------------------------------------------
+    // CHECK SENDER
+    // --------------------------------------------------
+
     if (
       !socket.liveClassId ||
-      socket.liveClassId !==
-        liveClassId
+      socket.liveClassId !== liveClassId
     ) {
+      this.logger.warn(
+        `Answer rejected: user ${socket.user.id} is not in class ${liveClassId}`,
+      );
+
       return;
     }
 
     // --------------------------------------------------
-    // Validate payload
+    // VALIDATE
     // --------------------------------------------------
 
     if (
@@ -630,7 +745,7 @@ export class LiveClassGateway
     }
 
     // --------------------------------------------------
-    // Validate target
+    // CHECK TARGET
     // --------------------------------------------------
 
     if (
@@ -639,11 +754,15 @@ export class LiveClassGateway
         liveClassId,
       )
     ) {
+      this.logger.warn(
+        `Answer target ${data.targetSocketId} is not in class ${liveClassId}`,
+      );
+
       return;
     }
 
     // --------------------------------------------------
-    // Send answer
+    // SEND ANSWER
     // --------------------------------------------------
 
     this.server
@@ -666,6 +785,10 @@ export class LiveClassGateway
             data.answer,
         },
       );
+
+    this.logger.debug(
+      `WebRTC answer: ${socket.id} -> ${data.targetSocketId}`,
+    );
   }
 
   // ====================================================
@@ -682,31 +805,30 @@ export class LiveClassGateway
     @ConnectedSocket()
     socket: AuthenticatedSocket,
   ): void {
-    // --------------------------------------------------
-    // Authentication
-    // --------------------------------------------------
-
     if (!socket.user) {
       return;
     }
 
-    // --------------------------------------------------
-    // Validate live class
-    // --------------------------------------------------
-
     const liveClassId =
       Number(data?.liveClassId);
 
+    // --------------------------------------------------
+    // CHECK SENDER
+    // --------------------------------------------------
+
     if (
       !socket.liveClassId ||
-      socket.liveClassId !==
-        liveClassId
+      socket.liveClassId !== liveClassId
     ) {
+      this.logger.warn(
+        `ICE rejected: user ${socket.user.id} is not in class ${liveClassId}`,
+      );
+
       return;
     }
 
     // --------------------------------------------------
-    // Validate payload
+    // VALIDATE
     // --------------------------------------------------
 
     if (
@@ -717,7 +839,7 @@ export class LiveClassGateway
     }
 
     // --------------------------------------------------
-    // Validate target
+    // CHECK TARGET
     // --------------------------------------------------
 
     if (
@@ -726,11 +848,15 @@ export class LiveClassGateway
         liveClassId,
       )
     ) {
+      this.logger.warn(
+        `ICE target ${data.targetSocketId} is not in class ${liveClassId}`,
+      );
+
       return;
     }
 
     // --------------------------------------------------
-    // Send ICE candidate
+    // SEND ICE
     // --------------------------------------------------
 
     this.server
@@ -753,6 +879,89 @@ export class LiveClassGateway
             data.candidate,
         },
       );
+
+    this.logger.debug(
+      `ICE candidate: ${socket.id} -> ${data.targetSocketId}`,
+    );
+  }
+
+  // ====================================================
+  // CHAT MESSAGE
+  // ====================================================
+
+  @SubscribeMessage('chat-message')
+  handleChatMessage(
+    @MessageBody()
+    data: any,
+
+    @ConnectedSocket()
+    socket: AuthenticatedSocket,
+  ): void {
+    if (!socket.user) {
+      return;
+    }
+
+    const liveClassId =
+      Number(data?.liveClassId);
+
+    if (
+      !Number.isInteger(liveClassId) ||
+      liveClassId <= 0
+    ) {
+      return;
+    }
+
+    const room =
+      this.getRoomName(liveClassId);
+
+    // --------------------------------------------------
+    // CHECK USER IN ROOM
+    // --------------------------------------------------
+
+    if (!socket.rooms.has(room)) {
+      return;
+    }
+
+    // --------------------------------------------------
+    // MESSAGE
+    // --------------------------------------------------
+
+    const message =
+      String(
+        data?.message || '',
+      ).trim();
+
+    if (!message) {
+      return;
+    }
+
+    const chatMessage = {
+      liveClassId,
+
+      senderId:
+        socket.user.id,
+
+      senderName:
+        data?.senderName ||
+        'User',
+
+      message,
+
+      createdAt:
+        data?.createdAt ||
+        new Date().toISOString(),
+    };
+
+    // --------------------------------------------------
+    // BROADCAST
+    // --------------------------------------------------
+
+    this.server
+      .to(room)
+      .emit(
+        'chat-message',
+        chatMessage,
+      );
   }
 
   // ====================================================
@@ -774,9 +983,11 @@ export class LiveClassGateway
     liveClassId: number,
   ): boolean {
     const targetSocket =
-      this.server.sockets.sockets.get(
+      this.server?.sockets?.sockets?.get(
         socketId,
-      );
+      ) as
+        | AuthenticatedSocket
+        | undefined;
 
     if (!targetSocket) {
       return false;
@@ -785,8 +996,6 @@ export class LiveClassGateway
     const room =
       this.getRoomName(liveClassId);
 
-    return targetSocket.rooms.has(
-      room,
-    );
+    return targetSocket.rooms.has(room);
   }
 }
