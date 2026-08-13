@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -90,9 +89,7 @@ const ManageCourses = () => {
       const response = await api.get("/courses/admin");
 
       setCourses(
-        Array.isArray(response.data)
-          ? response.data
-          : []
+        Array.isArray(response.data) ? response.data : []
       );
     } catch (error) {
       console.error("Failed to fetch admin courses:", error);
@@ -189,6 +186,13 @@ const ManageCourses = () => {
     });
 
     setEditDialogOpen(true);
+  };
+
+  const handleCloseEdit = () => {
+    if (updating) return;
+
+    setEditDialogOpen(false);
+    setEditCourse(null);
   };
 
   // =====================================================
@@ -299,6 +303,40 @@ const ManageCourses = () => {
     } finally {
       setDeleting(false);
     }
+  };
+
+  // =====================================================
+  // HELPERS
+  // =====================================================
+
+  const getTeacherName = (course) => {
+    return course?.teacher?.name || "N/A";
+  };
+
+  const getTeacherEmail = (course) => {
+    return course?.teacher?.email || "—";
+  };
+
+  const getTeacherInitial = (course) => {
+    return (
+      course?.teacher?.name
+        ?.charAt(0)
+        ?.toUpperCase() || "T"
+    );
+  };
+
+  const getTeacherImage = (course) => {
+    return course?.teacher?.profileImageUrl || undefined;
+  };
+
+  const getPrice = (price) => {
+    const numericPrice = Number(price);
+
+    if (!numericPrice) {
+      return "Free";
+    }
+
+    return `₹${numericPrice.toLocaleString("en-IN")}`;
   };
 
   // =====================================================
@@ -474,7 +512,9 @@ const ManageCourses = () => {
           <Stack
             direction="row"
             spacing={2}
-            alignItems="center"
+            sx={{
+              alignItems: "center",
+            }}
           >
             <Avatar
               sx={{
@@ -499,7 +539,9 @@ const ManageCourses = () => {
               <Typography
                 variant="h5"
                 fontWeight={800}
-                sx={{ mt: 0.3 }}
+                sx={{
+                  mt: 0.3,
+                }}
               >
                 {courses.length}
               </Typography>
@@ -529,7 +571,9 @@ const ManageCourses = () => {
           <Stack
             direction="row"
             spacing={2}
-            alignItems="center"
+            sx={{
+              alignItems: "center",
+            }}
           >
             <Avatar
               sx={{
@@ -554,7 +598,9 @@ const ManageCourses = () => {
               <Typography
                 variant="h5"
                 fontWeight={800}
-                sx={{ mt: 0.3 }}
+                sx={{
+                  mt: 0.3,
+                }}
               >
                 {categories.length}
               </Typography>
@@ -584,7 +630,9 @@ const ManageCourses = () => {
           <Stack
             direction="row"
             spacing={2}
-            alignItems="center"
+            sx={{
+              alignItems: "center",
+            }}
           >
             <Avatar
               sx={{
@@ -609,7 +657,9 @@ const ManageCourses = () => {
               <Typography
                 variant="h5"
                 fontWeight={800}
-                sx={{ mt: 0.3 }}
+                sx={{
+                  mt: 0.3,
+                }}
               >
                 {courses.reduce(
                   (total, course) =>
@@ -658,12 +708,14 @@ const ManageCourses = () => {
               setSearch(event.target.value)
             }
             placeholder="Search course, teacher, email or category..."
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon color="action" />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+              },
             }}
           />
 
@@ -843,9 +895,7 @@ const ManageCourses = () => {
               >
                 <Avatar
                   variant="rounded"
-                  src={
-                    course.thumbnail || undefined
-                  }
+                  src={course.thumbnail || undefined}
                   sx={{
                     width: 58,
                     height: 45,
@@ -893,11 +943,7 @@ const ManageCourses = () => {
                 }}
               >
                 <Avatar
-                  src={
-                    course.teacher
-                      ?.profileImageUrl ||
-                    undefined
-                  }
+                  src={getTeacherImage(course)}
                   sx={{
                     width: 38,
                     height: 38,
@@ -907,9 +953,7 @@ const ManageCourses = () => {
                     fontSize: "0.85rem",
                   }}
                 >
-                  {course.teacher?.name
-                    ?.charAt(0)
-                    ?.toUpperCase() || "T"}
+                  {getTeacherInitial(course)}
                 </Avatar>
 
                 <Box sx={{ minWidth: 0 }}>
@@ -918,8 +962,7 @@ const ManageCourses = () => {
                     fontWeight={600}
                     noWrap
                   >
-                    {course.teacher?.name ||
-                      "N/A"}
+                    {getTeacherName(course)}
                   </Typography>
 
                   <Typography
@@ -930,7 +973,7 @@ const ManageCourses = () => {
                       display: "block",
                     }}
                   >
-                    {course.teacher?.email || "—"}
+                    {getTeacherEmail(course)}
                   </Typography>
                 </Box>
               </Box>
@@ -939,9 +982,7 @@ const ManageCourses = () => {
 
               <Chip
                 size="small"
-                label={
-                  course.category || "General"
-                }
+                label={course.category || "General"}
                 icon={<CategoryIcon />}
                 sx={{
                   maxWidth: "100%",
@@ -954,11 +995,7 @@ const ManageCourses = () => {
                 variant="body2"
                 fontWeight={700}
               >
-                {Number(course.price) === 0
-                  ? "Free"
-                  : `₹${Number(
-                      course.price
-                    ).toLocaleString("en-IN")}`}
+                {getPrice(course.price)}
               </Typography>
 
               {/* STUDENTS */}
@@ -1110,9 +1147,7 @@ const ManageCourses = () => {
               >
                 <Avatar
                   variant="rounded"
-                  src={
-                    course.thumbnail || undefined
-                  }
+                  src={course.thumbnail || undefined}
                   sx={{
                     width: 65,
                     height: 50,
@@ -1123,7 +1158,12 @@ const ManageCourses = () => {
                   <LibraryBooksIcon />
                 </Avatar>
 
-                <Box sx={{ minWidth: 0 }}>
+                <Box
+                  sx={{
+                    minWidth: 0,
+                    flex: 1,
+                  }}
+                >
                   <Typography
                     fontWeight={800}
                     noWrap
@@ -1137,8 +1177,7 @@ const ManageCourses = () => {
                     color="text.secondary"
                     noWrap
                   >
-                    {course.category ||
-                      "General"}
+                    {course.category || "General"}
                   </Typography>
                 </Box>
               </Box>
@@ -1157,11 +1196,7 @@ const ManageCourses = () => {
                 }}
               >
                 <Avatar
-                  src={
-                    course.teacher
-                      ?.profileImageUrl ||
-                    undefined
-                  }
+                  src={getTeacherImage(course)}
                   sx={{
                     width: 40,
                     height: 40,
@@ -1169,9 +1204,7 @@ const ManageCourses = () => {
                     color: "white",
                   }}
                 >
-                  {course.teacher?.name
-                    ?.charAt(0)
-                    ?.toUpperCase() || "T"}
+                  {getTeacherInitial(course)}
                 </Avatar>
 
                 <Box sx={{ minWidth: 0 }}>
@@ -1180,8 +1213,7 @@ const ManageCourses = () => {
                     fontWeight={700}
                     noWrap
                   >
-                    {course.teacher?.name ||
-                      "N/A"}
+                    {getTeacherName(course)}
                   </Typography>
 
                   <Typography
@@ -1189,7 +1221,7 @@ const ManageCourses = () => {
                     color="text.secondary"
                     noWrap
                   >
-                    {course.teacher?.email || "—"}
+                    {getTeacherEmail(course)}
                   </Typography>
                 </Box>
               </Box>
@@ -1216,8 +1248,7 @@ const ManageCourses = () => {
                     variant="body2"
                     fontWeight={600}
                   >
-                    {course.category ||
-                      "General"}
+                    {course.category || "General"}
                   </Typography>
                 </Box>
 
@@ -1233,11 +1264,7 @@ const ManageCourses = () => {
                     variant="body2"
                     fontWeight={700}
                   >
-                    {Number(course.price) === 0
-                      ? "Free"
-                      : `₹${Number(
-                          course.price
-                        ).toLocaleString("en-IN")}`}
+                    {getPrice(course.price)}
                   </Typography>
                 </Box>
 
@@ -1276,9 +1303,13 @@ const ManageCourses = () => {
 
               {/* ACTIONS */}
 
-              <Stack
-                direction="row"
-                spacing={1}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "repeat(3, minmax(0, 1fr))",
+                  gap: 1,
+                }}
               >
                 <Button
                   fullWidth
@@ -1330,7 +1361,7 @@ const ManageCourses = () => {
                 >
                   Delete
                 </Button>
-              </Stack>
+              </Box>
             </Paper>
           ))
         )}
@@ -1374,7 +1405,7 @@ const ManageCourses = () => {
                 <Box
                   component="img"
                   src={selectedCourse.thumbnail}
-                  alt={selectedCourse.title}
+                  alt={selectedCourse.title || "Course"}
                   sx={{
                     width: "100%",
                     height: {
@@ -1392,7 +1423,8 @@ const ManageCourses = () => {
                 variant="h5"
                 fontWeight={800}
               >
-                {selectedCourse.title}
+                {selectedCourse.title ||
+                  "Untitled Course"}
               </Typography>
 
               <Typography
@@ -1420,11 +1452,7 @@ const ManageCourses = () => {
                 }}
               >
                 <Avatar
-                  src={
-                    selectedCourse.teacher
-                      ?.profileImageUrl ||
-                    undefined
-                  }
+                  src={getTeacherImage(selectedCourse)}
                   sx={{
                     width: 45,
                     height: 45,
@@ -1432,12 +1460,10 @@ const ManageCourses = () => {
                     color: "white",
                   }}
                 >
-                  {selectedCourse.teacher?.name
-                    ?.charAt(0)
-                    ?.toUpperCase() || "T"}
+                  {getTeacherInitial(selectedCourse)}
                 </Avatar>
 
-                <Box>
+                <Box sx={{ minWidth: 0 }}>
                   <Typography
                     variant="body2"
                     color="text.secondary"
@@ -1446,16 +1472,14 @@ const ManageCourses = () => {
                   </Typography>
 
                   <Typography fontWeight={700}>
-                    {selectedCourse.teacher?.name ||
-                      "N/A"}
+                    {getTeacherName(selectedCourse)}
                   </Typography>
 
                   <Typography
                     variant="caption"
                     color="text.secondary"
                   >
-                    {selectedCourse.teacher?.email ||
-                      "—"}
+                    {getTeacherEmail(selectedCourse)}
                   </Typography>
                 </Box>
               </Box>
@@ -1496,11 +1520,7 @@ const ManageCourses = () => {
                   </Typography>
 
                   <Typography fontWeight={700}>
-                    {Number(selectedCourse.price) === 0
-                      ? "Free"
-                      : `₹${Number(
-                          selectedCourse.price
-                        ).toLocaleString("en-IN")}`}
+                    {getPrice(selectedCourse.price)}
                   </Typography>
                 </Box>
 
@@ -1552,11 +1572,7 @@ const ManageCourses = () => {
 
       <Dialog
         open={editDialogOpen}
-        onClose={() => {
-          if (!updating) {
-            setEditDialogOpen(false);
-          }
-        }}
+        onClose={handleCloseEdit}
         fullWidth
         maxWidth="sm"
       >
@@ -1575,11 +1591,8 @@ const ManageCourses = () => {
           </Typography>
 
           <IconButton
-            onClick={() => {
-              if (!updating) {
-                setEditDialogOpen(false);
-              }
-            }}
+            onClick={handleCloseEdit}
+            disabled={updating}
           >
             <CloseIcon />
           </IconButton>
@@ -1638,8 +1651,10 @@ const ManageCourses = () => {
                     price: event.target.value,
                   })
                 }
-                inputProps={{
-                  min: 0,
+                slotProps={{
+                  htmlInput: {
+                    min: 0,
+                  },
                 }}
               />
 
@@ -1661,9 +1676,7 @@ const ManageCourses = () => {
 
         <DialogActions sx={{ p: 2 }}>
           <Button
-            onClick={() =>
-              setEditDialogOpen(false)
-            }
+            onClick={handleCloseEdit}
             disabled={updating}
             sx={{
               textTransform: "none",
@@ -1676,6 +1689,14 @@ const ManageCourses = () => {
             variant="contained"
             onClick={handleUpdateCourse}
             disabled={updating}
+            startIcon={
+              updating ? (
+                <CircularProgress
+                  size={18}
+                  color="inherit"
+                />
+              ) : null
+            }
             sx={{
               textTransform: "none",
             }}
@@ -1713,7 +1734,9 @@ const ManageCourses = () => {
           <Typography
             variant="body2"
             color="error"
-            sx={{ mt: 1 }}
+            sx={{
+              mt: 1,
+            }}
           >
             This action cannot be undone.
           </Typography>
@@ -1749,9 +1772,7 @@ const ManageCourses = () => {
               textTransform: "none",
             }}
           >
-            {deleting
-              ? "Deleting..."
-              : "Delete"}
+            {deleting ? "Deleting..." : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1782,4 +1803,3 @@ const ManageCourses = () => {
 };
 
 export default ManageCourses;
-

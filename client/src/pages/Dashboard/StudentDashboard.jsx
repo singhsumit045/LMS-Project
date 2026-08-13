@@ -589,11 +589,9 @@ const StudentDashboard = () => {
                         sx={{ mb: 5 }}
                     >
                         {liveClasses.map(
-                            (liveClass) => (
+                            (liveClass, index) => (
                                 <Grid
-                                    key={
-                                        liveClass.id
-                                    }
+                                    key={liveClass.id ?? `live-class-${index}`}
                                     size={{
                                         xs: 12,
                                         md: 6,
@@ -973,7 +971,7 @@ const StudentDashboard = () => {
                         sx={{ mb: 5 }}
                     >
                         {myCourses.map(
-                            (enrollment) => {
+                            (enrollment, index) => {
                                 const course =
                                     enrollment.course;
 
@@ -985,9 +983,7 @@ const StudentDashboard = () => {
 
                                 return (
                                     <Grid
-                                        key={
-                                            enrollment.id
-                                        }
+                                        key={enrollment.id ?? enrollment.course?.id ?? `enrollment-${index}`}
                                         size={{
                                             xs: 12,
                                             sm: 6,

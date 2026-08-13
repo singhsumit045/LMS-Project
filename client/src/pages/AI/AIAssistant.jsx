@@ -1,5 +1,5 @@
-
 import { useEffect, useRef, useState } from "react";
+
 import {
   Alert,
   Avatar,
@@ -34,7 +34,6 @@ const AIAssistant = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Used to automatically scroll to the latest message
   const messagesEndRef = useRef(null);
 
   // =========================
@@ -77,21 +76,8 @@ const AIAssistant = () => {
 
     try {
       const response = await aiService.chat(question);
+
       console.log("AI RESPONSE:", response);
-      /*
-       * Backend can return either:
-       *
-       * 1. {
-       *      success: true,
-       *      message: "React is..."
-       *    }
-       *
-       * OR
-       *
-       * 2. "React is..."
-       *
-       * Handle both formats.
-       */
 
       let aiMessage = "";
 
@@ -102,7 +88,7 @@ const AIAssistant = () => {
       } else if (response?.data?.message) {
         aiMessage = response.data.message;
       }
-      
+
       if (!aiMessage) {
         aiMessage =
           "Sorry, I could not generate a response.";
@@ -136,11 +122,6 @@ const AIAssistant = () => {
   // =========================
 
   const handleKeyDown = (event) => {
-    /*
-     * Enter = Send
-     * Shift + Enter = New line
-     */
-
     if (
       event.key === "Enter" &&
       !event.shiftKey
@@ -188,7 +169,7 @@ const AIAssistant = () => {
             sm: 3,
           },
         }}
-      > 
+      >
         {/* =========================
             HEADER
         ========================= */}
@@ -241,11 +222,12 @@ const AIAssistant = () => {
         {/* =========================
             CHAT AREA
         ========================= */}
+
         <Box
           sx={{
             flex: 1,
-
             overflowY: "auto",
+
             p: {
               xs: 2,
               sm: 3,
@@ -261,7 +243,7 @@ const AIAssistant = () => {
 
               return (
                 <Box
-                  key={index}
+                  key={`${item.role}-${index}`}
                   sx={{
                     display: "flex",
 
@@ -390,7 +372,9 @@ const AIAssistant = () => {
                   <Stack
                     direction="row"
                     spacing={1}
-                    alignItems="center"
+                    sx={{
+                      alignItems: "center",
+                    }}
                   >
                     <CircularProgress
                       size={18}
@@ -454,7 +438,9 @@ const AIAssistant = () => {
           <Stack
             direction="row"
             spacing={1}
-            alignItems="flex-end"
+            sx={{
+              alignItems: "flex-end",
+            }}
           >
             <TextField
               fullWidth
@@ -483,7 +469,6 @@ const AIAssistant = () => {
                 minWidth: 52,
                 width: 52,
                 height: 56,
-
                 borderRadius: 2,
               }}
             >
@@ -503,9 +488,7 @@ const AIAssistant = () => {
             color="text.secondary"
             sx={{
               display: "block",
-
               mt: 1,
-
               textAlign: "center",
             }}
           >
@@ -519,4 +502,3 @@ const AIAssistant = () => {
 };
 
 export default AIAssistant;
-

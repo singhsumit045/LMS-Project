@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 
 import {
@@ -16,10 +15,10 @@ import {
   MenuItem,
   Paper,
   Select,
+  Snackbar,
   Stack,
   TextField,
   Typography,
-  Snackbar,
 } from "@mui/material";
 
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -37,13 +36,10 @@ const AIQuizGenerator = () => {
   // =====================================================
 
   const [topic, setTopic] = useState("");
-
   const [numberOfQuestions, setNumberOfQuestions] =
     useState(5);
-
   const [difficulty, setDifficulty] =
     useState("medium");
-
   const [quiz, setQuiz] = useState(null);
 
   // =====================================================
@@ -51,9 +47,7 @@ const AIQuizGenerator = () => {
   // =====================================================
 
   const [courses, setCourses] = useState([]);
-
   const [courseId, setCourseId] = useState("");
-
   const [coursesLoading, setCoursesLoading] =
     useState(true);
 
@@ -62,11 +56,8 @@ const AIQuizGenerator = () => {
   // =====================================================
 
   const [loading, setLoading] = useState(false);
-
   const [saving, setSaving] = useState(false);
-
   const [error, setError] = useState("");
-
   const [successMessage, setSuccessMessage] =
     useState("");
 
@@ -84,16 +75,16 @@ const AIQuizGenerator = () => {
           "/enrollments/teacher/dashboard"
         );
 
-        const data = response.data || {};
+        const data = response?.data || {};
 
-        const teacherCourses =
-          Array.isArray(data.courses)
-            ? data.courses
-            : [];
+        const teacherCourses = Array.isArray(
+          data.courses
+        )
+          ? data.courses
+          : [];
 
         setCourses(teacherCourses);
 
-        // Automatically select first course
         if (teacherCourses.length > 0) {
           setCourseId(
             String(teacherCourses[0].id)
@@ -129,6 +120,11 @@ const AIQuizGenerator = () => {
       return;
     }
 
+    if (!courseId) {
+      setError("Please select a course first.");
+      return;
+    }
+
     if (loading) {
       return;
     }
@@ -148,7 +144,8 @@ const AIQuizGenerator = () => {
 
       if (!response?.success) {
         throw new Error(
-          "Quiz generation failed."
+          response?.message ||
+            "Quiz generation failed."
         );
       }
 
@@ -198,10 +195,6 @@ const AIQuizGenerator = () => {
     setSuccessMessage("");
 
     try {
-      // -------------------------------------------------
-      // Convert AI response into backend format
-      // -------------------------------------------------
-
       const questions =
         quiz.questions.map((question) => ({
           questionText:
@@ -230,10 +223,6 @@ const AIQuizGenerator = () => {
               : [],
         }));
 
-      // -------------------------------------------------
-      // Payload for POST /exams/ai-save
-      // -------------------------------------------------
-
       const payload = {
         title:
           quiz.title ||
@@ -246,8 +235,7 @@ const AIQuizGenerator = () => {
         duration:
           Number(quiz.duration) || 30,
 
-        courseId:
-          Number(courseId),
+        courseId: Number(courseId),
 
         questions,
       };
@@ -257,10 +245,6 @@ const AIQuizGenerator = () => {
         payload
       );
 
-      // -------------------------------------------------
-      // SAVE EXAM
-      // -------------------------------------------------
-
       const response = await api.post(
         "/exams/ai-save",
         payload
@@ -268,7 +252,7 @@ const AIQuizGenerator = () => {
 
       console.log(
         "AI Exam saved:",
-        response.data
+        response?.data
       );
 
       if (!response?.data?.success) {
@@ -279,7 +263,9 @@ const AIQuizGenerator = () => {
       }
 
       setSuccessMessage(
-        `Exam saved successfully! Exam ID: ${response.data.examId}`
+        `Exam saved successfully! Exam ID: ${
+          response.data.examId
+        }`
       );
     } catch (error) {
       console.error(
@@ -327,6 +313,10 @@ const AIQuizGenerator = () => {
     setSuccessMessage("");
   };
 
+  // =====================================================
+  // PAGE
+  // =====================================================
+
   return (
     <Container
       maxWidth="lg"
@@ -345,7 +335,6 @@ const AIQuizGenerator = () => {
         <Stack
           direction="row"
           spacing={2}
-          alignItems="center"
         >
           <Box
             sx={{
@@ -357,6 +346,7 @@ const AIQuizGenerator = () => {
               justifyContent: "center",
               bgcolor: "primary.main",
               color: "primary.contrastText",
+              flexShrink: 0,
             }}
           >
             <AutoAwesomeIcon />
@@ -402,10 +392,7 @@ const AIQuizGenerator = () => {
           }}
         >
           <Stack spacing={3}>
-
-            {/* =================================================
-                COURSE
-            ================================================= */}
+            {/* COURSE */}
 
             <FormControl fullWidth>
               <InputLabel>
@@ -449,9 +436,7 @@ const AIQuizGenerator = () => {
               </Select>
             </FormControl>
 
-            {/* =================================================
-                TOPIC / QUESTIONS / DIFFICULTY
-            ================================================= */}
+            {/* TOPIC / QUESTIONS / DIFFICULTY */}
 
             <Stack
               direction={{
@@ -477,32 +462,34 @@ const AIQuizGenerator = () => {
                 }
               />
 
-              {/* NUMBER OF QUESTIONS */}
+              {/* QUESTIONS */}
 
               <TextField
                 label="Questions"
                 type="number"
                 value={numberOfQuestions}
-                onChange={(event) =>
+                onChange={(event) => {
+                  const value =
+                    Number(
+                      event.target.value
+                    );
+
+                  if (
+                    Number.isNaN(value)
+                  ) {
+                    return;
+                  }
+
                   setNumberOfQuestions(
                     Math.min(
                       20,
-                      Math.max(
-                        1,
-                        Number(
-                          event.target.value
-                        )
-                      )
+                      Math.max(1, value)
                     )
-                  )
-                }
+                  );
+                }}
                 disabled={
                   loading || saving
                 }
-                inputProps={{
-                  min: 1,
-                  max: 20,
-                }}
                 sx={{
                   width: {
                     xs: "100%",
@@ -552,9 +539,7 @@ const AIQuizGenerator = () => {
               </FormControl>
             </Stack>
 
-            {/* =================================================
-                ACTIONS
-            ================================================= */}
+            {/* ACTIONS */}
 
             <Stack
               direction={{
@@ -614,9 +599,7 @@ const AIQuizGenerator = () => {
               </Button>
             </Stack>
 
-            {/* =================================================
-                ERROR
-            ================================================= */}
+            {/* ERROR */}
 
             {error && (
               <Alert
@@ -644,12 +627,14 @@ const AIQuizGenerator = () => {
               sm: "row",
             }}
             justifyContent="space-between"
-            alignItems={{
-              xs: "flex-start",
-              sm: "center",
-            }}
             spacing={1}
-            sx={{ mb: 2 }}
+            sx={{
+              mb: 2,
+              alignItems: {
+                xs: "flex-start",
+                sm: "center",
+              },
+            }}
           >
             <Box>
               <Typography
@@ -676,15 +661,16 @@ const AIQuizGenerator = () => {
             />
           </Stack>
 
-          {/* =================================================
-              QUESTIONS
-          ================================================= */}
+          {/* QUESTIONS */}
 
           <Stack spacing={2.5}>
             {quiz.questions.map(
               (question, index) => (
                 <Card
-                  key={index}
+                  key={
+                    question.id ||
+                    index
+                  }
                   elevation={2}
                   sx={{
                     borderRadius: 3,
@@ -703,8 +689,11 @@ const AIQuizGenerator = () => {
                     <Stack
                       direction="row"
                       spacing={1}
-                      alignItems="flex-start"
-                      sx={{ mb: 2 }}
+                      sx={{
+                        mb: 2,
+                        alignItems:
+                          "flex-start",
+                      }}
                     >
                       <Chip
                         label={`Q${
@@ -743,77 +732,82 @@ const AIQuizGenerator = () => {
                     {/* OPTIONS */}
 
                     <Stack spacing={1.2}>
-                      {question.options?.map(
-                        (
-                          option,
-                          optionIndex
-                        ) => {
-                          const optionLetter =
-                            String.fromCharCode(
-                              65 +
-                                optionIndex
-                            );
+                      {Array.isArray(
+                        question.options
+                      ) &&
+                        question.options.map(
+                          (
+                            option,
+                            optionIndex
+                          ) => {
+                            const optionLetter =
+                              String.fromCharCode(
+                                65 +
+                                  optionIndex
+                              );
 
-                          return (
-                            <Paper
-                              key={
-                                optionIndex
-                              }
-                              variant="outlined"
-                              sx={{
-                                p: 1.5,
-                                borderRadius: 2,
-
-                                borderColor:
-                                  option.isCorrect
-                                    ? "success.main"
-                                    : "divider",
-
-                                bgcolor:
-                                  option.isCorrect
-                                    ? "success.50"
-                                    : "background.paper",
-                              }}
-                            >
-                              <Stack
-                                direction="row"
-                                spacing={1.5}
-                                alignItems="center"
+                            return (
+                              <Paper
+                                key={
+                                  option.id ||
+                                  optionIndex
+                                }
+                                variant="outlined"
+                                sx={{
+                                  p: 1.5,
+                                  borderRadius: 2,
+                                  borderColor:
+                                    option.isCorrect
+                                      ? "success.main"
+                                      : "divider",
+                                  bgcolor:
+                                    option.isCorrect
+                                      ? "success.50"
+                                      : "background.paper",
+                                }}
                               >
-                                <Typography
-                                  fontWeight={700}
+                                <Stack
+                                  direction="row"
+                                  spacing={1.5}
                                   sx={{
-                                    minWidth: 24,
+                                    alignItems:
+                                      "center",
                                   }}
                                 >
-                                  {
-                                    optionLetter
-                                  }
-                                  .
-                                </Typography>
+                                  <Typography
+                                    fontWeight={700}
+                                    sx={{
+                                      minWidth: 24,
+                                    }}
+                                  >
+                                    {
+                                      optionLetter
+                                    }
+                                    .
+                                  </Typography>
 
-                                <Typography
-                                  sx={{
-                                    flex: 1,
-                                  }}
-                                >
-                                  {
-                                    option.optionText
-                                  }
-                                </Typography>
+                                  <Typography
+                                    sx={{
+                                      flex: 1,
+                                    }}
+                                  >
+                                    {
+                                      option.optionText
+                                    }
+                                  </Typography>
 
-                                {option.isCorrect && (
-                                  <Chip
-                                    label="Correct"
-                                    color="success"
-                                    size="small"
-                                  />
-                                )}
-                              </Stack>
-                            </Paper>
-                          );
-                        }
-                      )}
+                                  {option.isCorrect && (
+                                    <Chip
+                                      label="Correct"
+                                      color="success"
+                                      size="small"
+                                    />
+                                  )}
+                                </Stack>
+                              </Paper>
+                            );
+                          }
+                        )}
                     </Stack>
                   </CardContent>
                 </Card>
@@ -821,15 +815,14 @@ const AIQuizGenerator = () => {
             )}
           </Stack>
 
-          {/* =================================================
-              SAVE BUTTON
-          ================================================= */}
+          {/* SAVE BUTTON */}
 
           <Box
             sx={{
               mt: 4,
               display: "flex",
-              justifyContent: "center",
+              justifyContent:
+                "center",
             }}
           >
             <Button
@@ -868,12 +861,13 @@ const AIQuizGenerator = () => {
             </Button>
           </Box>
 
+          {/* SELECTED COURSE */}
+
           <Alert
             severity="info"
             sx={{ mt: 2 }}
           >
-            Selected course:
-            {" "}
+            Selected course:{" "}
             <strong>
               {courses.find(
                 (course) =>
@@ -922,4 +916,3 @@ const AIQuizGenerator = () => {
 };
 
 export default AIQuizGenerator;
-

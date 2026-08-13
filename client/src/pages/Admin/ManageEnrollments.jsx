@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -42,13 +41,8 @@ const ManageEnrollments = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Delete states
-  const [deleteDialogOpen, setDeleteDialogOpen] =
-    useState(false);
-
-  const [selectedEnrollment, setSelectedEnrollment] =
-    useState(null);
-
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
   // =====================================================
@@ -60,16 +54,13 @@ const ManageEnrollments = () => {
       setLoading(true);
       setError("");
 
-      const response = await api.get(
-        "/enrollments/admin"
-      );
+      const response = await api.get("/enrollments/admin");
 
-      setEnrollments(response.data);
-    } catch (error) {
-      console.error(
-        "Failed to fetch enrollments:",
-        error
+      setEnrollments(
+        Array.isArray(response.data) ? response.data : []
       );
+    } catch (error) {
+      console.error("Failed to fetch enrollments:", error);
 
       setError(
         error?.response?.data?.message ||
@@ -89,8 +80,7 @@ const ManageEnrollments = () => {
   // =====================================================
 
   const filteredEnrollments = useMemo(() => {
-    const searchText =
-      search.trim().toLowerCase();
+    const searchText = search.trim().toLowerCase();
 
     return enrollments.filter((enrollment) => {
       const studentName =
@@ -114,7 +104,8 @@ const ManageEnrollments = () => {
 
       const matchesStatus =
         statusFilter === "all" ||
-        enrollment.status === statusFilter;
+        (statusFilter === "Completed" && enrollment.completed) ||
+        (statusFilter === "In Progress" && !enrollment.completed);
 
       return matchesSearch && matchesStatus;
     });
@@ -124,18 +115,15 @@ const ManageEnrollments = () => {
   // STATISTICS
   // =====================================================
 
-  const totalEnrollments =
-    enrollments.length;
+  const totalEnrollments = enrollments.length;
 
-  const completedEnrollments =
-    enrollments.filter(
-      (item) => item.completed
-    ).length;
+  const completedEnrollments = enrollments.filter(
+    (item) => item.completed
+  ).length;
 
-  const inProgressEnrollments =
-    enrollments.filter(
-      (item) => !item.completed
-    ).length;
+  const inProgressEnrollments = enrollments.filter(
+    (item) => !item.completed
+  ).length;
 
   // =====================================================
   // DATE FORMAT
@@ -144,14 +132,17 @@ const ManageEnrollments = () => {
   const formatDate = (date) => {
     if (!date) return "—";
 
-    return new Date(date).toLocaleDateString(
-      "en-IN",
-      {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }
-    );
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return "—";
+    }
+
+    return parsedDate.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
   };
 
   // =====================================================
@@ -179,7 +170,7 @@ const ManageEnrollments = () => {
   // =====================================================
 
   const handleConfirmRemove = async () => {
-    if (!selectedEnrollment) return;
+    if (!selectedEnrollment?.enrollmentId) return;
 
     try {
       setDeleting(true);
@@ -189,7 +180,6 @@ const ManageEnrollments = () => {
         `/enrollments/admin/${selectedEnrollment.enrollmentId}`
       );
 
-      // Remove deleted enrollment from UI
       setEnrollments((prev) =>
         prev.filter(
           (item) =>
@@ -201,10 +191,7 @@ const ManageEnrollments = () => {
       setDeleteDialogOpen(false);
       setSelectedEnrollment(null);
     } catch (error) {
-      console.error(
-        "Failed to remove enrollment:",
-        error
-      );
+      console.error("Failed to remove enrollment:", error);
 
       setError(
         error?.response?.data?.message ||
@@ -249,9 +236,7 @@ const ManageEnrollments = () => {
         },
       }}
     >
-      {/* ================================================= */}
       {/* HEADER */}
-      {/* ================================================= */}
 
       <Box sx={{ mb: 3 }}>
         <Typography
@@ -273,14 +258,12 @@ const ManageEnrollments = () => {
           color="text.secondary"
           sx={{ mt: 0.5 }}
         >
-          Monitor student enrollments, course
-          progress and completion status.
+          Monitor student enrollments, course progress and
+          completion status.
         </Typography>
       </Box>
 
-      {/* ================================================= */}
       {/* ERROR */}
-      {/* ================================================= */}
 
       {error && (
         <Alert
@@ -292,9 +275,7 @@ const ManageEnrollments = () => {
         </Alert>
       )}
 
-      {/* ================================================= */}
       {/* STATISTICS */}
-      {/* ================================================= */}
 
       <Box
         sx={{
@@ -309,6 +290,7 @@ const ManageEnrollments = () => {
         }}
       >
         {/* TOTAL */}
+
         <Paper
           elevation={0}
           sx={{
@@ -335,10 +317,7 @@ const ManageEnrollments = () => {
                 Total Enrollments
               </Typography>
 
-              <Typography
-                variant="h5"
-                fontWeight={700}
-              >
+              <Typography variant="h5" fontWeight={700}>
                 {totalEnrollments}
               </Typography>
             </Box>
@@ -346,6 +325,7 @@ const ManageEnrollments = () => {
         </Paper>
 
         {/* COMPLETED */}
+
         <Paper
           elevation={0}
           sx={{
@@ -372,10 +352,7 @@ const ManageEnrollments = () => {
                 Completed
               </Typography>
 
-              <Typography
-                variant="h5"
-                fontWeight={700}
-              >
+              <Typography variant="h5" fontWeight={700}>
                 {completedEnrollments}
               </Typography>
             </Box>
@@ -383,6 +360,7 @@ const ManageEnrollments = () => {
         </Paper>
 
         {/* IN PROGRESS */}
+
         <Paper
           elevation={0}
           sx={{
@@ -409,10 +387,7 @@ const ManageEnrollments = () => {
                 In Progress
               </Typography>
 
-              <Typography
-                variant="h5"
-                fontWeight={700}
-              >
+              <Typography variant="h5" fontWeight={700}>
                 {inProgressEnrollments}
               </Typography>
             </Box>
@@ -420,9 +395,7 @@ const ManageEnrollments = () => {
         </Paper>
       </Box>
 
-      {/* ================================================= */}
       {/* SEARCH + FILTER */}
-      {/* ================================================= */}
 
       <Paper
         elevation={0}
@@ -455,12 +428,14 @@ const ManageEnrollments = () => {
             }
             placeholder="Search student, email, course or teacher..."
             size="small"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              },
             }}
           />
 
@@ -472,9 +447,7 @@ const ManageEnrollments = () => {
               setStatusFilter(event.target.value)
             }
           >
-            <MenuItem value="all">
-              All Status
-            </MenuItem>
+            <MenuItem value="all">All Status</MenuItem>
 
             <MenuItem value="Completed">
               Completed
@@ -487,9 +460,7 @@ const ManageEnrollments = () => {
         </Box>
       </Paper>
 
-      {/* ================================================= */}
       {/* DESKTOP TABLE */}
-      {/* ================================================= */}
 
       <Paper
         elevation={0}
@@ -518,9 +489,7 @@ const ManageEnrollments = () => {
             fontWeight: 700,
           }}
         >
-          <Typography variant="body2">
-            ID
-          </Typography>
+          <Typography variant="body2">ID</Typography>
 
           <Typography variant="body2">
             Student
@@ -573,122 +542,117 @@ const ManageEnrollments = () => {
             </Typography>
           </Box>
         ) : (
-          filteredEnrollments.map(
-            (enrollment) => (
-              <Box
-                key={enrollment.enrollmentId}
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "0.6fr 1.35fr 1.3fr 1.1fr 0.8fr 1fr 1fr 1.2fr",
-                  gap: 2,
-                  px: 2,
-                  py: 2,
-                  alignItems: "center",
-                  borderTop: "1px solid",
-                  borderColor: "divider",
-                }}
-              >
-                <Typography variant="body2">
-                  #{enrollment.enrollmentId}
-                </Typography>
+          filteredEnrollments.map((enrollment) => (
+            <Box
+              key={enrollment.enrollmentId}
+              sx={{
+                display: "grid",
+                gridTemplateColumns:
+                  "0.6fr 1.35fr 1.3fr 1.1fr 0.8fr 1fr 1fr 1.2fr",
+                gap: 2,
+                px: 2,
+                py: 2,
+                alignItems: "center",
+                borderTop: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Typography variant="body2">
+                #{enrollment.enrollmentId}
+              </Typography>
 
-                {/* STUDENT */}
+              {/* STUDENT */}
 
-                <Box>
-                  <Typography
-                    variant="body2"
-                    fontWeight={600}
-                  >
-                    {enrollment.student?.name ||
-                      "—"}
-                  </Typography>
-
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                  >
-                    {enrollment.student?.email ||
-                      "—"}
-                  </Typography>
-                </Box>
-
-                {/* COURSE */}
-
-                <Typography variant="body2">
-                  {enrollment.course?.title ||
-                    "—"}
-                </Typography>
-
-                {/* TEACHER */}
-
-                <Typography variant="body2">
-                  {enrollment.teacher?.name ||
-                    "—"}
-                </Typography>
-
-                {/* PROGRESS */}
-
+              <Box sx={{ minWidth: 0 }}>
                 <Typography
                   variant="body2"
                   fontWeight={600}
+                  noWrap
                 >
-                  {enrollment.progress ?? 0}%
+                  {enrollment.student?.name || "—"}
                 </Typography>
-
-                {/* STATUS */}
-
-                <Chip
-                  size="small"
-                  label={
-                    enrollment.completed
-                      ? "Completed"
-                      : "In Progress"
-                  }
-                  color={
-                    enrollment.completed
-                      ? "success"
-                      : "warning"
-                  }
-                />
-
-                {/* DATE */}
 
                 <Typography
-                  variant="body2"
+                  variant="caption"
                   color="text.secondary"
+                  noWrap
                 >
-                  {formatDate(
-                    enrollment.enrolledAt
-                  )}
+                  {enrollment.student?.email || "—"}
                 </Typography>
-
-                {/* ACTION */}
-
-                <Button
-                  size="small"
-                  color="error"
-                  variant="outlined"
-                  startIcon={
-                    <DeleteIcon />
-                  }
-                  onClick={() =>
-                    handleRemoveClick(
-                      enrollment
-                    )
-                  }
-                >
-                  Remove
-                </Button>
               </Box>
-            )
-          )
+
+              {/* COURSE */}
+
+              <Typography
+                variant="body2"
+                noWrap
+                title={enrollment.course?.title || ""}
+              >
+                {enrollment.course?.title || "—"}
+              </Typography>
+
+              {/* TEACHER */}
+
+              <Typography
+                variant="body2"
+                noWrap
+              >
+                {enrollment.teacher?.name || "—"}
+              </Typography>
+
+              {/* PROGRESS */}
+
+              <Typography
+                variant="body2"
+                fontWeight={600}
+              >
+                {enrollment.progress ?? 0}%
+              </Typography>
+
+              {/* STATUS */}
+
+              <Chip
+                size="small"
+                label={
+                  enrollment.completed
+                    ? "Completed"
+                    : "In Progress"
+                }
+                color={
+                  enrollment.completed
+                    ? "success"
+                    : "warning"
+                }
+              />
+
+              {/* DATE */}
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+              >
+                {formatDate(enrollment.enrolledAt)}
+              </Typography>
+
+              {/* ACTION */}
+
+              <Button
+                size="small"
+                color="error"
+                variant="outlined"
+                startIcon={<DeleteIcon />}
+                onClick={() =>
+                  handleRemoveClick(enrollment)
+                }
+              >
+                Remove
+              </Button>
+            </Box>
+          ))
         )}
       </Paper>
 
-      {/* ================================================= */}
       {/* MOBILE CARDS */}
-      {/* ================================================= */}
 
       <Box
         sx={{
@@ -714,164 +678,152 @@ const ManageEnrollments = () => {
             </Typography>
           </Paper>
         ) : (
-          filteredEnrollments.map(
-            (enrollment) => (
-              <Paper
-                key={enrollment.enrollmentId}
-                elevation={0}
+          filteredEnrollments.map((enrollment) => (
+            <Paper
+              key={enrollment.enrollmentId}
+              elevation={0}
+              sx={{
+                p: 2,
+                mb: 2,
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 3,
+              }}
+            >
+              {/* STUDENT + STATUS */}
+
+              <Box
                 sx={{
-                  p: 2,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: 1,
                   mb: 2,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  borderRadius: 3,
                 }}
               >
-                {/* STUDENT + STATUS */}
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography
+                    variant="body1"
+                    fontWeight={700}
+                    noWrap
+                  >
+                    {enrollment.student?.name || "—"}
+                  </Typography>
 
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent:
-                      "space-between",
-                    alignItems: "flex-start",
-                    gap: 1,
-                    mb: 2,
-                  }}
-                >
-                  <Box>
-                    <Typography
-                      variant="body1"
-                      fontWeight={700}
-                    >
-                      {enrollment.student?.name ||
-                        "—"}
-                    </Typography>
-
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                    >
-                      {enrollment.student?.email ||
-                        "—"}
-                    </Typography>
-                  </Box>
-
-                  <Chip
-                    size="small"
-                    label={
-                      enrollment.completed
-                        ? "Completed"
-                        : "In Progress"
-                    }
-                    color={
-                      enrollment.completed
-                        ? "success"
-                        : "warning"
-                    }
-                  />
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    noWrap
+                  >
+                    {enrollment.student?.email || "—"}
+                  </Typography>
                 </Box>
 
-                {/* DETAILS */}
+                <Chip
+                  size="small"
+                  label={
+                    enrollment.completed
+                      ? "Completed"
+                      : "In Progress"
+                  }
+                  color={
+                    enrollment.completed
+                      ? "success"
+                      : "warning"
+                  }
+                />
+              </Box>
 
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "1fr 1fr",
-                    gap: 2,
-                  }}
-                >
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                    >
-                      Course
-                    </Typography>
+              {/* DETAILS */}
 
-                    <Typography
-                      variant="body2"
-                      fontWeight={600}
-                    >
-                      {enrollment.course?.title ||
-                        "—"}
-                    </Typography>
-                  </Box>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 2,
+                }}
+              >
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    Course
+                  </Typography>
 
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                    >
-                      Teacher
-                    </Typography>
-
-                    <Typography variant="body2">
-                      {enrollment.teacher?.name ||
-                        "—"}
-                    </Typography>
-                  </Box>
-
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                    >
-                      Progress
-                    </Typography>
-
-                    <Typography
-                      variant="body2"
-                      fontWeight={600}
-                    >
-                      {enrollment.progress ?? 0}%
-                    </Typography>
-                  </Box>
-
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                    >
-                      Enrolled
-                    </Typography>
-
-                    <Typography variant="body2">
-                      {formatDate(
-                        enrollment.enrolledAt
-                      )}
-                    </Typography>
-                  </Box>
+                  <Typography
+                    variant="body2"
+                    fontWeight={600}
+                    noWrap
+                    title={enrollment.course?.title || ""}
+                  >
+                    {enrollment.course?.title || "—"}
+                  </Typography>
                 </Box>
 
-                {/* MOBILE REMOVE */}
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    Teacher
+                  </Typography>
 
-                <Button
-                  fullWidth
-                  color="error"
-                  variant="outlined"
-                  startIcon={
-                    <DeleteIcon />
-                  }
-                  onClick={() =>
-                    handleRemoveClick(
-                      enrollment
-                    )
-                  }
-                  sx={{ mt: 2 }}
-                >
-                  Remove Enrollment
-                </Button>
-              </Paper>
-            )
-          )
+                  <Typography variant="body2">
+                    {enrollment.teacher?.name || "—"}
+                  </Typography>
+                </Box>
+
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    Progress
+                  </Typography>
+
+                  <Typography
+                    variant="body2"
+                    fontWeight={600}
+                  >
+                    {enrollment.progress ?? 0}%
+                  </Typography>
+                </Box>
+
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    Enrolled
+                  </Typography>
+
+                  <Typography variant="body2">
+                    {formatDate(enrollment.enrolledAt)}
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* MOBILE REMOVE */}
+
+              <Button
+                fullWidth
+                color="error"
+                variant="outlined"
+                startIcon={<DeleteIcon />}
+                onClick={() =>
+                  handleRemoveClick(enrollment)
+                }
+                sx={{ mt: 2 }}
+              >
+                Remove Enrollment
+              </Button>
+            </Paper>
+          ))
         )}
       </Box>
 
-      {/* ================================================= */}
       {/* DELETE CONFIRMATION DIALOG */}
-      {/* ================================================= */}
 
       <Dialog
         open={deleteDialogOpen}
@@ -930,9 +882,7 @@ const ManageEnrollments = () => {
               )
             }
           >
-            {deleting
-              ? "Removing..."
-              : "Remove"}
+            {deleting ? "Removing..." : "Remove"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -941,4 +891,3 @@ const ManageEnrollments = () => {
 };
 
 export default ManageEnrollments;
-

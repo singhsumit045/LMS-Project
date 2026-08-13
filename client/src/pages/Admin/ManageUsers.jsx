@@ -1,35 +1,42 @@
 import {
-    Container,
-    Paper,
-    Typography,
-    Box,
-    CircularProgress,
     Alert,
-    Button,
-    TextField,
-    MenuItem,
-    Chip,
     Avatar,
+    Box,
+    Button,
+    Chip,
+    CircularProgress,
+    Container,
     IconButton,
-    Tooltip,
-    Stack,
+    MenuItem,
     Pagination,
+    Paper,
+    Stack,
+    TextField,
+    Tooltip,
+    Typography,
 } from "@mui/material";
 
 import {
-    People,
-    Search,
-    Refresh,
-    Delete,
-    Person,
-    School,
     AdminPanelSettings,
+    Delete,
+    People,
+    Person,
+    Refresh,
+    School,
+    Search,
 } from "@mui/icons-material";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 
 import api from "../../services/api";
 import socket from "../../services/socket";
+
+const USERS_PER_PAGE = 5;
 
 const ManageUsers = () => {
     // =====================================================
@@ -37,54 +44,44 @@ const ManageUsers = () => {
     // =====================================================
 
     const [users, setUsers] = useState([]);
-
     const [loading, setLoading] = useState(true);
-
     const [error, setError] = useState("");
-
     const [search, setSearch] = useState("");
-
     const [roleFilter, setRoleFilter] = useState("all");
-
-    // =====================================================
-    // PAGINATION
-    // =====================================================
-
     const [page, setPage] = useState(1);
-
-    // Only 5 users per page
-    const USERS_PER_PAGE = 5;
 
     // =====================================================
     // FETCH USERS
     // =====================================================
 
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         try {
             setLoading(true);
             setError("");
 
             const response = await api.get("/admin/users");
 
+            const data = response?.data;
+
             setUsers(
-                Array.isArray(response.data)
-                    ? response.data
+                Array.isArray(data)
+                    ? data
                     : []
             );
-        } catch (error) {
+        } catch (err) {
             console.error(
                 "Fetch users error:",
-                error
+                err
             );
 
             setError(
-                error.response?.data?.message ||
+                err?.response?.data?.message ||
                     "Unable to load users."
             );
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     // =====================================================
     // INITIAL LOAD
@@ -92,17 +89,20 @@ const ManageUsers = () => {
 
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [fetchUsers]);
 
     // =====================================================
     // SOCKET ONLINE / OFFLINE
     // =====================================================
 
     useEffect(() => {
-        const handleUserOnline = ({ userId }) => {
+        const handleUserOnline = ({
+            userId,
+        }) => {
             setUsers((prevUsers) =>
                 prevUsers.map((user) =>
-                    Number(user.id) === Number(userId)
+                    Number(user.id) ===
+                    Number(userId)
                         ? {
                               ...user,
                               isOnline: true,
@@ -112,10 +112,13 @@ const ManageUsers = () => {
             );
         };
 
-        const handleUserOffline = ({ userId }) => {
+        const handleUserOffline = ({
+            userId,
+        }) => {
             setUsers((prevUsers) =>
                 prevUsers.map((user) =>
-                    Number(user.id) === Number(userId)
+                    Number(user.id) ===
+                    Number(userId)
                         ? {
                               ...user,
                               isOnline: false,
@@ -152,71 +155,84 @@ const ManageUsers = () => {
     // DELETE USER
     // =====================================================
 
-    const handleDeleteUser = async (
-        userId,
-        userName
-    ) => {
-        const confirmed = window.confirm(
-            `Are you sure you want to delete ${userName}?`
-        );
+    const handleDeleteUser = useCallback(
+        async (userId, userName) => {
+            const confirmed =
+                window.confirm(
+                    `Are you sure you want to delete ${
+                        userName ||
+                        "this user"
+                    }?`
+                );
 
-        if (!confirmed) {
-            return;
-        }
+            if (!confirmed) {
+                return;
+            }
 
-        try {
-            setError("");
+            try {
+                setError("");
 
-            await api.delete(
-                `/admin/users/${userId}`
-            );
+                await api.delete(
+                    `/admin/users/${userId}`
+                );
 
-            // Remove deleted user directly
-            // instead of fetching everything again
-            setUsers((prevUsers) =>
-                prevUsers.filter(
-                    (user) =>
-                        Number(user.id) !==
-                        Number(userId)
-                )
-            );
+                setUsers((prevUsers) =>
+                    prevUsers.filter(
+                        (user) =>
+                            Number(user.id) !==
+                            Number(userId)
+                    )
+                );
+            } catch (err) {
+                console.error(
+                    "Delete user error:",
+                    err
+                );
 
-            // Pagination will be corrected
-            // automatically below
-        } catch (error) {
-            console.error(
-                "Delete user error:",
-                error
-            );
-
-            setError(
-                error.response?.data?.message ||
-                    "Unable to delete user."
-            );
-        }
-    };
+                setError(
+                    err?.response?.data
+                        ?.message ||
+                        "Unable to delete user."
+                );
+            }
+        },
+        []
+    );
 
     // =====================================================
     // FILTER USERS
     // =====================================================
 
     const filteredUsers = useMemo(() => {
+        const searchValue = search
+            .toLowerCase()
+            .trim();
+
         return users.filter((user) => {
-            const searchValue =
-                search.toLowerCase().trim();
+            const name = String(
+                user?.name || ""
+            ).toLowerCase();
+
+            const email = String(
+                user?.email || ""
+            ).toLowerCase();
+
+            const role = String(
+                user?.role || "student"
+            ).toLowerCase();
 
             const matchesSearch =
                 !searchValue ||
-                user.name
-                    ?.toLowerCase()
-                    .includes(searchValue) ||
-                user.email
-                    ?.toLowerCase()
-                    .includes(searchValue);
+                name.includes(
+                    searchValue
+                ) ||
+                email.includes(
+                    searchValue
+                );
 
             const matchesRole =
                 roleFilter === "all" ||
-                user.role === roleFilter;
+                role === roleFilter;
 
             return (
                 matchesSearch &&
@@ -230,7 +246,7 @@ const ManageUsers = () => {
     ]);
 
     // =====================================================
-    // PAGINATION CALCULATION
+    // PAGINATION
     // =====================================================
 
     const totalPages = Math.max(
@@ -246,10 +262,12 @@ const ManageUsers = () => {
     // =====================================================
 
     useEffect(() => {
-        if (page > totalPages) {
-            setPage(totalPages);
-        }
-    }, [page, totalPages]);
+        setPage((currentPage) =>
+            currentPage > totalPages
+                ? totalPages
+                : currentPage
+        );
+    }, [totalPages]);
 
     // =====================================================
     // PAGINATED USERS
@@ -260,13 +278,10 @@ const ManageUsers = () => {
             (page - 1) *
             USERS_PER_PAGE;
 
-        const endIndex =
-            startIndex +
-            USERS_PER_PAGE;
-
         return filteredUsers.slice(
             startIndex,
-            endIndex
+            startIndex +
+                USERS_PER_PAGE
         );
     }, [
         filteredUsers,
@@ -278,33 +293,34 @@ const ManageUsers = () => {
     // =====================================================
 
     const getRoleIcon = (role) => {
-        if (role === "admin") {
-            return (
-                <AdminPanelSettings
-                    sx={{
-                        fontSize: 17,
-                    }}
-                />
-            );
-        }
+        switch (role) {
+            case "admin":
+                return (
+                    <AdminPanelSettings
+                        sx={{
+                            fontSize: 17,
+                        }}
+                    />
+                );
 
-        if (role === "teacher") {
-            return (
-                <Person
-                    sx={{
-                        fontSize: 17,
-                    }}
-                />
-            );
-        }
+            case "teacher":
+                return (
+                    <Person
+                        sx={{
+                            fontSize: 17,
+                        }}
+                    />
+                );
 
-        return (
-            <School
-                sx={{
-                    fontSize: 17,
-                }}
-            />
-        );
+            default:
+                return (
+                    <School
+                        sx={{
+                            fontSize: 17,
+                        }}
+                    />
+                );
+        }
     };
 
     // =====================================================
@@ -312,27 +328,32 @@ const ManageUsers = () => {
     // =====================================================
 
     const getRoleColor = (role) => {
-        if (role === "admin") {
-            return "error";
-        }
+        switch (role) {
+            case "admin":
+                return "error";
 
-        if (role === "teacher") {
-            return "warning";
-        }
+            case "teacher":
+                return "warning";
 
-        return "success";
+            default:
+                return "success";
+        }
     };
 
     // =====================================================
-    // USER INITIAL
+    // INITIAL
     // =====================================================
 
     const getInitial = (name) => {
-        if (!name) {
+        const safeName = String(
+            name || ""
+        ).trim();
+
+        if (!safeName) {
             return "U";
         }
 
-        return name
+        return safeName
             .charAt(0)
             .toUpperCase();
     };
@@ -342,10 +363,15 @@ const ManageUsers = () => {
     // =====================================================
 
     const renderAvatar = (user) => {
+        const image =
+            user?.profileImageUrl ||
+            "";
+
         return (
             <Box
                 sx={{
-                    position: "relative",
+                    position:
+                        "relative",
                     width: 50,
                     height: 50,
                     flexShrink: 0,
@@ -353,51 +379,47 @@ const ManageUsers = () => {
             >
                 <Avatar
                     src={
-                        user.profileImageUrl ||
-                        undefined
+                        image || undefined
                     }
                     alt={
-                        user.name || "User"
+                        user?.name ||
+                        "User"
                     }
                     sx={{
                         width: 50,
                         height: 50,
-                        bgcolor: "primary.main",
+                        bgcolor:
+                            "primary.main",
                         fontWeight: 700,
-                        fontSize: "1rem",
+                        fontSize:
+                            "1rem",
                     }}
                 >
-                    {!user.profileImageUrl &&
+                    {!image &&
                         getInitial(
-                            user.name
+                            user?.name
                         )}
                 </Avatar>
 
-                {/* =================================================
-                    ONLINE DOT
-                ================================================= */}
-
-                {user.isOnline && (
+                {user?.isOnline && (
                     <Box
+                        aria-label="Online"
                         sx={{
-                            position: "absolute",
-
+                            position:
+                                "absolute",
                             width: 12,
                             height: 12,
-
-                            borderRadius: "50%",
-
-                            backgroundColor:
-                                "#32CD32",
-
+                            borderRadius:
+                                "50%",
+                            bgcolor:
+                                "success.main",
                             border:
-                                "2px solid white",
-
+                                "2px solid",
+                            borderColor:
+                                "background.paper",
                             right: -1,
                             bottom: -1,
-
                             zIndex: 2,
-
                             boxSizing:
                                 "border-box",
                         }}
@@ -405,6 +427,48 @@ const ManageUsers = () => {
                 )}
             </Box>
         );
+    };
+
+    // =====================================================
+    // SEARCH
+    // =====================================================
+
+    const handleSearchChange = (
+        event
+    ) => {
+        setSearch(
+            event.target.value
+        );
+        setPage(1);
+    };
+
+    // =====================================================
+    // ROLE FILTER
+    // =====================================================
+
+    const handleRoleChange = (
+        event
+    ) => {
+        setRoleFilter(
+            event.target.value
+        );
+        setPage(1);
+    };
+
+    // =====================================================
+    // PAGE CHANGE
+    // =====================================================
+
+    const handlePageChange = (
+        _event,
+        value
+    ) => {
+        setPage(value);
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
     };
 
     // =====================================================
@@ -417,8 +481,10 @@ const ManageUsers = () => {
                 sx={{
                     minHeight: "70vh",
                     display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
+                    justifyContent:
+                        "center",
+                    alignItems:
+                        "center",
                 }}
             >
                 <CircularProgress />
@@ -453,25 +519,25 @@ const ManageUsers = () => {
                         sm: 2.5,
                         md: 3,
                     },
-
                     mb: 2.5,
-
                     borderRadius: 3,
-
                     border: "1px solid",
-
-                    borderColor: "divider",
+                    borderColor:
+                        "divider",
                 }}
             >
-                <Stack
-                    direction={{
-                        xs: "column",
-                        sm: "row",
-                    }}
-                    spacing={1.5}
-                    alignItems={{
-                        xs: "flex-start",
-                        sm: "center",
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: {
+                            xs: "column",
+                            sm: "row",
+                        },
+                        gap: 1.5,
+                        alignItems: {
+                            xs: "flex-start",
+                            sm: "center",
+                        },
                     }}
                 >
                     <Avatar
@@ -488,6 +554,7 @@ const ManageUsers = () => {
                     <Box
                         sx={{
                             flex: 1,
+                            minWidth: 0,
                         }}
                     >
                         <Typography
@@ -514,8 +581,9 @@ const ManageUsers = () => {
                                 },
                             }}
                         >
-                            View and manage all
-                            users registered on
+                            View and manage
+                            all users
+                            registered on
                             LearnHub.
                         </Typography>
                     </Box>
@@ -523,8 +591,12 @@ const ManageUsers = () => {
                     <Button
                         variant="outlined"
                         size="small"
-                        startIcon={<Refresh />}
-                        onClick={fetchUsers}
+                        startIcon={
+                            <Refresh />
+                        }
+                        onClick={
+                            fetchUsers
+                        }
                         sx={{
                             textTransform:
                                 "none",
@@ -534,7 +606,7 @@ const ManageUsers = () => {
                     >
                         Refresh
                     </Button>
-                </Stack>
+                </Box>
             </Paper>
 
             {/* =================================================
@@ -567,22 +639,22 @@ const ManageUsers = () => {
                         xs: 1.5,
                         sm: 2,
                     },
-
                     mb: 2,
-
                     borderRadius: 3,
-
                     border: "1px solid",
-
-                    borderColor: "divider",
+                    borderColor:
+                        "divider",
                 }}
             >
-                <Stack
-                    direction={{
-                        xs: "column",
-                        sm: "row",
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: {
+                            xs: "column",
+                            sm: "row",
+                        },
+                        gap: 1.5,
                     }}
-                    spacing={1.5}
                 >
                     {/* SEARCH */}
 
@@ -590,13 +662,9 @@ const ManageUsers = () => {
                         fullWidth
                         size="small"
                         value={search}
-                        onChange={(event) => {
-                            setSearch(
-                                event.target.value
-                            );
-
-                            setPage(1);
-                        }}
+                        onChange={
+                            handleSearchChange
+                        }
                         placeholder="Search by name or email..."
                         label="Search Users"
                         slotProps={{
@@ -615,20 +683,18 @@ const ManageUsers = () => {
                         }}
                     />
 
-                    {/* ROLE FILTER */}
+                    {/* ROLE */}
 
                     <TextField
                         select
                         size="small"
                         label="Role"
-                        value={roleFilter}
-                        onChange={(event) => {
-                            setRoleFilter(
-                                event.target.value
-                            );
-
-                            setPage(1);
-                        }}
+                        value={
+                            roleFilter
+                        }
+                        onChange={
+                            handleRoleChange
+                        }
                         sx={{
                             minWidth: {
                                 xs: "100%",
@@ -652,26 +718,22 @@ const ManageUsers = () => {
                             Admins
                         </MenuItem>
                     </TextField>
-                </Stack>
+                </Box>
             </Paper>
 
             {/* =================================================
-                USER COUNT
+                COUNT
             ================================================= */}
 
             <Box
                 sx={{
                     mb: 1.5,
-
                     display: "flex",
-
                     justifyContent:
                         "space-between",
-
                     alignItems: "center",
-
-                    flexWrap: "wrap",
-
+                    flexWrap:
+                        "wrap",
                     gap: 1,
                 }}
             >
@@ -696,7 +758,8 @@ const ManageUsers = () => {
                           } users`}
                 </Typography>
 
-                {filteredUsers.length > 0 && (
+                {filteredUsers.length >
+                    0 && (
                     <Typography
                         variant="body2"
                         color="text.secondary"
@@ -709,18 +772,21 @@ const ManageUsers = () => {
             </Box>
 
             {/* =================================================
-                USERS
+                NO USERS
             ================================================= */}
 
-            {filteredUsers.length === 0 ? (
+            {filteredUsers.length ===
+            0 ? (
                 <Paper
                     elevation={0}
                     sx={{
                         p: 4,
-                        textAlign: "center",
+                        textAlign:
+                            "center",
                         borderRadius: 3,
                         border: "1px solid",
-                        borderColor: "divider",
+                        borderColor:
+                            "divider",
                     }}
                 >
                     <People
@@ -743,7 +809,8 @@ const ManageUsers = () => {
                         color="text.secondary"
                         sx={{
                             mt: 0.5,
-                            fontSize: "0.9rem",
+                            fontSize:
+                                "0.9rem",
                         }}
                     >
                         Try changing your
@@ -757,216 +824,218 @@ const ManageUsers = () => {
                         USER LIST
                     ================================================= */}
 
-                    <Stack spacing={1.2}>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection:
+                                "column",
+                            gap: 1.2,
+                        }}
+                    >
                         {paginatedUsers.map(
-                            (user) => (
-                                <Paper
-                                    key={user.id}
-                                    elevation={0}
-                                    sx={{
-                                        p: {
-                                            xs: 1.5,
-                                            sm: 1.7,
-                                        },
+                            (user) => {
+                                const role =
+                                    String(
+                                        user?.role ||
+                                            "student"
+                                    ).toLowerCase();
 
-                                        borderRadius: 2.5,
-
-                                        border:
-                                            "1px solid",
-
-                                        borderColor:
-                                            "divider",
-
-                                        transition:
-                                            "all 0.2s ease",
-
-                                        "&:hover":
-                                            {
-                                                transform:
-                                                    "translateY(-2px)",
-
-                                                boxShadow:
-                                                    "0 6px 18px rgba(0,0,0,0.06)",
+                                return (
+                                    <Paper
+                                        key={
+                                            user.id
+                                        }
+                                        elevation={
+                                            0
+                                        }
+                                        sx={{
+                                            p: {
+                                                xs: 1.5,
+                                                sm: 1.7,
                                             },
-                                    }}
-                                >
-                                    <Stack
-                                        direction={{
-                                            xs: "column",
-                                            sm: "row",
-                                        }}
-                                        spacing={{
-                                            xs: 1.2,
-                                            sm: 1.5,
-                                        }}
-                                        alignItems={{
-                                            xs: "flex-start",
-                                            sm: "center",
+                                            borderRadius: 2.5,
+                                            border: "1px solid",
+                                            borderColor:
+                                                "divider",
+                                            transition:
+                                                "transform 0.2s ease, box-shadow 0.2s ease",
+                                            "&:hover":
+                                                {
+                                                    transform:
+                                                        "translateY(-2px)",
+                                                    boxShadow:
+                                                        "0 6px 18px rgba(0,0,0,0.06)",
+                                                },
                                         }}
                                     >
-                                        {/* =================================================
-                                            PROFILE AVATAR
-                                        ================================================= */}
-
-                                        {renderAvatar(
-                                            user
-                                        )}
-
-                                        {/* =================================================
-                                            USER INFO
-                                        ================================================= */}
+                                        {/* USER ROW */}
 
                                         <Box
                                             sx={{
-                                                flex: 1,
-                                                minWidth: 0,
+                                                display:
+                                                    "flex",
+                                                flexDirection:
+                                                    {
+                                                        xs: "column",
+                                                        sm: "row",
+                                                    },
+                                                gap: {
+                                                    xs: 1.2,
+                                                    sm: 1.5,
+                                                },
+                                                alignItems:
+                                                    {
+                                                        xs: "flex-start",
+                                                        sm: "center",
+                                                    },
                                             }}
                                         >
-                                            <Typography
-                                                fontWeight={
-                                                    700
-                                                }
-                                                fontSize={{
-                                                    xs: "0.95rem",
-                                                    sm: "1rem",
-                                                }}
+                                            {/* AVATAR */}
+
+                                            {renderAvatar(
+                                                user
+                                            )}
+
+                                            {/* USER INFO */}
+
+                                            <Box
                                                 sx={{
-                                                    wordBreak:
-                                                        "break-word",
+                                                    flex: 1,
+                                                    minWidth: 0,
                                                 }}
                                             >
-                                                {user.name ||
-                                                    "Unknown User"}
-                                            </Typography>
+                                                <Typography
+                                                    fontWeight={
+                                                        700
+                                                    }
+                                                    fontSize={{
+                                                        xs: "0.95rem",
+                                                        sm: "1rem",
+                                                    }}
+                                                    sx={{
+                                                        wordBreak:
+                                                            "break-word",
+                                                    }}
+                                                >
+                                                    {user?.name ||
+                                                        "Unknown User"}
+                                                </Typography>
+
+                                                <Typography
+                                                    variant="body2"
+                                                    color="text.secondary"
+                                                    fontSize={{
+                                                        xs: "0.78rem",
+                                                        sm: "0.82rem",
+                                                    }}
+                                                    sx={{
+                                                        wordBreak:
+                                                            "break-word",
+                                                    }}
+                                                >
+                                                    {user?.email ||
+                                                        "No email"}
+                                                </Typography>
+
+                                                {user?.isOnline && (
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            mt: 0.2,
+                                                            color:
+                                                                "success.main",
+                                                            fontWeight:
+                                                                600,
+                                                            fontSize:
+                                                                "0.75rem",
+                                                        }}
+                                                    >
+                                                        Online
+                                                    </Typography>
+                                                )}
+                                            </Box>
+
+                                            {/* ROLE */}
+
+                                            <Chip
+                                                size="small"
+                                                icon={getRoleIcon(
+                                                    role
+                                                )}
+                                                label={
+                                                    role
+                                                }
+                                                color={getRoleColor(
+                                                    role
+                                                )}
+                                                variant="outlined"
+                                                sx={{
+                                                    textTransform:
+                                                        "capitalize",
+                                                    fontWeight:
+                                                        600,
+                                                    fontSize:
+                                                        "0.72rem",
+                                                    height: 28,
+                                                    "& .MuiChip-icon":
+                                                        {
+                                                            fontSize: 16,
+                                                        },
+                                                }}
+                                            />
+
+                                            {/* USER ID */}
 
                                             <Typography
                                                 variant="body2"
                                                 color="text.secondary"
-                                                fontSize={{
-                                                    xs: "0.78rem",
-                                                    sm: "0.82rem",
-                                                }}
+                                                fontSize="0.78rem"
                                                 sx={{
-                                                    wordBreak:
-                                                        "break-word",
+                                                    display:
+                                                        {
+                                                            xs: "none",
+                                                            md: "block",
+                                                        },
+                                                    minWidth: 55,
                                                 }}
                                             >
+                                                ID:{" "}
                                                 {
-                                                    user.email
+                                                    user.id
                                                 }
                                             </Typography>
 
-                                            {/* ONLINE TEXT */}
+                                            {/* DELETE */}
 
-                                            {user.isOnline && (
-                                                <Typography
-                                                    variant="body2"
+                                            <Tooltip title="Delete User">
+                                                <IconButton
+                                                    color="error"
+                                                    size="small"
+                                                    aria-label={`Delete ${
+                                                        user?.name ||
+                                                        "user"
+                                                    }`}
+                                                    onClick={() =>
+                                                        handleDeleteUser(
+                                                            user.id,
+                                                            user.name
+                                                        )
+                                                    }
                                                     sx={{
-                                                        mt: 0.2,
-                                                        color:
-                                                            "success.main",
-                                                        fontWeight:
-                                                            600,
-                                                        fontSize:
-                                                            "0.75rem",
+                                                        ml: {
+                                                            sm: 0.5,
+                                                        },
                                                     }}
                                                 >
-                                                    Online
-                                                </Typography>
-                                            )}
+                                                    <Delete fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
                                         </Box>
-
-                                        {/* =================================================
-                                            ROLE
-                                        ================================================= */}
-
-                                        <Chip
-                                            size="small"
-                                            icon={getRoleIcon(
-                                                user.role
-                                            )}
-                                            label={
-                                                user.role ||
-                                                "student"
-                                            }
-                                            color={getRoleColor(
-                                                user.role
-                                            )}
-                                            variant="outlined"
-                                            sx={{
-                                                textTransform:
-                                                    "capitalize",
-
-                                                fontWeight:
-                                                    600,
-
-                                                fontSize:
-                                                    "0.72rem",
-
-                                                height: 28,
-
-                                                "& .MuiChip-icon":
-                                                    {
-                                                        fontSize: 16,
-                                                    },
-                                            }}
-                                        />
-
-                                        {/* =================================================
-                                            USER ID
-                                        ================================================= */}
-
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                            fontSize="0.78rem"
-                                            sx={{
-                                                display: {
-                                                    xs: "none",
-                                                    md: "block",
-                                                },
-
-                                                minWidth: 55,
-                                            }}
-                                        >
-                                            ID:{" "}
-                                            {
-                                                user.id
-                                            }
-                                        </Typography>
-
-                                        {/* =================================================
-                                            DELETE
-                                        ================================================= */}
-
-                                        <Tooltip
-                                            title="Delete User"
-                                        >
-                                            <IconButton
-                                                color="error"
-                                                size="small"
-                                                onClick={() =>
-                                                    handleDeleteUser(
-                                                        user.id,
-                                                        user.name
-                                                    )
-                                                }
-                                                sx={{
-                                                    ml: {
-                                                        sm: 0.5,
-                                                    },
-                                                }}
-                                            >
-                                                <Delete
-                                                    fontSize="small"
-                                                />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </Stack>
-                                </Paper>
-                            )
+                                    </Paper>
+                                );
+                            }
                         )}
-                    </Stack>
+                    </Box>
 
                     {/* =================================================
                         PAGINATION
@@ -975,16 +1044,13 @@ const ManageUsers = () => {
                     {totalPages > 1 && (
                         <Box
                             sx={{
-                                display: "flex",
-
+                                display:
+                                    "flex",
                                 justifyContent:
                                     "center",
-
                                 alignItems:
                                     "center",
-
                                 mt: 3,
-
                                 mb: 1,
                             }}
                         >
@@ -993,22 +1059,9 @@ const ManageUsers = () => {
                                     totalPages
                                 }
                                 page={page}
-                                onChange={(
-                                    _event,
-                                    value
-                                ) => {
-                                    setPage(
-                                        value
-                                    );
-
-                                    window.scrollTo(
-                                        {
-                                            top: 0,
-                                            behavior:
-                                                "smooth",
-                                        }
-                                    );
-                                }}
+                                onChange={
+                                    handlePageChange
+                                }
                                 color="primary"
                                 size="small"
                                 showFirstButton

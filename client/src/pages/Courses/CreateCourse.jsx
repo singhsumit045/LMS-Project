@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -49,8 +48,8 @@ const CreateCourse = () => {
   // HANDLE INPUT CHANGE
   // =========================
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (event) => {
+    const { name, value } = event.target;
 
     setFormData((prev) => ({
       ...prev,
@@ -64,8 +63,8 @@ const CreateCourse = () => {
   // CREATE COURSE
   // =========================
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
     if (!formData.title.trim()) {
       setError("Course title is required.");
@@ -103,11 +102,16 @@ const CreateCourse = () => {
 
       navigate("/courses");
     } catch (error) {
-      console.log("Create course error:", error);
+      console.error("Create course error:", error);
+
+      const backendMessage =
+        error?.response?.data?.message;
 
       setError(
-        error.response?.data?.message ||
-          "Failed to create course. Please try again."
+        Array.isArray(backendMessage)
+          ? backendMessage.join(", ")
+          : backendMessage ||
+              "Failed to create course. Please try again."
       );
     } finally {
       setLoading(false);
@@ -162,9 +166,9 @@ const CreateCourse = () => {
         <Stack
           direction="row"
           spacing={2}
-          alignItems="center"
           sx={{
             mb: 1,
+            alignItems: "center",
           }}
         >
           <Box
@@ -211,10 +215,20 @@ const CreateCourse = () => {
         </Stack>
       </Box>
 
+      {/* =========================
+          MAIN GRID
+
+          IMPORTANT:
+          Don't use alignItems directly on Grid.
+          Use sx instead.
+      ========================= */}
+
       <Grid
         container
         spacing={4}
-        alignItems="flex-start"
+        sx={{
+          alignItems: "flex-start",
+        }}
       >
         {/* =================================================
             LEFT - CREATE COURSE FORM
@@ -297,7 +311,9 @@ const CreateCourse = () => {
                 container
                 spacing={2.5}
               >
-                {/* TITLE */}
+                {/* =========================
+                    TITLE
+                ========================= */}
 
                 <Grid
                   size={{
@@ -312,17 +328,21 @@ const CreateCourse = () => {
                     placeholder="e.g. Full Stack Web Development"
                     value={formData.title}
                     onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <School color="action" />
-                        </InputAdornment>
-                      ),
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <School color="action" />
+                          </InputAdornment>
+                        ),
+                      },
                     }}
                   />
                 </Grid>
 
-                {/* CATEGORY */}
+                {/* =========================
+                    CATEGORY
+                ========================= */}
 
                 <Grid
                   size={{
@@ -338,17 +358,21 @@ const CreateCourse = () => {
                     placeholder="e.g. Web Development"
                     value={formData.category}
                     onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Category color="action" />
-                        </InputAdornment>
-                      ),
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Category color="action" />
+                          </InputAdornment>
+                        ),
+                      },
                     }}
                   />
                 </Grid>
 
-                {/* PRICE */}
+                {/* =========================
+                    PRICE
+                ========================= */}
 
                 <Grid
                   size={{
@@ -380,7 +404,9 @@ const CreateCourse = () => {
                   />
                 </Grid>
 
-                {/* THUMBNAIL */}
+                {/* =========================
+                    THUMBNAIL
+                ========================= */}
 
                 <Grid
                   size={{
@@ -395,17 +421,21 @@ const CreateCourse = () => {
                     value={formData.thumbnail}
                     onChange={handleChange}
                     helperText="Add a high-quality image URL for your course thumbnail."
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Image color="action" />
-                        </InputAdornment>
-                      ),
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Image color="action" />
+                          </InputAdornment>
+                        ),
+                      },
                     }}
                   />
                 </Grid>
 
-                {/* DESCRIPTION */}
+                {/* =========================
+                    DESCRIPTION
+                ========================= */}
 
                 <Grid
                   size={{
@@ -422,23 +452,27 @@ const CreateCourse = () => {
                     placeholder="Describe what students will learn in this course..."
                     value={formData.description}
                     onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment
-                          position="start"
-                          sx={{
-                            alignSelf: "flex-start",
-                            mt: 1.5,
-                          }}
-                        >
-                          <Description color="action" />
-                        </InputAdornment>
-                      ),
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment
+                            position="start"
+                            sx={{
+                              alignSelf: "flex-start",
+                              mt: 1.5,
+                            }}
+                          >
+                            <Description color="action" />
+                          </InputAdornment>
+                        ),
+                      },
                     }}
                   />
                 </Grid>
 
-                {/* BUTTONS */}
+                {/* =========================
+                    BUTTONS
+                ========================= */}
 
                 <Grid
                   size={{
@@ -546,9 +580,7 @@ const CreateCourse = () => {
               <Visibility color="primary" />
 
               <Box>
-                <Typography
-                  fontWeight={700}
-                >
+                <Typography fontWeight={700}>
                   Course Preview
                 </Typography>
 
@@ -583,8 +615,8 @@ const CreateCourse = () => {
                   component="img"
                   src={formData.thumbnail}
                   alt="Course preview"
-                  onError={(e) => {
-                    e.currentTarget.style.display =
+                  onError={(event) => {
+                    event.currentTarget.style.display =
                       "none";
                   }}
                   sx={{
@@ -743,4 +775,3 @@ const CreateCourse = () => {
 };
 
 export default CreateCourse;
-
