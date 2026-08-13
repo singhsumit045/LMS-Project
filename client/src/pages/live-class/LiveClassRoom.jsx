@@ -12,6 +12,9 @@ import {
   CardContent,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Divider,
   IconButton,
   Paper,
@@ -31,6 +34,10 @@ import PeopleIcon from "@mui/icons-material/People";
 import SchoolIcon from "@mui/icons-material/School";
 import PersonIcon from "@mui/icons-material/Person";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import ScreenShareIcon from "@mui/icons-material/ScreenShare";
+import StopScreenShareIcon from "@mui/icons-material/StopScreenShare";
+import SettingsIcon from "@mui/icons-material/Settings";
+import InfoIcon from "@mui/icons-material/Info";
 
 
 // ============================================================
@@ -286,6 +293,19 @@ const LiveClassRoom = () => {
 
   const [endingClass, setEndingClass] = useState(false);
 
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  const [previewStream, setPreviewStream] = useState(null);
+
+  const [screenSharing, setScreenSharing] = useState(false);
+
+  const [screenShareStream, setScreenShareStream] = useState(null);
+
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const [showParticipants, setShowParticipants] = useState(false);
+
+  const [videoQuality, setVideoQuality] = useState("720p");
 
   // ==========================================================
   // GET CURRENT USER
@@ -907,6 +927,234 @@ const LiveClassRoom = () => {
 
 
   // ==========================================================
+  // OPEN VIDEO PREVIEW
+  // ==========================================================
+
+  const openVideoPreview = useCallback(
+    async () => {
+      try {
+        const stream =
+          await navigator.mediaDevices.getUserMedia(
+            {
+              video: {
+                width: {
+                  ideal: 1280,
+                },
+                height: {
+                  ideal: 720,
+                },
+                facingMode: "user",
+              },
+              audio: true,
+            }
+          );
+
+        setPreviewStream(stream);
+        setPreviewOpen(true);
+      } catch (error) {
+        console.error(
+          "Preview error:",
+          error
+        );
+
+        showMessage(
+          "Unable to access camera/microphone.",
+          "error"
+        );
+      }
+    },
+    [showMessage]
+  );
+
+
+  // ==========================================================
+  // CLOSE PREVIEW
+  // ==========================================================
+
+  const closeVideoPreview = useCallback(() => {
+    if (previewStream) {
+      previewStream
+        .getTracks()
+        .forEach((track) =>
+          track.stop()
+        );
+    }
+
+    setPreviewStream(null);
+    setPreviewOpen(false);
+  }, [previewStream]);
+
+
+  // ==========================================================
+  // START SCREEN SHARE
+  // ==========================================================
+
+  const startScreenShare = useCallback(
+    async () => {
+      if (
+        role !==
+        "teacher"
+      ) {
+        showMessage(
+          "Only teachers can share screen.",
+          "warning"
+        );
+
+        return;
+      }
+
+      try {
+        const screenStream =
+          await navigator.mediaDevices.getDisplayMedia(
+            {
+              video: {
+                cursor: "always",
+              },
+              audio: false,
+            }
+          );
+
+        const screenTrack =
+          screenStream.getVideoTracks()[0];
+
+        if (!screenTrack) {
+          return;
+        }
+
+        // Replace video track in all peer connections
+        const sender =
+          localStreamRef.current
+            ?.getTracks()
+            .find(
+              (track) =>
+                track.kind ===
+                "video"
+            );
+
+        if (sender) {
+          for (const peerConnection of peerConnectionsRef.current.values()) {
+            const videoSender =
+              peerConnection
+                .getSenders()
+                .find(
+                  (s) =>
+                    s.track?.kind ===
+                    "video"
+                );
+
+            if (videoSender) {
+              await videoSender.replaceTrack(
+                screenTrack
+              );
+            }
+          }
+        }
+
+        // Stop sharing when user ends screen share
+        screenTrack.onended = () => {
+          stopScreenShare();
+        };
+
+        setScreenShareStream(
+          screenStream
+        );
+        setScreenSharing(true);
+
+        showMessage(
+          "Screen sharing started",
+          "success"
+        );
+      } catch (error) {
+        if (
+          error.name ===
+          "NotAllowedError"
+        ) {
+          console.log(
+            "User cancelled screen share"
+          );
+        } else {
+          console.error(
+            "Screen share error:",
+            error
+          );
+
+          showMessage(
+            "Unable to share screen.",
+            "error"
+          );
+        }
+      }
+    },
+    [
+      role,
+      showMessage,
+    ]
+  );
+
+
+  // ==========================================================
+  // STOP SCREEN SHARE
+  // ==========================================================
+
+  const stopScreenShare = useCallback(
+    async () => {
+      if (
+        !screenShareStream
+      ) {
+        return;
+      }
+
+      // Stop screen share tracks
+      screenShareStream
+        .getTracks()
+        .forEach((track) =>
+          track.stop()
+        );
+
+      // Switch back to camera
+      if (
+        localStreamRef.current
+      ) {
+        const videoTrack =
+          localStreamRef.current
+            .getVideoTracks()[0];
+
+        if (videoTrack) {
+          for (const peerConnection of peerConnectionsRef.current.values()) {
+            const videoSender =
+              peerConnection
+                .getSenders()
+                .find(
+                  (s) =>
+                    s.track?.kind ===
+                    "video"
+                );
+
+            if (videoSender) {
+              await videoSender.replaceTrack(
+                videoTrack
+              );
+            }
+          }
+        }
+      }
+
+      setScreenShareStream(null);
+      setScreenSharing(false);
+
+      showMessage(
+        "Screen sharing stopped",
+        "info"
+      );
+    },
+    [
+      screenShareStream,
+      showMessage,
+    ]
+  );
+
+
+  // ==========================================================
   // JOIN CLASS
   // ==========================================================
 
@@ -977,7 +1225,7 @@ const LiveClassRoom = () => {
         const socket = io(
           SOCKET_URL,
           {
-            transports: ["websocket"],
+            transports: ["websocket", "polling"],
             auth: {
               access_token: token,
               token,
@@ -1533,6 +1781,17 @@ const LiveClassRoom = () => {
         }
 
         // ----------------------------------------------------
+        // Show preview for teacher
+        // ----------------------------------------------------
+
+        if (
+          currentRole ===
+          "teacher"
+        ) {
+          await openVideoPreview();
+        }
+
+        // ----------------------------------------------------
         // Connect socket
         // ----------------------------------------------------
 
@@ -1573,6 +1832,7 @@ const LiveClassRoom = () => {
     getCurrentUser,
     liveClassId,
     loadLiveClass,
+    openVideoPreview,
   ]);
 
 
@@ -1713,6 +1973,211 @@ const LiveClassRoom = () => {
       }}
     >
       {/* ====================================================
+          VIDEO PREVIEW DIALOG
+      ==================================================== */}
+
+      <Dialog
+        open={previewOpen}
+        onClose={
+          closeVideoPreview
+        }
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          📹 Camera & Microphone Preview
+        </DialogTitle>
+
+        <DialogContent>
+          <Stack spacing={2}>
+            {previewStream && (
+              <Paper
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  overflow: "hidden",
+                  backgroundColor:
+                    "#000",
+                  aspectRatio: "16/9",
+                }}
+              >
+                <video
+                  autoPlay
+                  playsInline
+                  muted
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                  ref={(video) => {
+                    if (
+                      video &&
+                      previewStream
+                    ) {
+                      video.srcObject =
+                        previewStream;
+                    }
+                  }}
+                />
+              </Paper>
+            )}
+
+            <Alert
+              severity="info"
+              sx={{
+                fontSize: 13,
+              }}
+            >
+              Make sure your camera and
+              microphone are working properly
+              before joining the class.
+            </Alert>
+
+            <Stack
+              direction="row"
+              spacing={1}
+            >
+              <Button
+                variant="outlined"
+                onClick={
+                  closeVideoPreview
+                }
+                fullWidth
+              >
+                Cancel
+              </Button>
+
+              <Button
+                variant="contained"
+                onClick={() => {
+                  closeVideoPreview();
+                  joinLiveClass();
+                }}
+                fullWidth
+              >
+                Join Class
+              </Button>
+            </Stack>
+          </Stack>
+        </DialogContent>
+      </Dialog>
+
+
+      {/* ====================================================
+          SETTINGS DIALOG
+      ==================================================== */}
+
+      <Dialog
+        open={settingsOpen}
+        onClose={() =>
+          setSettingsOpen(false)
+        }
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          ⚙️ Settings
+        </DialogTitle>
+
+        <DialogContent>
+          <Stack spacing={3}>
+            <Box>
+              <Typography
+                variant="subtitle2"
+                sx={{ mb: 1, fontWeight: 600 }}
+              >
+                Video Quality
+              </Typography>
+
+              <Stack
+                direction="row"
+                spacing={1}
+              >
+                {[
+                  "480p",
+                  "720p",
+                  "1080p",
+                ].map((quality) => (
+                  <Button
+                    key={quality}
+                    variant={
+                      videoQuality ===
+                      quality
+                        ? "contained"
+                        : "outlined"
+                    }
+                    size="small"
+                    onClick={() =>
+                      setVideoQuality(
+                        quality
+                      )
+                    }
+                  >
+                    {quality}
+                  </Button>
+                ))}
+              </Stack>
+            </Box>
+
+            <Divider />
+
+            <Box>
+              <Typography
+                variant="subtitle2"
+                sx={{ mb: 1, fontWeight: 600 }}
+              >
+                Connection Status
+              </Typography>
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+              >
+                Socket:{" "}
+                {socketConnected
+                  ? "✅ Connected"
+                  : "❌ Disconnected"}
+              </Typography>
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 0.5 }}
+              >
+                Joined:{" "}
+                {joined
+                  ? "✅ Yes"
+                  : "❌ No"}
+              </Typography>
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 0.5 }}
+              >
+                Participants:{" "}
+                {remoteParticipants.length + 1}
+              </Typography>
+            </Box>
+
+            <Divider />
+
+            <Button
+              variant="outlined"
+              fullWidth
+              onClick={() =>
+                setSettingsOpen(false)
+              }
+            >
+              Close
+            </Button>
+          </Stack>
+        </DialogContent>
+      </Dialog>
+
+
+      {/* ====================================================
           HEADER
       ==================================================== */}
 
@@ -1838,6 +2303,34 @@ const LiveClassRoom = () => {
                 color="warning"
               />
             )}
+
+            <Tooltip title="Settings">
+              <IconButton
+                size="small"
+                onClick={() =>
+                  setSettingsOpen(true)
+                }
+              >
+                <SettingsIcon
+                  fontSize="small"
+                />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Participants">
+              <IconButton
+                size="small"
+                onClick={() =>
+                  setShowParticipants(
+                    !showParticipants
+                  )
+                }
+              >
+                <PeopleIcon
+                  fontSize="small"
+                />
+              </IconButton>
+            </Tooltip>
           </Stack>
         </Stack>
       </Box>
@@ -2152,6 +2645,52 @@ const LiveClassRoom = () => {
               </Tooltip>
 
 
+              {/* SCREEN SHARE - TEACHER ONLY */}
+
+              {role ===
+              "teacher" && (
+                <Tooltip
+                  title={
+                    screenSharing
+                      ? "Stop screen share"
+                      : "Share screen"
+                  }
+                >
+                  <IconButton
+                    onClick={
+                      screenSharing
+                        ? stopScreenShare
+                        : startScreenShare
+                    }
+                    sx={{
+                      width: 52,
+                      height: 52,
+                      bgcolor:
+                        screenSharing
+                          ? "success.main"
+                          : "action.hover",
+                      color:
+                        screenSharing
+                          ? "#fff"
+                          : "text.primary",
+                      "&:hover": {
+                        bgcolor:
+                          screenSharing
+                            ? "success.dark"
+                            : "action.selected",
+                      },
+                    }}
+                  >
+                    {screenSharing ? (
+                      <StopScreenShareIcon />
+                    ) : (
+                      <ScreenShareIcon />
+                    )}
+                  </IconButton>
+                </Tooltip>
+              )}
+
+
               {/* LEAVE / END */}
 
               {role ===
@@ -2262,6 +2801,220 @@ const LiveClassRoom = () => {
               : "Connecting..."}
           </Typography>
         </Box>
+
+
+        {/* ==================================================
+            PARTICIPANTS PANEL
+        ================================================== */}
+
+        {showParticipants && (
+          <Card
+            elevation={0}
+            sx={{
+              mt: 3,
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <CardContent>
+              <Stack spacing={2}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <Typography
+                    variant="h6"
+                    fontWeight={700}
+                  >
+                    👥 Participants (
+                    {remoteParticipants.length +
+                      1}
+                    )
+                  </Typography>
+
+                  <IconButton
+                    size="small"
+                    onClick={() =>
+                      setShowParticipants(
+                        false
+                      )
+                    }
+                  >
+                    ✕
+                  </IconButton>
+                </Stack>
+
+                <Divider />
+
+                <Stack spacing={1}>
+                  {/* LOCAL USER */}
+
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      bgcolor:
+                        "action.hover",
+                    }}
+                  >
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      alignItems="center"
+                    >
+                      <Avatar
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          bgcolor:
+                            "primary.main",
+                        }}
+                      >
+                        {role ===
+                        "teacher" ? (
+                          <SchoolIcon />
+                        ) : (
+                          <PersonIcon />
+                        )}
+                      </Avatar>
+
+                      <Box flex={1}>
+                        <Typography
+                          variant="body2"
+                          fontWeight={600}
+                        >
+                          You {role && `(${role})`}
+                        </Typography>
+
+                        <Stack
+                          direction="row"
+                          spacing={0.5}
+                          mt={0.3}
+                        >
+                          <Chip
+                            label={
+                              cameraOn
+                                ? "📹 On"
+                                : "📹 Off"
+                            }
+                            size="small"
+                            color={
+                              cameraOn
+                                ? "success"
+                                : "default"
+                            }
+                            variant="outlined"
+                          />
+
+                          <Chip
+                            label={
+                              micOn
+                                ? "🎤 On"
+                                : "🎤 Off"
+                            }
+                            size="small"
+                            color={
+                              micOn
+                                ? "success"
+                                : "default"
+                            }
+                            variant="outlined"
+                          />
+                        </Stack>
+                      </Box>
+                    </Stack>
+                  </Box>
+
+                  {/* REMOTE PARTICIPANTS */}
+
+                  {remoteParticipants.map(
+                    (
+                      participant
+                    ) => (
+                      <Box
+                        key={
+                          participant.socketId
+                        }
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 2,
+                          border: "1px solid",
+                          borderColor:
+                            "divider",
+                        }}
+                      >
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          alignItems="center"
+                        >
+                          <Avatar
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              bgcolor:
+                                participant.role ===
+                                "teacher"
+                                  ? "info.main"
+                                  : "secondary.main",
+                            }}
+                          >
+                            {participant.role ===
+                            "teacher" ? (
+                              <SchoolIcon />
+                            ) : (
+                              <PersonIcon />
+                            )}
+                          </Avatar>
+
+                          <Box flex={1}>
+                            <Typography
+                              variant="body2"
+                              fontWeight={600}
+                            >
+                              User{" "}
+                              {
+                                participant.userId
+                              }{" "}
+                              (
+                              {
+                                participant.role
+                              }
+                              )
+                            </Typography>
+
+                            <Stack
+                              direction="row"
+                              spacing={0.5}
+                              mt={0.3}
+                            >
+                              <Chip
+                                label={
+                                  participant.cameraOn
+                                    ? "📹 On"
+                                    : "📹 Off"
+                                }
+                                size="small"
+                                color={
+                                  participant.cameraOn
+                                    ? "success"
+                                    : "default"
+                                }
+                                variant="outlined"
+                              />
+                            </Stack>
+                          </Box>
+                        </Stack>
+                      </Box>
+                    )
+                  )}
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
       </Box>
 
 

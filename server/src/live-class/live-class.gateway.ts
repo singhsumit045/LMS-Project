@@ -72,7 +72,7 @@ export class LiveClassGateway
   private readonly logger = new Logger(
     LiveClassGateway.name,
   );
-
+  
   @WebSocketServer()
   server!: Server;
 
@@ -137,7 +137,7 @@ export class LiveClassGateway
 
         return;
       }
-
+      
       // ------------------------------------------------
       // ATTACH USER
       // ------------------------------------------------
