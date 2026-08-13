@@ -77,7 +77,7 @@ import CreateLiveClass from "../pages/live-class/CreateLiveClass";
 // AI
 // =========================
 import AIAssistant from "../pages/AI/AIAssistant";
-import AIQuizGenerator from "../pages/Ai/AIQuizGenerator";
+import AIQuizGenerator from "../pages/AI/AIQuizGenerator";
 
 // =========================
 // Support

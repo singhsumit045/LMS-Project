@@ -197,7 +197,6 @@ otp: string,
 const normalizedEmail =
 email.trim().toLowerCase();
 
-
 const user =
   await this.usersService.findByEmail(
     normalizedEmail,
