@@ -46,7 +46,7 @@ import InfoIcon from "@mui/icons-material/Info";
 
 const SOCKET_URL =
   import.meta.env.VITE_SOCKET_URL ||
-  "http://localhost:3000";
+  "http://localhost:8080";
 
 
 // ============================================================
