@@ -1,10 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dns from 'dns';
-
+import { setDefaultAutoSelectFamily } from 'net';
 
 
 dns.setDefaultResultOrder('ipv4first');
+setDefaultAutoSelectFamily(false);
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
