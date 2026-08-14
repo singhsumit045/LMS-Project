@@ -1,25 +1,44 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
-import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import * as dns from 'dns';
+import { promisify } from 'util';
+
+const resolve4 = promisify(dns.resolve4);
 
 @Injectable()
-export class MailService {
-  private transporter: nodemailer.Transporter;
+export class MailService implements OnModuleInit {
+  private transporter!: nodemailer.Transporter;
 
-  constructor() {
-    const options = {
-      host: process.env.MAIL_HOST,
-      port: Number(process.env.MAIL_PORT),
+  async onModuleInit() {
+    await this.initTransporter();
+  }
+
+  private async initTransporter() {
+    const host = process.env.MAIL_HOST || 'smtp.gmail.com';
+    let connectHost = host;
+
+    try {
+      // Hostname ko manually IPv4 address me resolve karo
+      const addresses = await resolve4(host);
+      connectHost = addresses[0];
+      console.log(`Resolved ${host} to IPv4: ${connectHost}`);
+    } catch (err) {
+      console.error('IPv4 resolve failed, falling back to hostname:', err);
+    }
+
+    this.transporter = nodemailer.createTransport({
+      host: connectHost,
+      port: Number(process.env.MAIL_PORT) || 587,
       secure: false,
-      family: 4,
       connectionTimeout: 10000,
       auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASSWORD,
       },
-    } as SMTPTransport.Options;
-
-    this.transporter = nodemailer.createTransport(options);
+      tls: {
+        servername: host, // certificate validation ke liye asli hostname chahiye
+      },
+    } as any);
   }
 
   async sendPasswordResetOtpEmail(email: string, otp: string): Promise<void> {
@@ -49,7 +68,7 @@ export class MailService {
             <hr style="margin:30px 0 20px;border:0;border-top:1px solid #e5e7eb;" />
             <p style="margin:0;text-align:center;color:#9ca3af;font-size:12px;">© ${new Date().getFullYear()} LearnHub LMS</p>
           </div>
-        </div> 
+        </div>
       `,
     });
   }
