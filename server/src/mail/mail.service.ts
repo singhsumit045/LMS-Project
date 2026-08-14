@@ -49,7 +49,7 @@ export class MailService {
             <hr style="margin:30px 0 20px;border:0;border-top:1px solid #e5e7eb;" />
             <p style="margin:0;text-align:center;color:#9ca3af;font-size:12px;">© ${new Date().getFullYear()} LearnHub LMS</p>
           </div>
-        </div>
+        </div> 
       `,
     });
   }
