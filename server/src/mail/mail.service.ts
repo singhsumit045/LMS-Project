@@ -1,45 +1,26 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
-import * as dns from 'dns';
-import { promisify } from 'util';
-
-const resolve4 = promisify(dns.resolve4);
 
 @Injectable()
-export class MailService implements OnModuleInit {
-  private transporter!: nodemailer.Transporter;
+export class MailService {
+  private transporter;
 
-  async onModuleInit() {
-    await this.initTransporter();
-  }
-
-  private async initTransporter() {
-    const host = process.env.MAIL_HOST || 'smtp.gmail.com';
-    let connectHost = host;
-
-    try {
-      // Hostname ko manually IPv4 address me resolve karo
-      const addresses = await resolve4(host);
-      connectHost = addresses[0];
-      console.log(`Resolved ${host} to IPv4: ${connectHost}`);
-    } catch (err) {
-      console.error('IPv4 resolve failed, falling back to hostname:', err);
-    }
-
+  constructor() {
     this.transporter = nodemailer.createTransport({
-      host: connectHost,
-      port: Number(process.env.MAIL_PORT) || 587,
+      host: process.env.MAIL_HOST,
+      port: Number(process.env.MAIL_PORT),
       secure: false,
-      connectionTimeout: 10000,
+
       auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASSWORD,
       },
-      tls: {
-        servername: host, // certificate validation ke liye asli hostname chahiye
-      },
-    } as any);
+    });
   }
+
+  // =====================================================
+  // SEND PASSWORD RESET OTP
+  // =====================================================
 
   async sendPasswordResetOtpEmail(email: string, otp: string): Promise<void> {
     await this.transporter.sendMail({
@@ -72,6 +53,10 @@ export class MailService implements OnModuleInit {
       `,
     });
   }
+
+  // =====================================================
+  // SEND EMAIL VERIFICATION OTP
+  // =====================================================
 
   async sendEmailVerificationOtp(email: string, otp: string): Promise<void> {
     await this.transporter.sendMail({
