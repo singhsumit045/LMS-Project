@@ -1,23 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as dns from 'dns';
-import { setDefaultAutoSelectFamily } from 'net';
 
-
-dns.setDefaultResultOrder('ipv4first');
-setDefaultAutoSelectFamily(false);
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const frontendUrl =
-    process.env.FRONTEND_URL || 'http://localhost:5173';
+  const allowedOrigins = Array.from(
+    new Set(
+      [
+        'http://localhost:5173',
+        'https://lms-project-fawn-omega.vercel.app',
+        process.env.FRONTEND_URL,
+      ].filter(Boolean),
+    ),
+  );
 
   app.enableCors({
-    origin: [
-      'http://localhost:5173',
-      'https://lms-project-fawn-omega.vercel.app',
-      frontendUrl,
-    ],
+    origin: allowedOrigins,
     credentials: true,
   });
 

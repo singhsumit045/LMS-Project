@@ -31,6 +31,8 @@ function Register() {
     const [showConfirmPassword, setShowConfirmPassword] =
         useState(false);
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -63,46 +65,50 @@ function Register() {
     // HANDLE REGISTER
     // =========================
 
-  const handleSubmit = async (e) => {
-e.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
+        const validationErrors = validateRegister(formData);
 
-const validationErrors = validateRegister(formData);
+        setErrors(validationErrors);
 
-setErrors(validationErrors);
+        if (Object.keys(validationErrors).length > 0) {
+            return;
+        }
 
-if (Object.keys(validationErrors).length > 0) {
-    return;
-}
+        // Prevent double-submit while a request is already in flight
+        if (isSubmitting) {
+            return;
+        }
 
-try {
-    const response = await registerUser({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        role: formData.role,
-    });
+        setIsSubmitting(true);
 
-    console.log(response.data);
+        try {
+            const response = await registerUser({
+                name: formData.name,
+                email: formData.email,
+                password: formData.password,
+                role: formData.role,
+            });
 
-    navigate("/verify-email", {
-        state: {
-            email: formData.email,
-        },
-    });
+            console.log(response.data);
 
-} catch (error) {
-    console.log(error.response?.data);
+            navigate("/verify-email", {
+                state: {
+                    email: formData.email,
+                },
+            });
+        } catch (error) {
+            console.log(error.response?.data);
 
-    alert(
-        error.response?.data?.message ||
-            "Registration failed"
-    );
-}
-
-
-};
-
+            alert(
+                error.response?.data?.message ||
+                    "Registration failed"
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
         <Box
@@ -319,8 +325,8 @@ try {
 
                         <Typography
                             variant="h4"
-                            fontWeight={700}
                             sx={{
+                                fontWeight: 700,
                                 mb: 1.5,
                             }}
                         >
@@ -484,8 +490,8 @@ try {
                     >
                         <Typography
                             variant="h4"
-                            fontWeight={700}
                             sx={{
+                                fontWeight: 700,
                                 color: "text.primary",
                                 mb: 0.7,
                             }}
@@ -532,8 +538,8 @@ try {
                                 <Box>
                                     <Typography
                                         variant="body2"
-                                        fontWeight={600}
                                         sx={{
+                                            fontWeight: 600,
                                             mb: 0.7,
                                             color: "text.primary",
                                         }}
@@ -549,6 +555,7 @@ try {
                                         autoComplete="name"
                                         value={formData.name}
                                         onChange={handleChange}
+                                        disabled={isSubmitting}
                                         error={!!errors.name}
                                         helperText={
                                             errors.name || " "
@@ -604,8 +611,8 @@ try {
                                 <Box>
                                     <Typography
                                         variant="body2"
-                                        fontWeight={600}
                                         sx={{
+                                            fontWeight: 600,
                                             mb: 0.7,
                                             color: "text.primary",
                                         }}
@@ -622,6 +629,7 @@ try {
                                         autoComplete="email"
                                         value={formData.email}
                                         onChange={handleChange}
+                                        disabled={isSubmitting}
                                         error={!!errors.email}
                                         helperText={
                                             errors.email || " "
@@ -694,8 +702,8 @@ try {
                                 <Box>
                                     <Typography
                                         variant="body2"
-                                        fontWeight={600}
                                         sx={{
+                                            fontWeight: 600,
                                             mb: 0.7,
                                             color: "text.primary",
                                         }}
@@ -716,6 +724,7 @@ try {
                                         autoComplete="new-password"
                                         value={formData.password}
                                         onChange={handleChange}
+                                        disabled={isSubmitting}
                                         error={!!errors.password}
                                         helperText={
                                             errors.password || " "
@@ -801,8 +810,8 @@ try {
                                 <Box>
                                     <Typography
                                         variant="body2"
-                                        fontWeight={600}
                                         sx={{
+                                            fontWeight: 600,
                                             mb: 0.7,
                                             color: "text.primary",
                                         }}
@@ -825,6 +834,7 @@ try {
                                             formData.confirmPassword
                                         }
                                         onChange={handleChange}
+                                        disabled={isSubmitting}
                                         error={
                                             !!errors.confirmPassword
                                         }
@@ -915,8 +925,8 @@ try {
 
                             <Typography
                                 variant="body2"
-                                fontWeight={600}
                                 sx={{
+                                    fontWeight: 600,
                                     mb: 0.7,
                                     color: "text.primary",
                                 }}
@@ -931,6 +941,7 @@ try {
                                 name="role"
                                 value={formData.role}
                                 onChange={handleChange}
+                                disabled={isSubmitting}
                                 error={!!errors.role}
                                 helperText={
                                     errors.role ||
@@ -992,12 +1003,12 @@ try {
                                 variant="contained"
                                 type="submit"
                                 size="large"
+                                disabled={isSubmitting}
                                 sx={{
                                     py: 1.4,
                                     mt: 1,
 
                                     borderRadius: 2,
-
                                     textTransform: "none",
 
                                     fontSize: "1rem",
@@ -1017,9 +1028,18 @@ try {
                                         boxShadow:
                                             "0 10px 25px rgba(25,118,210,0.30)",
                                     },
+
+                                    "&.Mui-disabled": {
+                                        backgroundColor:
+                                            "primary.main",
+                                        opacity: 0.7,
+                                        color: "#fff",
+                                    },
                                 }}
                             >
-                                Create Account
+                                {isSubmitting
+                                    ? "Creating Account..."
+                                    : "Create Account"}
                             </Button>
 
                             {/* =========================
@@ -1048,7 +1068,7 @@ try {
                                             color: "primary.main",
                                             fontWeight: 600,
                                         }}
-                                    > 
+                                    >
                                         Login
                                     </Link>
                                 </Typography>
@@ -1059,7 +1079,6 @@ try {
             </Paper>
         </Box>
     );
-
 }
 
 export default Register;

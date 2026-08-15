@@ -65,12 +65,13 @@ export class AuthService {
       isEmailVerified: false,
     });
 
-    // Send verification OTP — email fail ho bhi jaye to registration fail nahi hona chahiye
-    try {
-      await this.mailService.sendEmailVerificationOtp(user.email, otp);
-    } catch (err) {
-      console.error('Failed to send verification OTP email:', err);
-    }
+    // Fire-and-forget: response ko email bhejne pe block nahi karna
+    // (email slow/fail ho toh bhi registration turant respond kare)
+    this.mailService
+      .sendEmailVerificationOtp(user.email, otp)
+      .catch((err) => {
+        console.error('Failed to send verification OTP email:', err);
+      });
 
     return {
       message:
@@ -398,11 +399,12 @@ export class AuthService {
 
     await this.usersService.save(user);
 
-    try {
-      await this.mailService.sendPasswordResetOtpEmail(user.email, otp);
-    } catch (err) {
-      console.error('Failed to send password reset OTP email:', err);
-    }
+    // Fire-and-forget: response ko email bhejne pe block nahi karna
+    this.mailService
+      .sendPasswordResetOtpEmail(user.email, otp)
+      .catch((err) => {
+        console.error('Failed to send password reset OTP email:', err);
+      });
 
     return {
       message:
