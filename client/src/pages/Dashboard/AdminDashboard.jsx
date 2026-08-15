@@ -30,6 +30,7 @@ import {
 import {
     BarChart,
     Bar,
+    Cell,
     XAxis,
     YAxis,
     Tooltip,
@@ -40,6 +41,7 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import api from "../../services/api";
 
 import {
@@ -51,6 +53,12 @@ import {
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const theme = useTheme();
+    const isDark = theme.palette.mode === "dark";
+
+    // Breakpoint helpers used to adapt things that plain sx breakpoints
+    // can't reach (Recharts props, avatar sizes, etc.)
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // < 600px
+    const isTablet = useMediaQuery(theme.breakpoints.down("md")); // < 900px
 
     const [dashboard, setDashboard] = useState({
         totalUsers: 0,
@@ -79,7 +87,9 @@ const AdminDashboard = () => {
             setDashboard(dashboardRes.data);
             setMonthlyUsers(usersRes.data);
             setCourseEnrollment(enrollmentRes.data);
+            console.log('COURSE DATA:', enrollmentRes.data);
             setTopCourses(coursesRes.data);
+            console.log('TOP COURSES DATA:', coursesRes.data);
         } catch (error) {
             console.log(error);
             setError("Unable to load admin dashboard");
@@ -98,22 +108,32 @@ const AdminDashboard = () => {
                 sx={{
                     height: "80vh",
                     display: "flex",
+                    flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
+                    gap: 2,
+                    px: 2,
+                    textAlign: "center",
                 }}
             >
-                <CircularProgress size={55} />
+                <CircularProgress size={50} thickness={4} />
+                <Typography color="text.secondary" sx={{ fontWeight: 600 }}>
+                    Loading your dashboard…
+                </Typography>
             </Box>
         );
     }
 
     if (error) {
         return (
-            <Container sx={{ mt: 5 }}>
-                <Alert severity="error">{error}</Alert>
+            <Container sx={{ mt: 5, px: { xs: 2, sm: 3 } }}>
+                <Alert severity="error" sx={{ borderRadius: 3 }}>
+                    {error}
+                </Alert>
 
                 <Button
-                    sx={{ mt: 2 }}
+                    fullWidth={isMobile}
+                    sx={{ mt: 2, borderRadius: 3, textTransform: "none", fontWeight: 700 }}
                     variant="contained"
                     startIcon={<Refresh />}
                     onClick={loadDashboard}
@@ -168,92 +188,127 @@ const AdminDashboard = () => {
             desc: "Students & Teachers",
             icon: <Group />,
             path: "/admin/users",
+            color: "#2563eb",
         },
         {
             title: "Manage Courses",
             desc: "Review LMS Courses",
             icon: <LibraryBooks />,
             path: "/admin/courses",
+            color: "#9333ea",
         },
         {
             title: "Enrollment Reports",
             desc: "Track learning activity",
             icon: <TrendingUp />,
             path: "/admin/enrollments",
+            color: "#16a34a",
         },
     ];
 
+    const barColors = ["#2563eb", "#16a34a", "#f97316", "#9333ea", "#0891b2", "#e11d48", "#ca8a04"];
+
+    // Recharts doesn't understand MUI's sx breakpoints, so these are
+    // computed from useMediaQuery above and passed as plain props.
+    const chartHeight = isMobile ? 260 : 320;
+    const chartPaperHeight = isMobile ? 340 : 420;
+    const xAxisTickProps = isMobile
+        ? { fontSize: 10, angle: -35, textAnchor: "end", height: 50, interval: 0 }
+        : { fontSize: 12 };
+
     return (
-        <Container
-            maxWidth="xl"
-            sx={{
-                py: 4,
-            }}
-        >
+        <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 3, md: 4 }, px: { xs: 2, sm: 3 } }}>
             {/* HEADER */}
             <Paper
+                elevation={0}
                 sx={{
-                    p: {
-                        xs: 3,
-                        md: 5,
-                    },
+                    p: { xs: 2.5, sm: 3, md: 5 },
                     mb: 4,
-                    borderRadius: 5,
+                    borderRadius: { xs: 4, md: 6 },
                     color: "#fff",
-                    background: `linear-gradient(
-                        135deg,
-                        ${theme.palette.primary.main},
-                        ${theme.palette.secondary.main}
-                    )`,
+                    position: "relative",
+                    overflow: "hidden",
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                    boxShadow: `0 20px 50px -12px ${theme.palette.primary.main}55`,
                 }}
             >
-                <Stack
-                    direction={{
-                        xs: "column",
-                        md: "row",
-                    }}
-                    spacing={3}
+                {/* decorative blobs */}
+                <Box
                     sx={{
+                        position: "absolute",
+                        top: -60,
+                        right: -60,
+                        width: 220,
+                        height: 220,
+                        borderRadius: "50%",
+                        background: "rgba(255,255,255,0.08)",
+                        display: { xs: "none", sm: "block" },
+                    }}
+                />
+                <Box
+                    sx={{
+                        position: "absolute",
+                        bottom: -80,
+                        right: 120,
+                        width: 160,
+                        height: 160,
+                        borderRadius: "50%",
+                        background: "rgba(255,255,255,0.06)",
+                        display: { xs: "none", sm: "block" },
+                    }}
+                />
+
+                <Stack
+                    sx={{
+                        flexDirection: { xs: "column", md: "row" },
+                        gap: { xs: 2.5, md: 3 },
                         justifyContent: "space-between",
-                        alignItems: "center",
+                        alignItems: { xs: "flex-start", md: "center" },
+                        position: "relative",
+                        zIndex: 1,
                     }}
                 >
-                    <Box>
+                    <Box sx={{ minWidth: 0 }}>
                         <Typography
                             variant="h4"
-                            fontWeight={900}
+                            sx={{
+                                fontWeight: 900,
+                                letterSpacing: -0.5,
+                                fontSize: { xs: 22, sm: 28, md: 34 },
+                                lineHeight: 1.2,
+                            }}
                         >
                             Admin Control Center 🚀
                         </Typography>
 
-                        <Typography
-                            sx={{
-                                mt: 1,
-                                opacity: 0.85,
-                            }}
-                        >
+                        <Typography sx={{ mt: 1, opacity: 0.9, maxWidth: 480, fontSize: { xs: 14, sm: 15 } }}>
                             Manage users, courses and analytics from one
                             powerful dashboard
                         </Typography>
 
                         <Chip
-                            icon={<Security />}
+                            icon={<Security sx={{ color: "#fff !important" }} />}
                             label="Administrator Access"
                             sx={{
-                                mt: 3,
+                                mt: { xs: 2, md: 3 },
                                 color: "#fff",
-                                background:
-                                    "rgba(255,255,255,0.18)",
+                                fontWeight: 700,
+                                backdropFilter: "blur(6px)",
+                                background: "rgba(255,255,255,0.18)",
+                                border: "1px solid rgba(255,255,255,0.25)",
                             }}
                         />
                     </Box>
 
                     <Avatar
                         sx={{
-                            width: 90,
-                            height: 90,
-                            background:
-                                "rgba(255,255,255,0.20)",
+                            width: { xs: 56, sm: 70, md: 90 },
+                            height: { xs: 56, sm: 70, md: 90 },
+                            background: "rgba(255,255,255,0.20)",
+                            border: "2px solid rgba(255,255,255,0.3)",
+                            backdropFilter: "blur(6px)",
+                            alignSelf: { xs: "flex-end", md: "center" },
+                            flexShrink: 0,
                         }}
                     >
                         <Security fontSize="large" />
@@ -261,115 +316,119 @@ const AdminDashboard = () => {
                 </Stack>
             </Paper>
 
-            {/* STAT CARDS */}
-            <Grid container spacing={3}>
+           {/* STAT CARDS */}
+            <Grid container spacing={{ xs: 2, sm: 3 }}>
                 {stats.map((item) => (
                     <Grid
                         key={item.title}
-                        size={{
-                            xs: 12,
-                            sm: 6,
-                            md: 4,
-                            lg: 2.4,
-                        }}
+                        size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}
                     >
                         <Paper
+                            elevation={0}
                             sx={{
-                                p: 3,
-                                height: 170,
+                                p: { xs: 2.5, sm: 3 },
+                                minHeight: { xs: "auto", sm: 175 },
                                 borderRadius: 5,
                                 position: "relative",
                                 overflow: "hidden",
+                                cursor: "default",
 
-                                background:
-                                    theme.palette.mode === "dark"
-                                        ? `linear-gradient(
-                                            135deg,
-                                            ${item.color}35,
-                                            rgba(255,255,255,0.04)
-                                        )`
-                                        : `linear-gradient(
-                                            135deg,
-                                            ${item.color}20,
-                                            #ffffff
-                                        )`,
+                                background: isDark
+                                    ? "rgba(255,255,255,0.03)"
+                                    : `linear-gradient(160deg, ${item.color}12 0%, #ffffff 60%)`,
 
-                                border: `1px solid ${item.color}45`,
+                                border: `1px solid ${
+                                    isDark ? "rgba(255,255,255,0.08)" : `${item.color}25`
+                                }`,
 
-                                transition: "0.3s",
+                                boxShadow: isDark
+                                    ? "none"
+                                    : "0 1px 3px rgba(15,23,42,0.05)",
+
+                                transition: "all 0.25s ease",
 
                                 "&:hover": {
-                                    transform: "translateY(-8px)",
-                                    boxShadow: `0 15px 35px ${item.color}40`,
+                                    transform: "translateY(-6px)",
+                                    boxShadow: `0 16px 32px -12px ${item.color}55`,
+                                    borderColor: `${item.color}55`,
                                 },
 
                                 "&:before": {
                                     content: '""',
                                     position: "absolute",
-                                    top: -40,
-                                    right: -40,
-                                    width: 120,
-                                    height: 120,
-                                    borderRadius: "50%",
-                                    background: `${item.color}25`,
+                                    top: 0,
+                                    left: 0,
+                                    width: 4,
+                                    height: "100%",
+                                    background: item.color,
                                 },
                             }}
                         >
                             <Stack
-                                direction="row"
-                                height="100%"
                                 sx={{
+                                    flexDirection: "column",
                                     justifyContent: "space-between",
-                                    alignItems: "center",
+                                    height: "100%",
+                                    gap: 2,
+                                    position: "relative",
+                                    zIndex: 1,
                                 }}
                             >
-                                {/* FIXED zIndex */}
-                                <Box
+                                <Stack
                                     sx={{
-                                        zIndex: 2,
+                                        flexDirection: "row",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        gap: 1,
                                     }}
                                 >
                                     <Typography
                                         variant="body2"
-                                        fontWeight={700}
                                         color="text.secondary"
+                                        sx={{
+                                            fontWeight: 700,
+                                            lineHeight: 1.4,
+                                        }}
                                     >
                                         {item.title}
                                     </Typography>
 
-                                    <Typography
-                                        fontSize={38}
-                                        fontWeight={900}
-                                        mt={1}
+                                    <Avatar
+                                        sx={{
+                                            width: { xs: 38, sm: 44 },
+                                            height: { xs: 38, sm: 44 },
+
+                                            background: `${item.color}18`,
+                                            color: item.color,
+
+                                            flexShrink: 0,
+
+                                            "& svg": {
+                                                fontSize: { xs: 20, sm: 23 },
+                                            },
+                                        }}
                                     >
+                                        {item.icon}
+                                    </Avatar>
+                                </Stack>
+
+                                <Box>
+                                    <Typography sx={{ fontSize: { xs: 28, sm: 36 }, fontWeight: 900, lineHeight: 1.1 }}>
                                         {item.value}
                                     </Typography>
 
                                     <Chip
                                         size="small"
-                                        label={item.growth}
+                                        label={`${item.growth} this month`}
                                         sx={{
                                             mt: 1,
-                                            background:
-                                                `${item.color}25`,
+                                            fontSize: 11,
+                                            background: `${item.color}18`,
                                             color: item.color,
                                             fontWeight: 800,
                                         }}
                                     />
                                 </Box>
-
-                                <Avatar
-                                    sx={{
-                                        width: 65,
-                                        height: 65,
-                                        left: 40,
-                                        background: item.color,
-                                        boxShadow:
-                                            `0 10px 25px ${item.color}70`,
-                                    }}
-                                >
-                                    {item.icon}
-                                </Avatar>
                             </Stack>
                         </Paper>
                     </Grid>
@@ -377,60 +436,74 @@ const AdminDashboard = () => {
             </Grid>
 
             {/* ANALYTICS TITLE */}
-            <Typography
-                variant="h5"
-                fontWeight={900}
-                sx={{
-                    mt: 6,
-                    mb: 3,
-                }}
-            >
+            <Typography variant="h5" sx={{ fontWeight: 900, mt: 6, mb: 3, fontSize: { xs: 20, sm: 24 } }}>
                 Analytics Overview
             </Typography>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 2, sm: 3 }}>
                 {/* USER CHART */}
-                <Grid
-                    size={{
-                        xs: 12,
-                        lg: 6,
-                    }}
-                >
+                <Grid size={{ xs: 12, lg: 6 }}>
                     <Paper
+                        elevation={0}
                         sx={{
-                            p: 3,
-                            height: 420,
+                            p: { xs: 2, sm: 3 },
+                            height: chartPaperHeight,
                             borderRadius: 5,
-                            border:
-                                `1px solid ${theme.palette.divider}`,
+                            border: `1px solid ${
+                                isDark ? "rgba(255,255,255,0.08)" : theme.palette.divider
+                            }`,
+                            background: isDark ? "rgba(255,255,255,0.03)" : "#fff",
+                            boxShadow: isDark ? "none" : "0 1px 3px rgba(15,23,42,0.06)",
                         }}
                     >
-                        <Typography
-                            fontWeight={900}
-                            mb={3}
+                        <Stack
+                            sx={{
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                mb: 3,
+                                flexWrap: "wrap",
+                                gap: 1,
+                            }}
                         >
-                            User Growth
-                        </Typography>
+                            <Typography sx={{ fontWeight: 900 }}>User Growth</Typography>
+                            <Chip
+                                size="small"
+                                label="Last 6 months"
+                                sx={{ fontWeight: 700, fontSize: 11 }}
+                            />
+                        </Stack>
 
-                        <ResponsiveContainer
-                            width="100%"
-                            height={320}
-                        >
-                            <BarChart data={monthlyUsers}>
+                        <ResponsiveContainer width="100%" height={chartHeight}>
+                            <BarChart
+                                data={monthlyUsers}
+                                margin={isMobile ? { top: 0, right: 0, left: -20, bottom: 0 } : undefined}
+                            >
                                 <CartesianGrid
                                     strokeDasharray="3 3"
+                                    vertical={false}
+                                    stroke={isDark ? "rgba(255,255,255,0.08)" : "#eef0f4"}
                                 />
-
-                                <XAxis dataKey="month" />
-
-                                <YAxis />
-
-                                <Tooltip />
-
+                                <XAxis
+                                    dataKey="month"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    {...xAxisTickProps}
+                                />
+                                <YAxis tickLine={false} axisLine={false} fontSize={isMobile ? 10 : 12} width={isMobile ? 28 : 36} />
+                                <Tooltip
+                                    cursor={{ fill: `${theme.palette.primary.main}0d` }}
+                                    contentStyle={{
+                                        borderRadius: 12,
+                                        border: "none",
+                                        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                                    }}
+                                />
                                 <Bar
                                     dataKey="users"
                                     fill={theme.palette.primary.main}
-                                    radius={[8, 8, 0, 0]}
+                                    radius={[10, 10, 0, 0]}
+                                    maxBarSize={isMobile ? 28 : 42}
                                 />
                             </BarChart>
                         </ResponsiveContainer>
@@ -438,48 +511,68 @@ const AdminDashboard = () => {
                 </Grid>
 
                 {/* COURSE CHART */}
-                <Grid
-                    size={{
-                        xs: 12,
-                        lg: 6,
-                    }}
-                >
+                <Grid size={{ xs: 12, lg: 6 }}>
                     <Paper
+                        elevation={0}
                         sx={{
-                            p: 3,
-                            height: 420,
+                            p: { xs: 2, sm: 3 },
+                            height: chartPaperHeight,
                             borderRadius: 5,
-                            border:
-                                `1px solid ${theme.palette.divider}`,
+                            border: `1px solid ${
+                                isDark ? "rgba(255,255,255,0.08)" : theme.palette.divider
+                            }`,
+                            background: isDark ? "rgba(255,255,255,0.03)" : "#fff",
+                            boxShadow: isDark ? "none" : "0 1px 3px rgba(15,23,42,0.06)",
                         }}
                     >
-                        <Typography
-                            fontWeight={900}
-                            mb={3}
+                        <Stack
+                            sx={{
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                mb: 3,
+                                flexWrap: "wrap",
+                                gap: 1,
+                            }}
                         >
-                            Course Enrollment
-                        </Typography>
+                            <Typography sx={{ fontWeight: 900 }}>Course Enrollment</Typography>
+                            <Chip
+                                size="small"
+                                label="By course"
+                                sx={{ fontWeight: 700, fontSize: 11 }}
+                            />
+                        </Stack>
 
-                        <ResponsiveContainer
-                            width="100%"
-                            height={320}
-                        >
-                            <BarChart data={courseEnrollment}>
+                        <ResponsiveContainer width="100%" height={chartHeight}>
+                            <BarChart
+                                data={courseEnrollment}
+                                margin={isMobile ? { top: 0, right: 0, left: -20, bottom: 0 } : undefined}
+                            >
                                 <CartesianGrid
                                     strokeDasharray="3 3"
+                                    vertical={false}
+                                    stroke={isDark ? "rgba(255,255,255,0.08)" : "#eef0f4"}
                                 />
-
-                                <XAxis dataKey="course" />
-
-                                <YAxis />
-
-                                <Tooltip />
-
-                                <Bar
-                                    dataKey="enrollments"
-                                    fill={theme.palette.success.main}
-                                    radius={[8, 8, 0, 0]}
+                                <XAxis
+                                    dataKey="course"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    {...xAxisTickProps}
                                 />
+                                <YAxis tickLine={false} axisLine={false} fontSize={isMobile ? 10 : 12} width={isMobile ? 28 : 36} />
+                                <Tooltip
+                                    cursor={{ fill: "rgba(0,0,0,0.03)" }}
+                                    contentStyle={{
+                                        borderRadius: 12,
+                                        border: "none",
+                                        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                                    }}
+                                />
+                                <Bar dataKey="students" radius={[10, 10, 0, 0]} maxBarSize={isMobile ? 28 : 42}>
+                                    {courseEnrollment.map((_, index) => (
+                                        <Cell key={`cell-${index}`} fill={barColors[index % barColors.length]} />
+                                    ))}
+                                </Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     </Paper>
@@ -487,30 +580,23 @@ const AdminDashboard = () => {
             </Grid>
 
             {/* TOP COURSES */}
-            <Typography
-                variant="h5"
-                fontWeight={900}
-                sx={{
-                    mt: 6,
-                    mb: 3,
-                }}
-            >
+            <Typography variant="h5" sx={{ fontWeight: 900, mt: 6, mb: 3, fontSize: { xs: 20, sm: 24 } }}>
                 🔥 Top Performing Courses
             </Typography>
 
             <Paper
+                elevation={0}
                 sx={{
                     borderRadius: 5,
                     overflow: "hidden",
-                    border:
-                        `1px solid ${theme.palette.divider}`,
+                    border: `1px solid ${
+                        isDark ? "rgba(255,255,255,0.08)" : theme.palette.divider
+                    }`,
+                    background: isDark ? "rgba(255,255,255,0.03)" : "#fff",
                 }}
             >
                 {topCourses.length === 0 ? (
-                    <Box
-                        p={5}
-                        textAlign="center"
-                    >
+                    <Box p={5} textAlign="center">
                         <Typography color="text.secondary">
                             No course analytics available
                         </Typography>
@@ -518,76 +604,81 @@ const AdminDashboard = () => {
                 ) : (
                     topCourses.map((course, index) => (
                         <Box
-                            key={
-                                course.id ??
-                                course.courseId ??
-                                `course-${index}`
-                            }
+                            key={course.id ?? course.courseId ?? `course-${index}`}
                             sx={{
-                                p: 3,
-                                borderBottom:
-                                    `1px solid ${theme.palette.divider}`,
+                                p: { xs: 2, sm: 3 },
+                                borderBottom: `1px solid ${
+                                    isDark ? "rgba(255,255,255,0.06)" : theme.palette.divider
+                                }`,
+                                borderLeft: `4px solid ${barColors[index % barColors.length]}`,
+                                transition: "background 0.2s ease",
+                                "&:hover": {
+                                    background: isDark
+                                        ? "rgba(255,255,255,0.03)"
+                                        : "rgba(37,99,235,0.03)",
+                                },
+                                "&:last-of-type": { borderBottom: "none" },
                             }}
                         >
                             <Stack
-                                direction={{
-                                    xs: "column",
-                                    sm: "row",
-                                }}
-                                spacing={2}
                                 sx={{
-                                    justifyContent:
-                                        "space-between",
-                                    alignItems: "center",
+                                    flexDirection: { xs: "column", sm: "row" },
+                                    gap: 2,
+                                    justifyContent: "space-between",
+                                    alignItems: { xs: "flex-start", sm: "center" },
                                 }}
                             >
                                 <Stack
-                                    direction="row"
-                                    spacing={2}
                                     sx={{
+                                        flexDirection: "row",
+                                        gap: 2,
                                         alignItems: "center",
+                                        flex: 1,
+                                        minWidth: 0,
+                                        width: { xs: "100%", sm: "auto" },
                                     }}
                                 >
                                     <Avatar
                                         sx={{
+                                            width: { xs: 36, sm: 40 },
+                                            height: { xs: 36, sm: 40 },
+                                            fontWeight: 800,
+                                            flexShrink: 0,
                                             bgcolor:
                                                 index === 0
-                                                    ? theme.palette
-                                                          .warning.main
-                                                    : theme.palette
-                                                          .primary.main,
+                                                    ? theme.palette.warning.main
+                                                    : barColors[index % barColors.length],
                                         }}
                                     >
                                         {index + 1}
                                     </Avatar>
 
-                                    <Box>
-                                        <Typography fontWeight={900}>
-                                            {course.title || "Course"}
+                                    <Box sx={{ minWidth: 0 }}>
+                                        <Typography sx={{ fontWeight: 800 }} noWrap>
+                                            {course.course  || "Course"}
                                         </Typography>
 
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                        >
-                                            {course.enrollments || 0}{" "}
-                                            students enrolled
+                                        <Typography variant="body2" color="text.secondary">
+                                            {course.students  || 0} students enrolled
                                         </Typography>
                                     </Box>
                                 </Stack>
 
-                                <Box
-                                    width={{
-                                        xs: "100%",
-                                        sm: 250,
-                                    }}
-                                >
+                                <Box width={{ xs: "100%", sm: 250 }}>
                                     <LinearProgress
                                         variant="determinate"
-                                        value={Math.min(
-                                            (course.enrollments || 0) * 5,
-                                            100
-                                        )}
+                                        value={Math.min((course.students  || 0) * 5, 100)}
+                                        sx={{
+                                            height: 8,
+                                            borderRadius: 4,
+                                            backgroundColor: isDark
+                                                ? "rgba(255,255,255,0.08)"
+                                                : "rgba(37,99,235,0.1)",
+                                            "& .MuiLinearProgress-bar": {
+                                                borderRadius: 4,
+                                                backgroundColor: barColors[index % barColors.length],
+                                            },
+                                        }}
                                     />
                                 </Box>
                             </Stack>
@@ -597,83 +688,77 @@ const AdminDashboard = () => {
             </Paper>
 
             {/* ADMIN ACTIONS */}
-            <Typography
-                variant="h5"
-                fontWeight={900}
-                sx={{
-                    mt: 6,
-                    mb: 3,
-                }}
-            >
+            <Typography variant="h5" sx={{ fontWeight: 900, mt: 6, mb: 3, fontSize: { xs: 20, sm: 24 } }}>
                 Administration
             </Typography>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 2, sm: 3 }}>
                 {actions.map((item) => (
-                    <Grid
-                        key={item.title}
-                        size={{
-                            xs: 12,
-                            md: 4,
-                        }}
-                    >
+                    <Grid key={item.title} size={{ xs: 12, md: 4 }}>
                         <Paper
-                            onClick={() =>
-                                navigate(item.path)
-                            }
+                            elevation={0}
+                            onClick={() => navigate(item.path)}
                             sx={{
-                                p: 3,
+                                p: { xs: 2.5, sm: 3 },
                                 borderRadius: 5,
                                 cursor: "pointer",
-                                border:
-                                    `1px solid ${theme.palette.divider}`,
-                                transition: "0.3s",
+                                position: "relative",
+                                overflow: "hidden",
+                                border: `1px solid ${
+                                    isDark ? "rgba(255,255,255,0.08)" : theme.palette.divider
+                                }`,
+                                background: isDark ? "rgba(255,255,255,0.03)" : "#fff",
+                                boxShadow: isDark ? "none" : "0 1px 3px rgba(15,23,42,0.06)",
+                                transition: "all 0.25s ease",
+
+                                "&:before": {
+                                    content: '""',
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    height: 4,
+                                    background: `linear-gradient(90deg, ${item.color}, ${item.color}88)`,
+                                },
 
                                 "&:hover": {
-                                    transform:
-                                        "translateY(-6px)",
-                                    boxShadow: 8,
+                                    transform: "translateY(-6px)",
+                                    boxShadow: `0 20px 40px -10px ${item.color}45`,
+                                    borderColor: `${item.color}55`,
                                 },
                             }}
                         >
-                            <Stack
-                                direction="row"
-                                spacing={2}
-                                sx={{
-                                    alignItems: "center",
-                                }}
-                            >
+                            <Stack sx={{ flexDirection: "row", gap: 2, alignItems: "center" }}>
                                 <Avatar
                                     sx={{
-                                        width: 60,
-                                        height: 60,
-                                        background:
-                                            `linear-gradient(
-                                                135deg,
-                                                ${theme.palette.primary.main},
-                                                ${theme.palette.secondary.main}
-                                            )`,
+                                        width: { xs: 48, sm: 60 },
+                                        height: { xs: 48, sm: 60 },
+                                        background: `linear-gradient(135deg, ${item.color}, ${item.color}cc)`,
+                                        boxShadow: `0 10px 25px ${item.color}55`,
+                                        flexShrink: 0,
                                     }}
                                 >
                                     {item.icon}
                                 </Avatar>
 
-                                <Box>
-                                    <Typography fontWeight={900}>
-                                        {item.title}
-                                    </Typography>
+                                <Box sx={{ flex: 1, minWidth: 0 }}>
+                                    <Typography sx={{ fontWeight: 900 }} noWrap>{item.title}</Typography>
 
-                                    <Typography
-                                        variant="body2"
-                                        color="text.secondary"
-                                    >
+                                    <Typography variant="body2" color="text.secondary" noWrap>
                                         {item.desc}
                                     </Typography>
 
                                     <Button
                                         size="small"
-                                        sx={{ mt: 1 }}
-                                        endIcon={<ArrowForward />}
+                                        sx={{
+                                            mt: 1,
+                                            px: 0,
+                                            fontWeight: 700,
+                                            textTransform: "none",
+                                            color: item.color,
+                                            "&:hover": { background: "transparent", opacity: 0.8 },
+                                        }}
+                                        endIcon={<ArrowForward fontSize="small" />}
                                     >
                                         Open
                                     </Button>
@@ -686,53 +771,62 @@ const AdminDashboard = () => {
 
             {/* SYSTEM STATUS */}
             <Paper
+                elevation={0}
                 sx={{
                     mt: 6,
-                    p: 4,
+                    p: { xs: 3, sm: 4 },
                     borderRadius: 5,
-                    border:
-                        `1px solid ${theme.palette.divider}`,
-
-                    background:
-                        theme.palette.mode === "dark"
-                            ? "rgba(255,255,255,0.05)"
-                            : "linear-gradient(135deg,#f8fafc,#eef2ff)",
+                    position: "relative",
+                    overflow: "hidden",
+                    border: `1px solid ${
+                        isDark ? "rgba(255,255,255,0.08)" : "transparent"
+                    }`,
+                    background: isDark
+                        ? "rgba(255,255,255,0.03)"
+                        : `linear-gradient(135deg, ${theme.palette.success.main}12, ${theme.palette.primary.main}0d)`,
+                    boxShadow: isDark ? "none" : `0 1px 3px rgba(15,23,42,0.06)`,
                 }}
             >
-                <Stack
-                    direction={{
-                        xs: "column",
-                        md: "row",
-                    }}
-                    spacing={3}
+                <Box
                     sx={{
-                        alignItems: "center",
+                        position: "absolute",
+                        top: -40,
+                        right: -40,
+                        width: 160,
+                        height: 160,
+                        borderRadius: "50%",
+                        background: `${theme.palette.success.main}10`,
+                        display: { xs: "none", sm: "block" },
+                    }}
+                />
+
+                <Stack
+                    sx={{
+                        flexDirection: { xs: "column", md: "row" },
+                        gap: { xs: 2, md: 3 },
+                        alignItems: { xs: "flex-start", md: "center" },
+                        position: "relative",
+                        zIndex: 1,
                     }}
                 >
                     <Avatar
                         sx={{
-                            width: 65,
-                            height: 65,
-                            bgcolor:
-                                theme.palette.primary.main,
+                            width: { xs: 52, sm: 65 },
+                            height: { xs: 52, sm: 65 },
+                            background: `linear-gradient(135deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`,
+                            boxShadow: `0 10px 25px ${theme.palette.success.main}55`,
+                            flexShrink: 0,
                         }}
                     >
                         <Security />
                     </Avatar>
 
-                    <Box
-                        sx={{
-                            flex: 1,
-                        }}
-                    >
-                        <Typography
-                            fontWeight={900}
-                            fontSize={20}
-                        >
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography sx={{ fontWeight: 900, fontSize: { xs: 17, sm: 20 } }}>
                             System Status
                         </Typography>
 
-                        <Typography color="text.secondary">
+                        <Typography color="text.secondary" sx={{ fontSize: { xs: 13.5, sm: 14 } }}>
                             All LMS services are running normally.
                             Admin panel is secure and active.
                         </Typography>
@@ -740,9 +834,14 @@ const AdminDashboard = () => {
 
                     <Chip
                         label="ONLINE"
-                        color="success"
                         sx={{
                             fontWeight: 800,
+                            px: 1,
+                            color: "#fff",
+                            alignSelf: { xs: "flex-start", md: "center" },
+                            background: `linear-gradient(135deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`,
+                            boxShadow: `0 6px 16px ${theme.palette.success.main}55`,
+                            "& .MuiChip-label": { px: 1.5 },
                         }}
                     />
                 </Stack>
