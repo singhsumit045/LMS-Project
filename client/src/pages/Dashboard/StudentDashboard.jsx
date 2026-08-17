@@ -21,9 +21,11 @@ import {
     AccessTime,
     VideoCameraFront,
     LiveTv,
+    ExpandMore,
+    ExpandLess,
 } from "@mui/icons-material";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { getMyCourses } from "../../services/enrollmentService";
@@ -31,6 +33,11 @@ import { getMyCourses } from "../../services/enrollmentService";
 import {
     getStudentLiveClasses,
 } from "../../services/liveClassService";
+
+// ======================================================
+// HOW MANY LIVE CLASS CARDS TO SHOW BEFORE "SHOW ALL"
+// ======================================================
+const LIVE_CLASSES_VISIBLE_LIMIT = 6;
 
 const StudentDashboard = () => {
     const navigate = useNavigate();
@@ -60,6 +67,11 @@ const StudentDashboard = () => {
         useState(true);
     const [liveClassError, setLiveClassError] =
         useState("");
+
+    // Controls whether all live classes are shown or just
+    // the first LIVE_CLASSES_VISIBLE_LIMIT
+    const [showAllLiveClasses, setShowAllLiveClasses] =
+        useState(false);
 
     // =====================================================
     // GET USER
@@ -215,26 +227,60 @@ const StudentDashboard = () => {
             : 0;
 
     // =====================================================
-    // STATS DATA
+    // STATS DATA (admin-style stat cards)
     // =====================================================
 
     const stats = [
         {
+            key: "enrolled",
             title: "Enrolled Courses",
             value: enrolledCount,
             icon: <PlayCircle />,
+            color: "#1976d2",
+            bg: "linear-gradient(135deg, rgba(25,118,210,0.10), rgba(25,118,210,0.02))",
         },
         {
+            key: "completed",
             title: "Completed",
             value: completedCount,
             icon: <CheckCircle />,
+            color: "#2e7d32",
+            bg: "linear-gradient(135deg, rgba(46,125,50,0.10), rgba(46,125,50,0.02))",
         },
         {
+            key: "certificates",
             title: "Certificates",
             value: certificateCount,
             icon: <EmojiEvents />,
+            color: "#ed6c02",
+            bg: "linear-gradient(135deg, rgba(237,108,2,0.10), rgba(237,108,2,0.02))",
         },
     ];
+
+    // =====================================================
+    // LIVE CLASSES TO ACTUALLY RENDER (6 by default)
+    // =====================================================
+
+    const visibleLiveClasses = useMemo(() => {
+        return showAllLiveClasses
+            ? liveClasses
+            : liveClasses.slice(
+                0,
+                LIVE_CLASSES_VISIBLE_LIMIT
+            );
+    }, [liveClasses, showAllLiveClasses]);
+
+    const hasMoreLiveClasses =
+        liveClasses.length >
+        LIVE_CLASSES_VISIBLE_LIMIT;
+
+    // Reset the "show all" toggle if the underlying list
+    // shrinks back below the limit (e.g. after a refetch)
+    useEffect(() => {
+        if (!hasMoreLiveClasses && showAllLiveClasses) {
+            setShowAllLiveClasses(false);
+        }
+    }, [hasMoreLiveClasses, showAllLiveClasses]);
 
     // =====================================================
     // RENDER
@@ -350,7 +396,7 @@ const StudentDashboard = () => {
             </Paper>
 
             {/* =================================================
-                STATISTICS
+                STATISTICS  (admin-style stat cards)
             ================================================= */}
 
             <Typography
@@ -368,7 +414,7 @@ const StudentDashboard = () => {
             >
                 {stats.map((stat) => (
                     <Grid
-                        key={stat.title}
+                        key={stat.key}
                         size={{
                             xs: 12,
                             sm: 6,
@@ -383,7 +429,11 @@ const StudentDashboard = () => {
                                 border: "1px solid",
                                 borderColor:
                                     "divider",
+                                borderLeft: `4px solid ${stat.color}`,
+                                borderLeftWidth: 4,
+                                borderLeftColor: stat.color,
                                 borderRadius: 3,
+                                background: stat.bg,
                                 transition:
                                     "transform 0.2s ease, box-shadow 0.2s ease",
                                 "&:hover": {
@@ -407,6 +457,7 @@ const StudentDashboard = () => {
                                     <Typography
                                         variant="body2"
                                         color="text.secondary"
+                                        fontWeight={600}
                                     >
                                         {
                                             stat.title
@@ -430,8 +481,7 @@ const StudentDashboard = () => {
                                     sx={{
                                         width: 48,
                                         height: 48,
-                                        bgcolor:
-                                            "primary.main",
+                                        bgcolor: stat.color,
                                         color: "white",
                                     }}
                                 >
@@ -446,7 +496,7 @@ const StudentDashboard = () => {
             </Grid>
 
             {/* =================================================
-                LIVE CLASSES
+                LIVE CLASSES  (max 6 cards, expandable)
             ================================================= */}
 
             <Box
@@ -583,237 +633,277 @@ const StudentDashboard = () => {
                 !liveClassError &&
                 liveClasses.length >
                     0 && (
-                    <Grid
-                        container
-                        spacing={3}
-                        sx={{ mb: 5 }}
-                    >
-                        {liveClasses.map(
-                            (liveClass, index) => (
-                                <Grid
-                                    key={liveClass.id ?? `live-class-${index}`}
-                                    size={{
-                                        xs: 12,
-                                        md: 6,
-                                    }}
-                                >
-                                    <Paper
-                                        elevation={
-                                            0
-                                        }
-                                        sx={{
-                                            p: 3,
-                                            borderRadius: 3,
-                                            border:
-                                                "1px solid",
-                                            borderColor:
-                                                liveClass.isLive
-                                                    ? "error.main"
-                                                    : "divider",
-                                            background:
-                                                "linear-gradient(135deg, rgba(25,118,210,0.08), rgba(123,31,162,0.08))",
-                                            transition:
-                                                "transform 0.2s ease, box-shadow 0.2s ease",
-                                            "&:hover":
-                                                {
-                                                    transform:
-                                                        "translateY(-4px)",
-                                                    boxShadow:
-                                                        "0 10px 30px rgba(0,0,0,0.08)",
-                                                },
+                    <>
+                        <Grid
+                            container
+                            spacing={3}
+                            sx={{ mb: hasMoreLiveClasses ? 2 : 5 }}
+                        >
+                            {visibleLiveClasses.map(
+                                (liveClass, index) => (
+                                    <Grid
+                                        key={liveClass.id ?? `live-class-${index}`}
+                                        size={{
+                                            xs: 12,
+                                            md: 6,
                                         }}
                                     >
-                                        {/* HEADER */}
-
-                                        <Box
+                                        <Paper
+                                            elevation={
+                                                0
+                                            }
                                             sx={{
-                                                display:
-                                                    "flex",
-                                                justifyContent:
-                                                    "space-between",
-                                                alignItems:
-                                                    "flex-start",
-                                                gap: 2,
+                                                p: 3,
+                                                borderRadius: 3,
+                                                border:
+                                                    "1px solid",
+                                                borderColor:
+                                                    liveClass.isLive
+                                                        ? "error.main"
+                                                        : "divider",
+                                                background:
+                                                    "linear-gradient(135deg, rgba(25,118,210,0.08), rgba(123,31,162,0.08))",
+                                                transition:
+                                                    "transform 0.2s ease, box-shadow 0.2s ease",
+                                                "&:hover":
+                                                    {
+                                                        transform:
+                                                            "translateY(-4px)",
+                                                        boxShadow:
+                                                            "0 10px 30px rgba(0,0,0,0.08)",
+                                                    },
                                             }}
                                         >
+                                            {/* HEADER */}
+
                                             <Box
                                                 sx={{
                                                     display:
                                                         "flex",
-                                                    gap: 2,
+                                                    justifyContent:
+                                                        "space-between",
                                                     alignItems:
-                                                        "center",
-                                                    minWidth: 0,
+                                                        "flex-start",
+                                                    gap: 2,
                                                 }}
                                             >
-                                                <Avatar
-                                                    sx={{
-                                                        width: 56,
-                                                        height: 56,
-                                                        flexShrink: 0,
-                                                        bgcolor:
-                                                            liveClass.isLive
-                                                                ? "error.main"
-                                                                : "primary.main",
-                                                    }}
-                                                >
-                                                    <VideoCameraFront />
-                                                </Avatar>
-
                                                 <Box
                                                     sx={{
-                                                        minWidth:
-                                                            0,
+                                                        display:
+                                                            "flex",
+                                                        gap: 2,
+                                                        alignItems:
+                                                            "center",
+                                                        minWidth: 0,
                                                     }}
                                                 >
-                                                    <Typography
-                                                        variant="h6"
-                                                        fontWeight={
-                                                            700
-                                                        }
+                                                    <Avatar
                                                         sx={{
-                                                            overflow:
-                                                                "hidden",
-                                                            textOverflow:
-                                                                "ellipsis",
-                                                            whiteSpace:
-                                                                "nowrap",
+                                                            width: 56,
+                                                            height: 56,
+                                                            flexShrink: 0,
+                                                            bgcolor:
+                                                                liveClass.isLive
+                                                                    ? "error.main"
+                                                                    : "primary.main",
                                                         }}
                                                     >
-                                                        {
-                                                            liveClass.title
-                                                        }
-                                                    </Typography>
+                                                        <VideoCameraFront />
+                                                    </Avatar>
 
-                                                    <Typography
-                                                        variant="body2"
-                                                        color="text.secondary"
+                                                    <Box
+                                                        sx={{
+                                                            minWidth:
+                                                                0,
+                                                        }}
                                                     >
-                                                        Course
-                                                        ID:{" "}
-                                                        {
-                                                            liveClass.courseId
-                                                        }
-                                                    </Typography>
+                                                        <Typography
+                                                            variant="h6"
+                                                            fontWeight={
+                                                                700
+                                                            }
+                                                            sx={{
+                                                                overflow:
+                                                                    "hidden",
+                                                                textOverflow:
+                                                                    "ellipsis",
+                                                                whiteSpace:
+                                                                    "nowrap",
+                                                            }}
+                                                        >
+                                                            {
+                                                                liveClass.title
+                                                            }
+                                                        </Typography>
 
-                                                    {liveClass.teacherName && (
                                                         <Typography
                                                             variant="body2"
                                                             color="text.secondary"
                                                         >
-                                                            Teacher:{" "}
+                                                            Course
+                                                            ID:{" "}
                                                             {
-                                                                liveClass.teacherName
+                                                                liveClass.courseId
                                                             }
                                                         </Typography>
-                                                    )}
+
+                                                        {liveClass.teacherName && (
+                                                            <Typography
+                                                                variant="body2"
+                                                                color="text.secondary"
+                                                            >
+                                                                Teacher:{" "}
+                                                                {
+                                                                    liveClass.teacherName
+                                                                }
+                                                            </Typography>
+                                                        )}
+                                                    </Box>
                                                 </Box>
+
+                                                <Chip
+                                                    icon={
+                                                        <LiveTv />
+                                                    }
+                                                    label={
+                                                        liveClass.isLive
+                                                            ? "LIVE NOW"
+                                                            : "UPCOMING"
+                                                    }
+                                                    color={
+                                                        liveClass.isLive
+                                                            ? "error"
+                                                            : "warning"
+                                                    }
+                                                    size="small"
+                                                    sx={{
+                                                        flexShrink: 0,
+                                                    }}
+                                                />
                                             </Box>
 
-                                            <Chip
-                                                icon={
-                                                    <LiveTv />
-                                                }
-                                                label={
-                                                    liveClass.isLive
-                                                        ? "LIVE NOW"
-                                                        : "UPCOMING"
-                                                }
+                                            {/* DESCRIPTION */}
+
+                                            {liveClass.description && (
+                                                <Typography
+                                                    variant="body2"
+                                                    color="text.secondary"
+                                                    sx={{
+                                                        mt: 2,
+                                                    }}
+                                                >
+                                                    {
+                                                        liveClass.description
+                                                    }
+                                                </Typography>
+                                            )}
+
+                                            {/* SCHEDULE */}
+
+                                            <Box
+                                                sx={{
+                                                    mt: 2,
+                                                    p: 2,
+                                                    borderRadius: 2,
+                                                    backgroundColor:
+                                                        "background.paper",
+                                                    border:
+                                                        "1px solid",
+                                                    borderColor:
+                                                        "divider",
+                                                }}
+                                            >
+                                                <Typography
+                                                    variant="body2"
+                                                    color="text.secondary"
+                                                >
+                                                    <strong>
+                                                        Scheduled:
+                                                    </strong>{" "}
+                                                    {liveClass.scheduledAt
+                                                        ? new Date(
+                                                              liveClass.scheduledAt
+                                                          ).toLocaleString()
+                                                        : "Not specified"}
+                                                </Typography>
+                                            </Box>
+
+                                            {/* JOIN BUTTON */}
+
+                                            <Button
+                                                fullWidth
+                                                variant="contained"
                                                 color={
                                                     liveClass.isLive
                                                         ? "error"
-                                                        : "warning"
+                                                        : "primary"
                                                 }
-                                                size="small"
+                                                startIcon={
+                                                    <VideoCameraFront />
+                                                }
+                                                disabled={
+                                                    !liveClass.isLive
+                                                }
+                                                onClick={() =>
+                                                    navigate(
+                                                        `/live-class/${liveClass.id}`
+                                                    )
+                                                }
                                                 sx={{
-                                                    flexShrink: 0,
-                                                }}
-                                            />
-                                        </Box>
-
-                                        {/* DESCRIPTION */}
-
-                                        {liveClass.description && (
-                                            <Typography
-                                                variant="body2"
-                                                color="text.secondary"
-                                                sx={{
-                                                    mt: 2,
+                                                    mt: 2.5,
+                                                    py: 1.25,
+                                                    borderRadius: 2,
+                                                    fontWeight: 700,
                                                 }}
                                             >
-                                                {
-                                                    liveClass.description
-                                                }
-                                            </Typography>
-                                        )}
+                                                {liveClass.isLive
+                                                    ? "Join Live Class"
+                                                    : "Waiting for Teacher"}
+                                            </Button>
+                                        </Paper>
+                                    </Grid>
+                                )
+                            )}
+                        </Grid>
 
-                                        {/* SCHEDULE */}
+                        {/* SHOW ALL / SHOW LESS TOGGLE */}
 
-                                        <Box
-                                            sx={{
-                                                mt: 2,
-                                                p: 2,
-                                                borderRadius: 2,
-                                                backgroundColor:
-                                                    "background.paper",
-                                                border:
-                                                    "1px solid",
-                                                borderColor:
-                                                    "divider",
-                                            }}
-                                        >
-                                            <Typography
-                                                variant="body2"
-                                                color="text.secondary"
-                                            >
-                                                <strong>
-                                                    Scheduled:
-                                                </strong>{" "}
-                                                {liveClass.scheduledAt
-                                                    ? new Date(
-                                                          liveClass.scheduledAt
-                                                      ).toLocaleString()
-                                                    : "Not specified"}
-                                            </Typography>
-                                        </Box>
-
-                                        {/* JOIN BUTTON */}
-
-                                        <Button
-                                            fullWidth
-                                            variant="contained"
-                                            color={
-                                                liveClass.isLive
-                                                    ? "error"
-                                                    : "primary"
-                                            }
-                                            startIcon={
-                                                <VideoCameraFront />
-                                            }
-                                            disabled={
-                                                !liveClass.isLive
-                                            }
-                                            onClick={() =>
-                                                navigate(
-                                                    `/live-class/${liveClass.id}`
-                                                )
-                                            }
-                                            sx={{
-                                                mt: 2.5,
-                                                py: 1.25,
-                                                borderRadius: 2,
-                                                fontWeight: 700,
-                                            }}
-                                        >
-                                            {liveClass.isLive
-                                                ? "Join Live Class"
-                                                : "Waiting for Teacher"}
-                                        </Button>
-                                    </Paper>
-                                </Grid>
-                            )
+                        {hasMoreLiveClasses && (
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    mb: 5,
+                                }}
+                            >
+                                <Button
+                                    variant="outlined"
+                                    onClick={() =>
+                                        setShowAllLiveClasses(
+                                            (prev) => !prev
+                                        )
+                                    }
+                                    endIcon={
+                                        showAllLiveClasses ? (
+                                            <ExpandLess />
+                                        ) : (
+                                            <ExpandMore />
+                                        )
+                                    }
+                                    sx={{
+                                        borderRadius: 2,
+                                        textTransform: "none",
+                                        fontWeight: 700,
+                                        px: 3,
+                                    }}
+                                >
+                                    {showAllLiveClasses
+                                        ? "Show Less"
+                                        : `Show All (${liveClasses.length})`}
+                                </Button>
+                            </Box>
                         )}
-                    </Grid>
+                    </>
                 )}
 
             {/* =================================================
