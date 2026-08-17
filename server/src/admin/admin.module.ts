@@ -8,6 +8,7 @@ import { User } from '../users/entities/user.entity';
 import { Course } from '../courses/entities/course.entity';
 import { Enrollment } from '../enrollments/entities/enrollment.entity';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
       Enrollment,
     ]),
     AnalyticsModule,
+    UsersModule,
   ],
 
   controllers: [

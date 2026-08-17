@@ -12,6 +12,7 @@ import {
   Req,
 } from '@nestjs/common';
 
+
 import {
   FileInterceptor,
 } from '@nestjs/platform-express';
@@ -36,10 +37,6 @@ export class UsersController {
 
   ) {}
 
-
-
-
-
   // =====================================================
   // GET ALL USERS
   // =====================================================
@@ -50,10 +47,6 @@ export class UsersController {
     return this.usersService.findAll();
 
   }
-
-
-
-
 
   // =====================================================
   // GET USER BY ID
@@ -69,6 +62,8 @@ export class UsersController {
     );
 
   }
+
+  
   // =====================================================
   // UPDATE USER PROFILE
   // =====================================================
@@ -81,8 +76,6 @@ export class UsersController {
     updateUserDto:UpdateUserDto,
 
   ) {
-
-
     return this.usersService.update(
 
       +id,

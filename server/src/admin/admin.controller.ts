@@ -8,6 +8,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
+import { Patch, Body } from '@nestjs/common'; // existing @nestjs/common import line mein merge karo
+import { UsersService } from '../users/users.service';
+import { UpdateRoleDto } from '../users/dto/update-role.dto';
+
 import { AdminService } from './admin.service';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -19,7 +23,8 @@ import { Roles } from '../auth/decorators/roles.decorator';
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
-  ) {}
+    private readonly usersService: UsersService,
+  ) { }
 
   // =========================
   // ADMIN DASHBOARD
@@ -55,5 +60,18 @@ export class AdminController {
       id,
       req.user.id,
     );
+  }
+
+  // =========================
+  // UPDATE USER ROLE
+  // =========================
+
+  @Patch('users/:id/role')
+  @Roles('admin')
+  async updateUserRole(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateRoleDto,
+  ) {
+    return this.usersService.updateRole(id, dto.role);
   }
 }

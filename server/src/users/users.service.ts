@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 import { InjectRepository } from '@nestjs/typeorm';
@@ -281,4 +281,31 @@ export class UsersService {
       },
     });
   }
+
+  // =====================================================
+// UPDATE USER ROLE (ADMIN ONLY)
+// =====================================================
+
+async updateRole(id: number, newRole: string) {
+  const user = await this.findOne(id);
+
+  if (!user) {
+    throw new NotFoundException('User not found');
+  }
+
+  // last admin ko demote hone se roko
+  if (user.role === 'admin' && newRole !== 'admin') {
+    const adminCount = await this.userRepository.count({
+      where: { role: 'admin' },
+    });
+
+    if (adminCount <= 1) {
+      throw new BadRequestException('Cannot remove the last admin');
+    }
+  }
+
+  await this.userRepository.update(id, { role: newRole });
+
+  return await this.findOne(id);
+}
 }

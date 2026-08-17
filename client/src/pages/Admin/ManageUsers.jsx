@@ -6,7 +6,13 @@ import {
     Chip,
     CircularProgress,
     Container,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
     IconButton,
+    Menu,
     MenuItem,
     Pagination,
     Paper,
@@ -49,6 +55,18 @@ const ManageUsers = () => {
     const [search, setSearch] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
     const [page, setPage] = useState(1);
+
+    // ROLE CHANGE STATE
+
+    const [updatingRoleId, setUpdatingRoleId] = useState(null);
+    const [menuAnchor, setMenuAnchor] = useState(null);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [confirmDialog, setConfirmDialog] = useState({
+        open: false,
+        userId: null,
+        userName: "",
+        newRole: "",
+    });
 
     // =====================================================
     // FETCH USERS
@@ -198,6 +216,89 @@ const ManageUsers = () => {
         },
         []
     );
+
+    // =====================================================
+    // ROLE MENU OPEN/CLOSE
+    // =====================================================
+
+    const handleRoleMenuOpen = (event, user) => {
+        setMenuAnchor(event.currentTarget);
+        setSelectedUser(user);
+    };
+
+    const handleRoleMenuClose = () => {
+        setMenuAnchor(null);
+        setSelectedUser(null);
+    };
+
+    // =====================================================
+    // ROLE SELECT FROM MENU -> OPEN CONFIRMATION
+    // =====================================================
+
+    const handleRoleSelect = (newRole) => {
+        if (!selectedUser || newRole === selectedUser.role) {
+            handleRoleMenuClose();
+            return;
+        }
+
+        setConfirmDialog({
+            open: true,
+            userId: selectedUser.id,
+            userName: selectedUser.name,
+            newRole,
+        });
+
+        handleRoleMenuClose();
+    };
+
+    // =====================================================
+    // CONFIRM ROLE UPDATE
+    // =====================================================
+
+    const handleConfirmRoleUpdate = useCallback(async () => {
+        const { userId, newRole } = confirmDialog;
+
+        try {
+            setUpdatingRoleId(userId);
+            setError("");
+
+            await api.patch(`/admin/users/${userId}/role`, {
+                role: newRole,
+            });
+
+            setUsers((prevUsers) =>
+                prevUsers.map((user) =>
+                    Number(user.id) === Number(userId)
+                        ? { ...user, role: newRole }
+                        : user
+                )
+            );
+        } catch (err) {
+            console.error("Update role error:", err);
+
+            setError(
+                err?.response?.data?.message ||
+                    "Unable to update role."
+            );
+        } finally {
+            setUpdatingRoleId(null);
+            setConfirmDialog({
+                open: false,
+                userId: null,
+                userName: "",
+                newRole: "",
+            });
+        }
+    }, [confirmDialog]);
+
+    const handleCancelRoleUpdate = () => {
+        setConfirmDialog({
+            open: false,
+            userId: null,
+            userName: "",
+            newRole: "",
+        });
+    };
 
     // =====================================================
     // FILTER USERS
@@ -955,34 +1056,53 @@ const ManageUsers = () => {
                                                 )}
                                             </Box>
 
-                                            {/* ROLE */}
+                                            {/* ROLE - click to change */}
 
-                                            <Chip
-                                                size="small"
-                                                icon={getRoleIcon(
-                                                    role
-                                                )}
-                                                label={
-                                                    role
-                                                }
-                                                color={getRoleColor(
-                                                    role
-                                                )}
-                                                variant="outlined"
-                                                sx={{
-                                                    textTransform:
-                                                        "capitalize",
-                                                    fontWeight:
-                                                        600,
-                                                    fontSize:
-                                                        "0.72rem",
-                                                    height: 28,
-                                                    "& .MuiChip-icon":
-                                                        {
-                                                            fontSize: 16,
+                                            <Tooltip title="Click to change role">
+                                                <Chip
+                                                    size="small"
+                                                    icon={
+                                                        updatingRoleId === user.id ? (
+                                                            <CircularProgress
+                                                                size={12}
+                                                                color="inherit"
+                                                            />
+                                                        ) : (
+                                                            getRoleIcon(role)
+                                                        )
+                                                    }
+                                                    label={
+                                                        role
+                                                    }
+                                                    color={getRoleColor(
+                                                        role
+                                                    )}
+                                                    variant="outlined"
+                                                    onClick={(e) =>
+                                                        handleRoleMenuOpen(e, user)
+                                                    }
+                                                    disabled={
+                                                        updatingRoleId === user.id
+                                                    }
+                                                    sx={{
+                                                        textTransform:
+                                                            "capitalize",
+                                                        fontWeight:
+                                                            600,
+                                                        fontSize:
+                                                            "0.72rem",
+                                                        height: 28,
+                                                        cursor: "pointer",
+                                                        "& .MuiChip-icon":
+                                                            {
+                                                                fontSize: 16,
+                                                            },
+                                                        "&:hover": {
+                                                            opacity: 0.85,
                                                         },
-                                                }}
-                                            />
+                                                    }}
+                                                />
+                                            </Tooltip>
 
                                             {/* USER ID */}
 
@@ -1071,6 +1191,62 @@ const ManageUsers = () => {
                     )}
                 </>
             )}
+
+            {/* =================================================
+                ROLE CHANGE MENU
+            ================================================= */}
+
+            <Menu
+                anchorEl={menuAnchor}
+                open={Boolean(menuAnchor)}
+                onClose={handleRoleMenuClose}
+            >
+                <MenuItem onClick={() => handleRoleSelect("student")}>
+                    <School sx={{ fontSize: 18, mr: 1 }} /> Student
+                </MenuItem>
+                <MenuItem onClick={() => handleRoleSelect("teacher")}>
+                    <Person sx={{ fontSize: 18, mr: 1 }} /> Teacher
+                </MenuItem>
+                <MenuItem onClick={() => handleRoleSelect("admin")}>
+                    <AdminPanelSettings sx={{ fontSize: 18, mr: 1 }} /> Admin
+                </MenuItem>
+            </Menu>
+
+            {/* =================================================
+                ROLE CHANGE CONFIRMATION DIALOG
+            ================================================= */}
+
+            <Dialog
+                open={confirmDialog.open}
+                onClose={handleCancelRoleUpdate}
+            >
+                <DialogTitle fontWeight={700}>
+                    Change User Role
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to change{" "}
+                        <strong>{confirmDialog.userName}</strong>'s role to{" "}
+                        <strong style={{ textTransform: "capitalize" }}>
+                            {confirmDialog.newRole}
+                        </strong>
+                        ? This will immediately change their access
+                        permissions.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button onClick={handleCancelRoleUpdate} color="inherit">
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleConfirmRoleUpdate}
+                        variant="contained"
+                        color="primary"
+                    >
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 };
