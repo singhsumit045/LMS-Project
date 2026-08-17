@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -28,6 +27,8 @@ import {
   Button,
   InputAdornment,
   Tooltip,
+  Dialog,
+  DialogContent,
 } from "@mui/material";
 
 import {
@@ -70,6 +71,17 @@ function Profile() {
   const [uploadingImage, setUploadingImage] =
     useState(false);
 
+  // pending file + preview, shown before the actual upload happens
+  const [profileImageFile, setProfileImageFile] =
+    useState(null);
+
+  const [profileImagePreview, setProfileImagePreview] =
+    useState("");
+
+  // full-size preview dialog (click on avatar to open)
+  const [imagePreviewOpen, setImagePreviewOpen] =
+    useState(false);
+
   const fileInputRef = useRef(null);
 
   // =========================
@@ -109,12 +121,27 @@ function Profile() {
 
   const [uploadingSignature, setUploadingSignature] =
     useState(false);
+
   // =========================
   // LOAD PROFILE
   // =========================
 
   useEffect(() => {
     loadProfile();
+  }, []);
+
+  // Revoke any pending object URLs when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (profileImagePreview) {
+        URL.revokeObjectURL(profileImagePreview);
+      }
+
+      if (signaturePreview) {
+        URL.revokeObjectURL(signaturePreview);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadProfile = async () => {
@@ -140,7 +167,7 @@ function Profile() {
   };
 
   // =========================
-  // PROFILE PICTURE CLICK
+  // PROFILE PICTURE CLICK (camera button -> opens file picker)
   // =========================
 
   const handleProfilePictureClick = () => {
@@ -148,10 +175,28 @@ function Profile() {
   };
 
   // =========================
-  // PROFILE PICTURE CHANGE
+  // AVATAR CLICK (image itself -> opens full-size preview)
   // =========================
 
-  const handleProfilePictureChange = async (event) => {
+  const currentAvatarSrc =
+    profileImagePreview || user?.profileImageUrl || "";
+
+  const handleAvatarClick = () => {
+    // Nothing to preview if there's no image at all (just the initial letter)
+    if (!currentAvatarSrc) return;
+
+    setImagePreviewOpen(true);
+  };
+
+  const handleClosePreview = () => {
+    setImagePreviewOpen(false);
+  };
+
+  // =========================
+  // PROFILE PICTURE SELECT (preview only, no upload yet)
+  // =========================
+
+  const handleProfilePictureChange = (event) => {
     const file = event.target.files?.[0];
 
     if (!file) return;
@@ -187,6 +232,32 @@ function Profile() {
       return;
     }
 
+    // Clean up any previous pending preview before creating a new one
+    if (profileImagePreview) {
+      URL.revokeObjectURL(profileImagePreview);
+    }
+
+    setError("");
+    setSuccess("");
+
+    setProfileImageFile(file);
+    setProfileImagePreview(URL.createObjectURL(file));
+
+    // Allow selecting the same image again later
+    event.target.value = "";
+  };
+
+  // =========================
+  // CONFIRM PROFILE PICTURE UPLOAD
+  // =========================
+
+  const handleProfilePictureUpload = async () => {
+    if (!profileImageFile) {
+      setError("Please select an image first.");
+
+      return;
+    }
+
     try {
       setUploadingImage(true);
 
@@ -194,7 +265,7 @@ function Profile() {
       setSuccess("");
 
       const response =
-        await uploadProfilePicture(file);
+        await uploadProfilePicture(profileImageFile);
 
       const profileImageUrl =
         response.data.profileImageUrl;
@@ -222,6 +293,12 @@ function Profile() {
       setSuccess(
         "Profile picture updated successfully."
       );
+
+      // Preview has been saved now — clear the pending state
+      URL.revokeObjectURL(profileImagePreview);
+
+      setProfileImageFile(null);
+      setProfileImagePreview("");
     } catch (error) {
       console.log(error);
 
@@ -236,12 +313,23 @@ function Profile() {
       );
     } finally {
       setUploadingImage(false);
-
-      // Allow selecting same image again
-      event.target.value = "";
     }
   };
 
+  // =========================
+  // CANCEL PROFILE PICTURE PREVIEW
+  // =========================
+
+  const handleProfilePictureCancel = () => {
+    if (profileImagePreview) {
+      URL.revokeObjectURL(profileImagePreview);
+    }
+
+    setProfileImageFile(null);
+    setProfileImagePreview("");
+
+    setError("");
+  };
 
   // =========================
   // SIGNATURE FILE CHANGE
@@ -291,6 +379,9 @@ function Profile() {
 
     }
 
+    if (signaturePreview) {
+      URL.revokeObjectURL(signaturePreview);
+    }
 
     setSignatureFile(file);
 
@@ -301,10 +392,6 @@ function Profile() {
 
 
   };
-
-
-
-
 
   // =========================
   // UPLOAD SIGNATURE
@@ -897,36 +984,57 @@ function Profile() {
                 mb: 2,
               }}
             >
-              <Avatar
-                src={
-                  user.profileImageUrl ||
-                  undefined
+              <Tooltip
+                title={
+                  currentAvatarSrc
+                    ? "View photo"
+                    : ""
                 }
-                alt={
-                  user.name || "Profile"
-                }
-                sx={{
-                  width: "100%",
-                  height: "100%",
-
-                  border: "5px solid",
-                  borderColor:
-                    "background.paper",
-
-                  backgroundColor:
-                    "primary.main",
-
-                  fontSize: {
-                    xs: "2rem",
-                    sm: "2.5rem",
-                  },
-
-                  fontWeight: 700,
-                }}
               >
-                {!user.profileImageUrl &&
-                  firstLetter}
-              </Avatar>
+                <Avatar
+                  src={currentAvatarSrc || undefined}
+                  alt={
+                    user.name || "Profile"
+                  }
+                  onClick={handleAvatarClick}
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+
+                    border: "5px solid",
+                    borderColor:
+                      "background.paper",
+
+                    backgroundColor:
+                      "primary.main",
+
+                    fontSize: {
+                      xs: "2rem",
+                      sm: "2.5rem",
+                    },
+
+                    fontWeight: 700,
+
+                    // subtle visual cue that this is an unsaved preview
+                    opacity: profileImagePreview ? 0.85 : 1,
+
+                    // only show pointer/hover affordance when there's
+                    // actually an image to preview
+                    cursor: currentAvatarSrc
+                      ? "pointer"
+                      : "default",
+
+                    transition: "opacity 0.15s ease",
+
+                    "&:hover": currentAvatarSrc
+                      ? { opacity: 0.75 }
+                      : undefined,
+                  }}
+                >
+                  {!currentAvatarSrc &&
+                    firstLetter}
+                </Avatar>
+              </Tooltip>
 
               {/* HIDDEN FILE INPUT */}
 
@@ -1005,7 +1113,7 @@ function Profile() {
               }
               disabled={uploadingImage}
               sx={{
-                mb: 2,
+                mb: profileImagePreview ? 1.5 : 2,
                 textTransform: "none",
                 borderRadius: 2,
               }}
@@ -1014,6 +1122,51 @@ function Profile() {
                 ? "Uploading..."
                 : "Change Photo"}
             </Button>
+
+            {/* =========================
+                CONFIRM / CANCEL NEW PHOTO
+            ========================= */}
+
+            {profileImagePreview && (
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 1,
+                  mb: 2,
+                  flexWrap: "wrap",
+                }}
+              >
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<Check />}
+                  onClick={handleProfilePictureUpload}
+                  disabled={uploadingImage}
+                  sx={{
+                    textTransform: "none",
+                    borderRadius: 2,
+                  }}
+                >
+                  {uploadingImage
+                    ? "Uploading..."
+                    : "Confirm Photo"}
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<Close />}
+                  onClick={handleProfilePictureCancel}
+                  disabled={uploadingImage}
+                  sx={{
+                    textTransform: "none",
+                    borderRadius: 2,
+                  }}
+                >
+                  Cancel
+                </Button>
+              </Box>
+            )}
 
             {/* =========================
                 NAME
@@ -1930,9 +2083,62 @@ function Profile() {
         </Paper>
 
       </Container>
+
+      {/* =========================
+          FULL-SIZE PHOTO PREVIEW DIALOG
+      ========================= */}
+
+      <Dialog
+        open={imagePreviewOpen}
+        onClose={handleClosePreview}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogContent
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            position: "relative",
+            p: 0,
+            backgroundColor: "#000",
+          }}
+        >
+          <IconButton
+            onClick={handleClosePreview}
+            aria-label="Close preview"
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              color: "#fff",
+
+              "&:hover": {
+                backgroundColor: "rgba(0,0,0,0.7)",
+              },
+            }}
+          >
+            <Close />
+          </IconButton>
+
+          {currentAvatarSrc && (
+            <Box
+              component="img"
+              src={currentAvatarSrc}
+              alt={user.name || "Profile"}
+              sx={{
+                width: "100%",
+                maxHeight: "80vh",
+                objectFit: "contain",
+                display: "block",
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }
 
 export default Profile;
-
