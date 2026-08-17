@@ -12,10 +12,7 @@ function App({ darkMode, toggleTheme }) {
     const accessToken =
       localStorage.getItem("access_token");
 
-    console.log(
-      "🔑 Access Token:",
-      accessToken ? "Available" : "Not Found"
-    );
+    
 
     // ==========================================
     // NO TOKEN

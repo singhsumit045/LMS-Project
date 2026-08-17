@@ -64,7 +64,10 @@ const ManageAnnouncements = () => {
         Array.isArray(response.data) ? response.data : []
       );
     } catch (error) {
-      console.log("Fetch announcements error:", error);
+      console.error(
+        "Fetch announcements error:",
+        error
+      );
 
       setError(
         error.response?.data?.message ||
@@ -117,11 +120,16 @@ const ManageAnnouncements = () => {
       setTitle("");
       setMessage("");
 
-      setSuccess("Announcement published successfully.");
+      setSuccess(
+        "Announcement published successfully."
+      );
 
       await fetchAnnouncements();
     } catch (error) {
-      console.log("Create announcement error:", error);
+      console.error(
+        "Create announcement error:",
+        error
+      );
 
       setError(
         error.response?.data?.message ||
@@ -157,9 +165,14 @@ const ManageAnnouncements = () => {
         )
       );
 
-      setSuccess("Announcement deleted successfully.");
+      setSuccess(
+        "Announcement deleted successfully."
+      );
     } catch (error) {
-      console.log("Delete announcement error:", error);
+      console.error(
+        "Delete announcement error:",
+        error
+      );
 
       setError(
         error.response?.data?.message ||
@@ -185,7 +198,7 @@ const ManageAnnouncements = () => {
       }}
     >
       {/* =================================================
-          BACK
+          BACK BUTTON
       ================================================= */}
 
       <Button
@@ -216,6 +229,7 @@ const ManageAnnouncements = () => {
             sx={{
               width: 50,
               height: 50,
+              flexShrink: 0,
               borderRadius: 2,
               display: "flex",
               alignItems: "center",
@@ -243,7 +257,9 @@ const ManageAnnouncements = () => {
 
             <Typography
               color="text.secondary"
-              sx={{ mt: 0.3 }}
+              sx={{
+                mt: 0.3,
+              }}
             >
               Share important updates and notices with
               your students.
@@ -301,11 +317,14 @@ const ManageAnnouncements = () => {
           mb: 4,
         }}
       >
+        {/* TITLE */}
         <Stack
           direction="row"
           spacing={1}
           alignItems="center"
-          sx={{ mb: 3 }}
+          sx={{
+            mb: 3,
+          }}
         >
           <Add color="primary" />
 
@@ -317,11 +336,13 @@ const ManageAnnouncements = () => {
           </Typography>
         </Stack>
 
+        {/* FORM */}
         <Box
           component="form"
           onSubmit={handleCreate}
         >
           <Stack spacing={2.5}>
+            {/* ANNOUNCEMENT TITLE */}
             <TextField
               fullWidth
               label="Announcement Title"
@@ -333,6 +354,7 @@ const ManageAnnouncements = () => {
               disabled={creating}
             />
 
+            {/* MESSAGE */}
             <TextField
               fullWidth
               multiline
@@ -346,6 +368,7 @@ const ManageAnnouncements = () => {
               disabled={creating}
             />
 
+            {/* SUBMIT BUTTON */}
             <Button
               type="submit"
               variant="contained"
@@ -397,10 +420,13 @@ const ManageAnnouncements = () => {
           borderColor: "divider",
         }}
       >
+        {/* LIST HEADER */}
         <Typography
           variant="h6"
           fontWeight={800}
-          sx={{ mb: 1 }}
+          sx={{
+            mb: 1,
+          }}
         >
           Published Announcements
         </Typography>
@@ -412,8 +438,13 @@ const ManageAnnouncements = () => {
           All announcements published for this course.
         </Typography>
 
-        <Divider sx={{ my: 3 }} />
+        <Divider
+          sx={{
+            my: 3,
+          }}
+        />
 
+        {/* LOADING */}
         {loading ? (
           <Box
             sx={{
@@ -425,6 +456,7 @@ const ManageAnnouncements = () => {
             <CircularProgress />
           </Box>
         ) : announcements.length === 0 ? (
+          /* EMPTY STATE */
           <Box
             sx={{
               py: 6,
@@ -448,12 +480,15 @@ const ManageAnnouncements = () => {
 
             <Typography
               color="text.secondary"
-              sx={{ mt: 0.5 }}
+              sx={{
+                mt: 0.5,
+              }}
             >
               Published announcements will appear here.
             </Typography>
           </Box>
         ) : (
+          /* ANNOUNCEMENTS */
           <Stack spacing={2}>
             {announcements.map((announcement) => (
               <Paper
@@ -465,24 +500,33 @@ const ManageAnnouncements = () => {
                     md: 2.5,
                   },
                   borderRadius: 3,
-                  transition: "all 0.2s ease",
+                  transition:
+                    "box-shadow 0.2s ease, border-color 0.2s ease",
                   "&:hover": {
                     boxShadow: 2,
                     borderColor: "primary.main",
                   },
                 }}
               >
-                <Stack
-                  direction={{
-                    xs: "column",
-                    sm: "row",
-                  }}
-                  spacing={2}
-                  alignItems={{
-                    xs: "flex-start",
-                    sm: "center",
+                {/* =================================================
+                    ANNOUNCEMENT CARD
+                ================================================= */}
+
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      sm: "48px minmax(0, 1fr) auto",
+                    },
+                    gap: 2,
+                    alignItems: {
+                      xs: "start",
+                      sm: "center",
+                    },
                   }}
                 >
+                  {/* ICON */}
                   <Box
                     sx={{
                       width: 48,
@@ -499,9 +543,9 @@ const ManageAnnouncements = () => {
                     <AnnouncementIcon />
                   </Box>
 
+                  {/* CONTENT */}
                   <Box
                     sx={{
-                      flex: 1,
                       minWidth: 0,
                     }}
                   >
@@ -527,6 +571,7 @@ const ManageAnnouncements = () => {
                       {announcement.message}
                     </Typography>
 
+                    {/* DATE */}
                     <Typography
                       variant="caption"
                       color="text.secondary"
@@ -543,28 +588,42 @@ const ManageAnnouncements = () => {
                     </Typography>
                   </Box>
 
-                  <Tooltip title="Delete announcement">
-                    <span>
-                      <IconButton
-                        color="error"
-                        disabled={
-                          deletingId === announcement.id
-                        }
-                        onClick={() =>
-                          handleDelete(
+                  {/* DELETE BUTTON */}
+                  <Box
+                    sx={{
+                      justifySelf: {
+                        xs: "start",
+                        sm: "end",
+                      },
+                    }}
+                  >
+                    <Tooltip title="Delete announcement">
+                      <span>
+                        <IconButton
+                          color="error"
+                          disabled={
+                            deletingId ===
                             announcement.id
-                          )
-                        }
-                      >
-                        {deletingId === announcement.id ? (
-                          <CircularProgress size={22} />
-                        ) : (
-                          <Delete />
-                        )}
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                </Stack>
+                          }
+                          onClick={() =>
+                            handleDelete(
+                              announcement.id
+                            )
+                          }
+                        >
+                          {deletingId ===
+                          announcement.id ? (
+                            <CircularProgress
+                              size={22}
+                            />
+                          ) : (
+                            <Delete />
+                          )}
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  </Box>
+                </Box>
               </Paper>
             ))}
           </Stack>

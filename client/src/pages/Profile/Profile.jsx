@@ -246,7 +246,7 @@ function Profile() {
     // Allow selecting the same image again later
     event.target.value = "";
   };
-
+      
   // =========================
   // CONFIRM PROFILE PICTURE UPLOAD
   // =========================
@@ -359,11 +359,9 @@ function Profile() {
       setSuccess("");
 
       event.target.value = "";
-
       return;
 
     }
-
 
     if (file.size > 2 * 1024 * 1024) {
 
@@ -409,12 +407,7 @@ function Profile() {
       return;
 
     }
-
-
-
     try {
-
-
       setUploadingSignature(true);
 
       setError("");
