@@ -350,10 +350,23 @@ const Navbar = ({
   // =====================================================
 
   return (
-    <AppBar
-      position="sticky"
-      elevation={2}
-    >
+ <AppBar
+  position="sticky"
+  elevation={0}
+  sx={{
+    background:
+      "linear-gradient(90deg, #1565c0 0%, #3949ab 50%, #7b1fa2 100%)",
+
+    color: "white",
+
+    boxShadow:
+      "0 4px 18px rgba(63, 81, 181, 0.25)",
+
+    borderRadius: "0 0 18px 18px",
+
+    overflow: "hidden",
+  }}
+>
       <Toolbar
         sx={{
           minHeight: {
@@ -534,46 +547,77 @@ const Navbar = ({
                   : "Dark Mode"
               }
             >
-              <IconButton
-                color="inherit"
-                onClick={
-                  toggleTheme
-                }
-                aria-label={
-                  darkMode
-                    ? "Switch to light mode"
-                    : "Switch to dark mode"
-                }
-              >
-                {darkMode ? (
-                  <LightMode />
-                ) : (
-                  <DarkMode />
-                )}
-              </IconButton>
+            <IconButton
+  onClick={toggleTheme}
+  aria-label={
+    darkMode
+      ? "Switch to light mode"
+      : "Switch to dark mode"
+  }
+  sx={{
+    color: "#fff",
+    width: 42,
+    height: 42,
+    borderRadius: "12px",
+    transition: "all 0.25s ease",
+
+    "&:hover": {
+      backgroundColor: "rgba(255,255,255,0.24)",
+      transform: "translateY(-1px)",
+    },
+
+    "& svg": {
+      fontSize: 23,
+    },
+  }}
+>
+  {darkMode ? <LightMode /> : <DarkMode />}
+</IconButton>
+              
             </Tooltip>
 
             {/* =========================
                 NOTIFICATIONS
             ========================= */}
 
-            <IconButton
-              color="inherit"
-              onClick={
-                openNotification
-              }
-              aria-label="Notifications"
-            >
-              <Badge
-                badgeContent={
-                  unreadCount
-                }
-                color="error"
-                max={99}
-              >
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
+          <IconButton
+  onClick={openNotification}
+  aria-label="Notifications"
+  sx={{
+    color: "#fff",
+    width: 42,
+    height: 42,
+    borderRadius: "12px",
+    // backgroundColor: "rgba(255,255,255,0.14)",
+    // border: "1px solid rgba(255,255,255,0.18)",
+    transition: "all 0.25s ease",
+
+    "&:hover": {
+      backgroundColor: "rgba(255,255,255,0.24)",
+      transform: "translateY(-1px)",
+    },
+
+    "& svg": {
+      fontSize: 23,
+    },
+  }}
+>
+  <Badge
+    badgeContent={unreadCount}
+    color="error"
+    max={99}
+    sx={{
+      "& .MuiBadge-badge": {
+        fontWeight: 700,
+        minWidth: 19,
+        height: 19,
+        fontSize: "0.7rem",
+      },
+    }}
+  >
+    <NotificationsIcon />
+  </Badge>
+</IconButton>
 
             {/* =========================
                 PROFILE AVATAR

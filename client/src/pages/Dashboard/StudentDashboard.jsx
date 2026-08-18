@@ -310,8 +310,8 @@ const StudentDashboard = () => {
                     },
                     mb: 4,
                     borderRadius: 4,
-                    background:
-                        "linear-gradient(135deg, #1976d2 0%, #7b1fa2 100%)",
+                   background:
+            "linear-gradient(135deg, #1565c0 0%, #4527a0 50%, #7b1fa2 100%)",
                     color: "white",
                     position: "relative",
                     overflow: "hidden",

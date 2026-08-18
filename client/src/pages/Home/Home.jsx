@@ -32,6 +32,8 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
+import Hero3DBackground from "./Hero3DBackground";
+
 const Home = () => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -186,6 +188,15 @@ const Home = () => {
             bottom: -120,
             left: -100,
           }}
+        />
+
+        {/* Interactive 3D scene layer — sits above the glow blobs,
+            below the hero content (which is zIndex 2) */}
+
+        <Hero3DBackground
+          primary={primary}
+          secondary={secondary}
+          isDark={isDark}
         />
 
         <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2 }}>
@@ -851,7 +862,7 @@ const Home = () => {
                       borderColor: alpha(primary, 0.35),
                     },
                   }}
-                >
+                > 
                   <Typography
                     sx={{
                       position: "absolute",

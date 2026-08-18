@@ -1,4 +1,3 @@
-
 import {
   Box,
   Container,
@@ -47,7 +46,10 @@ const Footer = () => {
       component="footer"
       sx={{
         mt: 8,
-        backgroundColor: "primary.main",
+        // Match the navbar's purple -> blue gradient instead of a flat color.
+        // Adjust the hex stops here if your navbar uses different theme colors
+        // (e.g. swap for `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`).
+        background: "linear-gradient(90deg, #6a3de8 0%, #3f6fe0 50%, #2f6fed 100%)",
         color: "primary.contrastText",
       }}
     >
@@ -397,4 +399,3 @@ const Footer = () => {
 };
 
 export default Footer;
-
