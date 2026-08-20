@@ -386,7 +386,7 @@ export class ExamsService {
         teacherId,
 
         passingPercentage:
-          createExamDto.passingMarks,
+          createExamDto.passingPercentage,
 
         isPublished:
           createExamDto.isPublished ??
@@ -578,11 +578,11 @@ export class ExamsService {
     }
 
     if (
-      updateExamDto.passingMarks !==
+      updateExamDto.passingPercentage !==
       undefined
     ) {
       exam.passingPercentage =
-        updateExamDto.passingMarks;
+        updateExamDto.passingPercentage;
     }
 
     if (
@@ -594,12 +594,11 @@ export class ExamsService {
 
       exam.isPublished =
         updateExamDto.isPublished;
-
       // -------------------------------------------------
       // NOTIFY WHEN NEWLY PUBLISHED
       // -------------------------------------------------
 
-      if (
+      if (        
         !wasPublished &&
         exam.isPublished
       ) {
@@ -799,7 +798,7 @@ export class ExamsService {
   // =====================================================
   // DELETE QUESTION
   // =====================================================
-
+   
   async removeQuestion(
     questionId: number,
   ): Promise<{ message: string }> {
@@ -1201,7 +1200,7 @@ export class ExamsService {
 
           selectedOptionId:
             selectedOption?.id ??
-            null,
+            null,     
 
           isCorrect,
 
@@ -1317,7 +1316,7 @@ export class ExamsService {
           id:
             'ASC',
         },
-      });
+      }); 
 
     const totalQuestions =
       questions.length;

@@ -4,8 +4,10 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  Max,
   Min,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateExamDto {
   @IsString()
@@ -16,18 +18,23 @@ export class CreateExamDto {
   @IsNotEmpty()
   description!: string;
 
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   duration!: number;
 
+  @Type(() => Number)
   @IsInt()
   @Min(0)
   totalMarks!: number;
 
+  @Type(() => Number)
   @IsInt()
   @Min(0)
-  passingMarks!: number;
+  @Max(100)
+  passingPercentage!: number;
 
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   courseId!: number;

@@ -60,7 +60,7 @@ function GlassShape({ position, color, speed = 1, geometry, mouse, scale = 1 }) 
     </Float>
   );
 }
-
+    
 // ---------------------------------------------------------
 // FloatingImageCard: a real image rendered as a 3D plane.
 // Tilts toward the mouse (like a physical card being turned
@@ -95,6 +95,7 @@ function FloatingImageCard({ src, position, width = 2.6, height = 1.7, mouse }) 
       imgRef.current.material.zoom = hovered ? 1.08 : 1;
     }
   });
+
 
   return (
     <group

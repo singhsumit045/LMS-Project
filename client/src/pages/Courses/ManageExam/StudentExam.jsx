@@ -755,11 +755,22 @@ const StudentExam = () => {
               {exam.totalMarks}
             </Typography>
 
-            <Typography>
+                      <Typography>
               <strong>
                 Passing:
               </strong>{" "}
-              {exam.passingPercentage}%
+              {exam.passingPercentage !== undefined &&
+              exam.passingPercentage !== null
+                ? `${exam.passingPercentage}%`
+                : exam.passingPercentage !== undefined &&
+                  exam.totalMarks
+                ? `${exam.passingPercentage}/${exam.totalMarks} (${Math.round(
+                    (Number(exam.passingPercentage) /
+                      Number(exam.totalMarks)) *
+                      100
+                  )}%)`
+                : "N/A"}
+                
             </Typography>
 
             <Typography>

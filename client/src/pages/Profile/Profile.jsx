@@ -349,7 +349,6 @@ function Profile() {
       "image/webp",
     ];
 
-
     if (!allowedTypes.includes(file.type)) {
 
       setError(

@@ -315,6 +315,73 @@ export class LiveClassGateway
       this.getRoomName(liveClassId);
 
     // --------------------------------------------------
+    // FIX: KICK STALE DUPLICATE CONNECTIONS
+    //
+    // Socket.IO does not detect a browser refresh/close
+    // instantly - the OLD socket can remain "connected"
+    // server-side for up to the heartbeat timeout
+    // (default ~20-45s) after the page has already
+    // reloaded and opened a brand NEW socket.
+    //
+    // Without this step, the room's socket list still
+    // contains the stale old socket for that same user
+    // when we build the participants list below, so the
+    // same person shows up twice (once as themselves,
+    // once as a ghost "ex-self" tile) until the old
+    // socket's heartbeat finally times out.
+    //
+    // Fix: before computing participants, find any OTHER
+    // socket already in this room with the same userId
+    // and force it to leave + disconnect + notify the
+    // room immediately, instead of waiting on the
+    // heartbeat.
+    // --------------------------------------------------
+
+    const existingRoomSockets =
+      this.server?.sockets?.adapter?.rooms?.get(
+        room,
+      );
+
+    if (existingRoomSockets) {
+      for (const existingSocketId of existingRoomSockets) {
+        if (existingSocketId === socket.id) {
+          continue;
+        }
+
+        const existingSocket =
+          this.server?.sockets?.sockets?.get(
+            existingSocketId,
+          ) as
+            | AuthenticatedSocket
+            | undefined;
+
+        const isSameUser =
+          existingSocket?.user?.id ===
+          socket.user.id;
+
+        if (existingSocket && isSameUser) {
+          this.logger.warn(
+            `Duplicate connection for user ${socket.user.id}: kicking stale socket ${existingSocketId} (replaced by ${socket.id})`,
+          );
+
+          existingSocket.leave(room);
+
+          existingSocket.liveClassId =
+            undefined;
+
+          this.server
+            .to(room)
+            .emit('participant-left', {
+              userId: socket.user.id,
+              socketId: existingSocketId,
+            });
+
+          existingSocket.disconnect(true);
+        }
+      }
+    }
+
+    // --------------------------------------------------
     // JOIN ROOM
     // --------------------------------------------------
 
@@ -329,6 +396,7 @@ export class LiveClassGateway
 
     // --------------------------------------------------
     // GET ROOM SOCKETS SAFELY
+    // (re-read after kicking stale duplicates above)
     // --------------------------------------------------
 
     const roomSockets =
@@ -338,7 +406,14 @@ export class LiveClassGateway
 
     // --------------------------------------------------
     // EXISTING PARTICIPANTS
+    //
+    // FIX: also dedupe by userId here as a safety net,
+    // in case two sockets for the same user somehow both
+    // remain (e.g. kick above raced with a disconnect).
+    // Keeps at most one entry per userId.
     // --------------------------------------------------
+
+    const seenUserIds = new Set<number>();
 
     const participants =
       roomSockets
@@ -364,6 +439,28 @@ export class LiveClassGateway
                 role:
                   participant?.user?.role,
               };
+            })
+            .filter((participant) => {
+              if (
+                participant.userId ===
+                undefined
+              ) {
+                return true;
+              }
+
+              if (
+                seenUserIds.has(
+                  participant.userId,
+                )
+              ) {
+                return false;
+              }
+
+              seenUserIds.add(
+                participant.userId,
+              );
+
+              return true;
             })
         : [];
 
@@ -790,7 +887,7 @@ export class LiveClassGateway
       `WebRTC answer: ${socket.id} -> ${data.targetSocketId}`,
     );
   }
-
+  
   // ====================================================
   // ICE CANDIDATE
   // ====================================================
@@ -837,7 +934,6 @@ export class LiveClassGateway
     ) {
       return;
     }
-
     // --------------------------------------------------
     // CHECK TARGET
     // --------------------------------------------------

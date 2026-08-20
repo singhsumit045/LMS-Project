@@ -37,17 +37,13 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import ScreenShareIcon from "@mui/icons-material/ScreenShare";
 import StopScreenShareIcon from "@mui/icons-material/StopScreenShare";
 import SettingsIcon from "@mui/icons-material/Settings";
-import InfoIcon from "@mui/icons-material/Info";
-
 
 // ============================================================
 // CONFIG
 // ============================================================
 
 const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL ||
-  "http://localhost:8080";
-
+  import.meta.env.VITE_SOCKET_URL || "http://localhost:8080";
 
 // ============================================================
 // HELPERS
@@ -56,8 +52,9 @@ const SOCKET_URL =
 const getToken = () => {
   return localStorage.getItem("access_token");
 };
+
 // ============================================================
-// VIDEO COMPONENT
+// VIDEO TILE
 // ============================================================
 
 const VideoTile = ({
@@ -69,39 +66,54 @@ const VideoTile = ({
   cameraOn = true,
 }) => {
   const videoRef = useRef(null);
-useEffect(() => {
-  const video = videoRef.current;
 
-  if (!video) {
-    return;
-  }
+  useEffect(() => {
+    const video = videoRef.current;
 
-  if (!stream) {
-    video.srcObject = null;
-    return;
-  }
-
-  video.srcObject = stream;
-
-  const playVideo = async () => {
-    try {
-      await video.play();
-    } catch (error) {
-      if (error?.name !== "AbortError") {
-        console.warn("Video play error:", error);
-      }
+    if (!video) {
+      return;
     }
-  };
 
-  playVideo();
-
-  return () => {
-    if (video) {
-      video.pause();
+    if (!stream) {
       video.srcObject = null;
+      return;
     }
-  };
-}, [stream]);
+
+    console.log(
+      "🎥 Attaching stream to video:",
+      name,
+      stream.id,
+      stream.getTracks().map((track) => ({
+        kind: track.kind,
+        enabled: track.enabled,
+        readyState: track.readyState,
+      }))
+    );
+
+    video.srcObject = stream;
+
+    const playVideo = async () => {
+      try {
+        await video.play();
+      } catch (error) {
+        if (error?.name !== "AbortError") {
+          console.warn(
+            "Video play error:",
+            error
+          );
+        }
+      }
+    };
+
+    playVideo();
+
+    return () => {
+      if (video) {
+        video.pause();
+        video.srcObject = null;
+      }
+    };
+  }, [stream, name]);
 
   return (
     <Paper
@@ -128,6 +140,7 @@ useEffect(() => {
             height: "100%",
             objectFit: "cover",
             display: "block",
+            backgroundColor: "#000",
           }}
         />
       ) : (
@@ -203,7 +216,6 @@ useEffect(() => {
         </Stack>
       </Box>
 
-      {/* Camera status */}
       {!cameraOn && (
         <Box
           sx={{
@@ -226,7 +238,6 @@ useEffect(() => {
     </Paper>
   );
 };
-
 
 // ============================================================
 // MAIN COMPONENT
@@ -252,7 +263,25 @@ const LiveClassRoom = () => {
 
   const participantsRef = useRef(new Map());
 
+  /*
+   * IMPORTANT:
+   * ICE candidates can arrive before remote description.
+   * We store them here and apply them later.
+   */
+  const pendingIceCandidatesRef = useRef(new Map());
+
   const mountedRef = useRef(true);
+
+  /*
+   * FIX: these refs mirror previewStream/screenShareStream state.
+   * cleanupConnections reads from refs (stable identity) instead
+   * of state, so it never needs previewStream/screenShareStream
+   * in its dependency array — this was the source of the
+   * initialize -> cleanup -> initialize infinite loop.
+   */
+  const previewStreamRef = useRef(null);
+
+  const screenShareStreamRef = useRef(null);
 
   // ==========================================================
   // STATES
@@ -299,16 +328,19 @@ const LiveClassRoom = () => {
 
   const [screenSharing, setScreenSharing] = useState(false);
 
-  const [screenShareStream, setScreenShareStream] = useState(null);
+  const [screenShareStream, setScreenShareStream] =
+    useState(null);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const [showParticipants, setShowParticipants] = useState(false);
+  const [showParticipants, setShowParticipants] =
+    useState(false);
 
-  const [videoQuality, setVideoQuality] = useState("720p");
+  const [videoQuality, setVideoQuality] =
+    useState("720p");
 
   // ==========================================================
-  // GET CURRENT USER
+  // CURRENT USER
   // ==========================================================
 
   const getCurrentUser = useCallback(async () => {
@@ -320,9 +352,8 @@ const LiveClassRoom = () => {
       );
     }
 
-    // Shared api instance automatically adds the access token and
-    // refreshes it when the server returns 401.
     const response = await api.get("/auth/profile");
+
     const result = response?.data;
 
     const user =
@@ -331,12 +362,13 @@ const LiveClassRoom = () => {
       result;
 
     if (!user?.id && !user?.userId) {
-      throw new Error("Unable to load user profile.");
+      throw new Error(
+        "Unable to load user profile."
+      );
     }
 
     return user;
   }, []);
-
 
   // ==========================================================
   // GET LIVE CLASS
@@ -373,9 +405,8 @@ const LiveClassRoom = () => {
     );
   }, [liveClassId, id]);
 
-
   // ==========================================================
-  // SHOW MESSAGE
+  // MESSAGE
   // ==========================================================
 
   const showMessage = useCallback(
@@ -393,44 +424,114 @@ const LiveClassRoom = () => {
     []
   );
 
-
   // ==========================================================
   // UPDATE REMOTE PARTICIPANTS
   // ==========================================================
 
-  const updateRemoteParticipants = useCallback(
-    () => {
+  const updateRemoteParticipants =
+    useCallback(() => {
       const participants = Array.from(
         participantsRef.current.values()
       );
 
-      setRemoteParticipants(
-        participants
-      );
+      setRemoteParticipants(participants);
+    }, []);
+
+  // ==========================================================
+  // ADD PENDING ICE
+  // ==========================================================
+
+  const addPendingIceCandidate = useCallback(
+    (socketId, candidate) => {
+      if (!pendingIceCandidatesRef.current.has(socketId)) {
+        pendingIceCandidatesRef.current.set(
+          socketId,
+          []
+        );
+      }
+
+      pendingIceCandidatesRef.current
+        .get(socketId)
+        .push(candidate);
     },
     []
   );
 
+  // ==========================================================
+  // APPLY PENDING ICE
+  // ==========================================================
+
+  const applyPendingIceCandidates =
+    useCallback(async (socketId, peerConnection) => {
+      const candidates =
+        pendingIceCandidatesRef.current.get(
+          socketId
+        );
+
+      if (!candidates?.length) {
+        return;
+      }
+
+      console.log(
+        "🧊 Applying queued ICE candidates:",
+        socketId,
+        candidates.length
+      );
+
+      for (const candidate of candidates) {
+        try {
+          await peerConnection.addIceCandidate(
+            new RTCIceCandidate(candidate)
+          );
+        } catch (error) {
+          console.error(
+            "Queued ICE candidate error:",
+            error
+          );
+        }
+      }
+
+      pendingIceCandidatesRef.current.delete(
+        socketId
+      );
+    }, []);
 
   // ==========================================================
   // CREATE PEER CONNECTION
   // ==========================================================
 
   const createPeerConnection = useCallback(
-    (targetSocketId, targetUserId, targetRole) => {
+    (
+      targetSocketId,
+      targetUserId,
+      targetRole
+    ) => {
       if (!socketRef.current) {
+        console.warn(
+          "⚠️ Socket is not available."
+        );
+
         return null;
       }
 
-      // Existing connection
       const existing =
         peerConnectionsRef.current.get(
           targetSocketId
         );
 
       if (existing) {
+        console.log(
+          "♻️ Reusing existing peer connection:",
+          targetSocketId
+        );
+
         return existing;
       }
+
+      console.log(
+        "🆕 Creating peer connection:",
+        targetSocketId
+      );
 
       const peerConnection =
         new RTCPeerConnection({
@@ -445,30 +546,50 @@ const LiveClassRoom = () => {
         });
 
       // ------------------------------------------------------
-      // Add local tracks
+      // ADD LOCAL TRACKS
       // ------------------------------------------------------
 
       if (localStreamRef.current) {
-        localStreamRef.current
-          .getTracks()
-          .forEach((track) => {
-            peerConnection.addTrack(
-              track,
-              localStreamRef.current
-            );
-          });
+        const tracks =
+          localStreamRef.current.getTracks();
+
+        console.log(
+          "🎤🎥 Adding local tracks:",
+          tracks.map((track) => track.kind)
+        );
+
+        tracks.forEach((track) => {
+          peerConnection.addTrack(
+            track,
+            localStreamRef.current
+          );
+        });
+      } else {
+        console.warn(
+          "⚠️ Local stream is not available while creating peer."
+        );
       }
 
       // ------------------------------------------------------
-      // ICE candidate
+      // ICE CANDIDATE
       // ------------------------------------------------------
 
       peerConnection.onicecandidate = (
         event
       ) => {
         if (!event.candidate) {
+          console.log(
+            "🧊 ICE gathering completed:",
+            targetSocketId
+          );
+
           return;
         }
+
+        console.log(
+          "🧊 Sending ICE candidate:",
+          targetSocketId
+        );
 
         socketRef.current?.emit(
           "webrtc-ice-candidate",
@@ -481,21 +602,59 @@ const LiveClassRoom = () => {
       };
 
       // ------------------------------------------------------
-      // Remote track
+      // REMOTE TRACK
       // ------------------------------------------------------
 
       peerConnection.ontrack = (event) => {
-        const [stream] =
-          event.streams;
-
-        if (!stream) {
-          return;
-        }
-
-        remoteStreamsRef.current.set(
-          targetSocketId,
-          stream
+        console.log(
+          "🔥 REMOTE TRACK RECEIVED:",
+          {
+            targetSocketId,
+            kind: event.track?.kind,
+            streams: event.streams,
+          }
         );
+
+        let stream =
+          event.streams?.[0];
+
+        /*
+         * Some browsers may not provide event.streams.
+         * In that case create our own MediaStream.
+         */
+        if (!stream) {
+          stream =
+            remoteStreamsRef.current.get(
+              targetSocketId
+            );
+
+          if (!stream) {
+            stream = new MediaStream();
+
+            remoteStreamsRef.current.set(
+              targetSocketId,
+              stream
+            );
+          }
+
+          const alreadyAdded =
+            stream
+              .getTracks()
+              .some(
+                (track) =>
+                  track.id ===
+                  event.track.id
+              );
+
+          if (!alreadyAdded) {
+            stream.addTrack(event.track);
+          }
+        } else {
+          remoteStreamsRef.current.set(
+            targetSocketId,
+            stream
+          );
+        }
 
         participantsRef.current.set(
           targetSocketId,
@@ -508,11 +667,34 @@ const LiveClassRoom = () => {
           }
         );
 
+        console.log(
+          "🎥 Remote stream stored:",
+          targetSocketId,
+          stream.id,
+          stream.getTracks().map(
+            (track) => ({
+              kind: track.kind,
+              readyState:
+                track.readyState,
+              enabled:
+                track.enabled,
+            })
+          )
+        );
+
         updateRemoteParticipants();
+
+        event.track.onended = () => {
+          console.log(
+            "⚠️ Remote track ended:",
+            targetSocketId,
+            event.track.kind
+          );
+        };
       };
 
       // ------------------------------------------------------
-      // Connection state
+      // CONNECTION STATE
       // ------------------------------------------------------
 
       peerConnection.onconnectionstatechange =
@@ -521,14 +703,28 @@ const LiveClassRoom = () => {
             peerConnection.connectionState;
 
           console.log(
-            `Peer ${targetSocketId} state:`,
+            "🔗 Peer connection state:",
+            targetSocketId,
             state
           );
 
+          if (state === "connected") {
+            console.log(
+              "✅ WebRTC CONNECTED:",
+              targetSocketId
+            );
+          }
+
+          if (state === "failed") {
+            console.error(
+              "❌ WebRTC FAILED:",
+              targetSocketId
+            );
+          }
+
           if (
             state === "failed" ||
-            state === "closed" ||
-            state === "disconnected"
+            state === "closed"
           ) {
             participantsRef.current.delete(
               targetSocketId
@@ -538,8 +734,38 @@ const LiveClassRoom = () => {
               targetSocketId
             );
 
+            pendingIceCandidatesRef.current.delete(
+              targetSocketId
+            );
+
             updateRemoteParticipants();
           }
+        };
+
+      // ------------------------------------------------------
+      // ICE CONNECTION STATE
+      // ------------------------------------------------------
+
+      peerConnection.oniceconnectionstatechange =
+        () => {
+          console.log(
+            "🧊 ICE state:",
+            targetSocketId,
+            peerConnection.iceConnectionState
+          );
+        };
+
+      // ------------------------------------------------------
+      // ICE GATHERING STATE
+      // ------------------------------------------------------
+
+      peerConnection.onicegatheringstatechange =
+        () => {
+          console.log(
+            "🧊 ICE gathering state:",
+            targetSocketId,
+            peerConnection.iceGatheringState
+          );
         };
 
       peerConnectionsRef.current.set(
@@ -555,7 +781,6 @@ const LiveClassRoom = () => {
     ]
   );
 
-
   // ==========================================================
   // CREATE OFFER
   // ==========================================================
@@ -567,6 +792,11 @@ const LiveClassRoom = () => {
       targetRole
     ) => {
       try {
+        console.log(
+          "📤 Creating offer:",
+          targetSocketId
+        );
+
         const peerConnection =
           createPeerConnection(
             targetSocketId,
@@ -578,11 +808,35 @@ const LiveClassRoom = () => {
           return;
         }
 
+        /*
+         * If connection already has a local offer,
+         * don't create another one.
+         */
+        if (
+          peerConnection.signalingState !==
+          "stable"
+        ) {
+          console.log(
+            "⚠️ Peer is not stable:",
+            peerConnection.signalingState
+          );
+
+          return;
+        }
+
         const offer =
-          await peerConnection.createOffer();
+          await peerConnection.createOffer({
+            offerToReceiveAudio: true,
+            offerToReceiveVideo: true,
+          });
 
         await peerConnection.setLocalDescription(
           offer
+        );
+
+        console.log(
+          "📤 Sending offer:",
+          targetSocketId
         );
 
         socketRef.current?.emit(
@@ -590,12 +844,13 @@ const LiveClassRoom = () => {
           {
             liveClassId,
             targetSocketId,
-            offer,
+            offer:
+              peerConnection.localDescription,
           }
         );
       } catch (error) {
         console.error(
-          "Create offer error:",
+          "❌ Create offer error:",
           error
         );
       }
@@ -606,7 +861,6 @@ const LiveClassRoom = () => {
     ]
   );
 
-
   // ==========================================================
   // HANDLE OFFER
   // ==========================================================
@@ -614,14 +868,27 @@ const LiveClassRoom = () => {
   const handleOffer = useCallback(
     async (data) => {
       try {
+        console.log(
+          "📥 OFFER RECEIVED:",
+          data
+        );
+
         const {
           senderSocketId,
           senderUserId,
           senderRole,
           offer,
-        } = data;
+        } = data || {};
 
-        if (!senderSocketId || !offer) {
+        if (
+          !senderSocketId ||
+          !offer
+        ) {
+          console.warn(
+            "⚠️ Invalid offer:",
+            data
+          );
+
           return;
         }
 
@@ -636,17 +903,46 @@ const LiveClassRoom = () => {
           return;
         }
 
+        /*
+         * If we somehow already have a remote description,
+         * avoid unnecessary negotiation.
+         */
+        if (
+          peerConnection.signalingState ===
+          "closed"
+        ) {
+          return;
+        }
+
         await peerConnection.setRemoteDescription(
           new RTCSessionDescription(
             offer
           )
         );
 
+        console.log(
+          "✅ Remote offer set:",
+          senderSocketId
+        );
+
+        await applyPendingIceCandidates(
+          senderSocketId,
+          peerConnection
+        );
+
         const answer =
-          await peerConnection.createAnswer();
+          await peerConnection.createAnswer({
+            offerToReceiveAudio: true,
+            offerToReceiveVideo: true,
+          });
 
         await peerConnection.setLocalDescription(
           answer
+        );
+
+        console.log(
+          "📤 Sending answer:",
+          senderSocketId
         );
 
         socketRef.current?.emit(
@@ -655,22 +951,23 @@ const LiveClassRoom = () => {
             liveClassId,
             targetSocketId:
               senderSocketId,
-            answer,
+            answer:
+              peerConnection.localDescription,
           }
         );
       } catch (error) {
         console.error(
-          "Handle offer error:",
+          "❌ Handle offer error:",
           error
         );
       }
     },
     [
       createPeerConnection,
+      applyPendingIceCandidates,
       liveClassId,
     ]
   );
-
 
   // ==========================================================
   // HANDLE ANSWER
@@ -679,10 +976,27 @@ const LiveClassRoom = () => {
   const handleAnswer = useCallback(
     async (data) => {
       try {
+        console.log(
+          "📥 ANSWER RECEIVED:",
+          data
+        );
+
         const {
           senderSocketId,
           answer,
-        } = data;
+        } = data || {};
+
+        if (
+          !senderSocketId ||
+          !answer
+        ) {
+          console.warn(
+            "⚠️ Invalid answer:",
+            data
+          );
+
+          return;
+        }
 
         const peerConnection =
           peerConnectionsRef.current.get(
@@ -690,6 +1004,11 @@ const LiveClassRoom = () => {
           );
 
         if (!peerConnection) {
+          console.warn(
+            "⚠️ Peer connection not found for answer:",
+            senderSocketId
+          );
+
           return;
         }
 
@@ -698,91 +1017,165 @@ const LiveClassRoom = () => {
             answer
           )
         );
+
+        console.log(
+          "✅ Remote answer set:",
+          senderSocketId
+        );
+
+        await applyPendingIceCandidates(
+          senderSocketId,
+          peerConnection
+        );
       } catch (error) {
         console.error(
-          "Handle answer error:",
+          "❌ Handle answer error:",
           error
         );
       }
     },
-    []
+    [applyPendingIceCandidates]
   );
 
-
   // ==========================================================
-  // HANDLE ICE
+  // HANDLE ICE CANDIDATE
   // ==========================================================
 
-  const handleIceCandidate = useCallback(
-    async (data) => {
-      try {
-        const {
-          senderSocketId,
-          candidate,
-        } = data;
-
-        if (!candidate) {
-          return;
-        }
-
-        const peerConnection =
-          peerConnectionsRef.current.get(
-            senderSocketId
+  const handleIceCandidate =
+    useCallback(
+      async (data) => {
+        try {
+          console.log(
+            "📥 ICE RECEIVED:",
+            data
           );
 
-        if (!peerConnection) {
-          return;
+          const {
+            senderSocketId,
+            candidate,
+          } = data || {};
+
+          if (
+            !senderSocketId ||
+            !candidate
+          ) {
+            return;
+          }
+
+          const peerConnection =
+            peerConnectionsRef.current.get(
+              senderSocketId
+            );
+
+          /*
+           * IMPORTANT:
+           * If peer connection doesn't exist yet,
+           * queue candidate.
+           */
+          if (!peerConnection) {
+            console.log(
+              "🧊 Queueing ICE because peer does not exist:",
+              senderSocketId
+            );
+
+            addPendingIceCandidate(
+              senderSocketId,
+              candidate
+            );
+
+            return;
+          }
+
+          /*
+           * IMPORTANT:
+           * If remote description isn't ready,
+           * queue candidate.
+           */
+          if (
+            !peerConnection.remoteDescription
+          ) {
+            console.log(
+              "🧊 Queueing ICE because remote description is not ready:",
+              senderSocketId
+            );
+
+            addPendingIceCandidate(
+              senderSocketId,
+              candidate
+            );
+
+            return;
+          }
+
+          await peerConnection.addIceCandidate(
+            new RTCIceCandidate(candidate)
+          );
+
+          console.log(
+            "✅ ICE candidate added:",
+            senderSocketId
+          );
+        } catch (error) {
+          console.error(
+            "❌ Add ICE candidate error:",
+            error
+          );
         }
-
-        await peerConnection.addIceCandidate(
-          new RTCIceCandidate(candidate)
-        );
-      } catch (error) {
-        console.error(
-          "Add ICE candidate error:",
-          error
-        );
-      }
-    },
-    []
-  );
-
+      },
+      [addPendingIceCandidate]
+    );
 
   // ==========================================================
   // REMOVE PARTICIPANT
   // ==========================================================
 
-  const removeParticipant = useCallback(
-    (socketId) => {
-      const peerConnection =
-        peerConnectionsRef.current.get(
+  const removeParticipant =
+    useCallback(
+      (socketId) => {
+        console.log(
+          "👋 Removing participant:",
           socketId
         );
 
-      if (peerConnection) {
-        peerConnection.close();
-      }
+        const peerConnection =
+          peerConnectionsRef.current.get(
+            socketId
+          );
 
-      peerConnectionsRef.current.delete(
-        socketId
-      );
+        if (peerConnection) {
+          try {
+            peerConnection.close();
+          } catch (error) {
+            console.warn(
+              "Peer close error:",
+              error
+            );
+          }
+        }
 
-      remoteStreamsRef.current.delete(
-        socketId
-      );
+        peerConnectionsRef.current.delete(
+          socketId
+        );
 
-      participantsRef.current.delete(
-        socketId
-      );
+        remoteStreamsRef.current.delete(
+          socketId
+        );
 
-      updateRemoteParticipants();
-    },
-    [updateRemoteParticipants]
-  );
+        participantsRef.current.delete(
+          socketId
+        );
 
+        pendingIceCandidatesRef.current.delete(
+          socketId
+        );
+
+        updateRemoteParticipants();
+      },
+      [updateRemoteParticipants]
+    );
 
   // ==========================================================
-  // GET MEDIA
+  // GET USER MEDIA
   // ==========================================================
 
   const getUserMedia = useCallback(
@@ -796,6 +1189,10 @@ const LiveClassRoom = () => {
             "Camera and microphone are not supported by this browser."
           );
         }
+
+        console.log(
+          "🎥 Requesting camera and microphone..."
+        );
 
         const stream =
           await navigator.mediaDevices.getUserMedia(
@@ -813,6 +1210,18 @@ const LiveClassRoom = () => {
             }
           );
 
+        console.log(
+          "✅ Local media obtained:",
+          stream.getTracks().map(
+            (track) => ({
+              kind: track.kind,
+              enabled: track.enabled,
+              readyState:
+                track.readyState,
+            })
+          )
+        );
+
         localStreamRef.current =
           stream;
 
@@ -824,7 +1233,7 @@ const LiveClassRoom = () => {
         return stream;
       } catch (error) {
         console.error(
-          "getUserMedia error:",
+          "❌ getUserMedia error:",
           error
         );
 
@@ -861,7 +1270,6 @@ const LiveClassRoom = () => {
     []
   );
 
-
   // ==========================================================
   // TOGGLE CAMERA
   // ==========================================================
@@ -881,8 +1289,7 @@ const LiveClassRoom = () => {
       return;
     }
 
-    const newState =
-      !cameraOn;
+    const newState = !cameraOn;
 
     videoTracks.forEach(
       (track) => {
@@ -892,7 +1299,6 @@ const LiveClassRoom = () => {
 
     setCameraOn(newState);
   };
-
 
   // ==========================================================
   // TOGGLE MIC
@@ -913,8 +1319,7 @@ const LiveClassRoom = () => {
       return;
     }
 
-    const newState =
-      !micOn;
+    const newState = !micOn;
 
     audioTracks.forEach(
       (track) => {
@@ -925,13 +1330,12 @@ const LiveClassRoom = () => {
     setMicOn(newState);
   };
 
-
   // ==========================================================
-  // OPEN VIDEO PREVIEW
+  // VIDEO PREVIEW
   // ==========================================================
 
-  const openVideoPreview = useCallback(
-    async () => {
+  const openVideoPreview =
+    useCallback(async () => {
       try {
         const stream =
           await navigator.mediaDevices.getUserMedia(
@@ -949,6 +1353,8 @@ const LiveClassRoom = () => {
             }
           );
 
+        previewStreamRef.current = stream;
+
         setPreviewStream(stream);
         setPreviewOpen(true);
       } catch (error) {
@@ -962,39 +1368,35 @@ const LiveClassRoom = () => {
           "error"
         );
       }
-    },
-    [showMessage]
-  );
-
+    }, [showMessage]);
 
   // ==========================================================
   // CLOSE PREVIEW
   // ==========================================================
 
-  const closeVideoPreview = useCallback(() => {
-    if (previewStream) {
-      previewStream
-        .getTracks()
-        .forEach((track) =>
-          track.stop()
-        );
-    }
+  const closeVideoPreview =
+    useCallback(() => {
+      if (previewStreamRef.current) {
+        previewStreamRef.current
+          .getTracks()
+          .forEach((track) =>
+            track.stop()
+          );
 
-    setPreviewStream(null);
-    setPreviewOpen(false);
-  }, [previewStream]);
+        previewStreamRef.current = null;
+      }
 
+      setPreviewStream(null);
+      setPreviewOpen(false);
+    }, []);
 
   // ==========================================================
   // START SCREEN SHARE
   // ==========================================================
 
-  const startScreenShare = useCallback(
-    async () => {
-      if (
-        role !==
-        "teacher"
-      ) {
+  const startScreenShare =
+    useCallback(async () => {
+      if (role !== "teacher") {
         showMessage(
           "Only teachers can share screen.",
           "warning"
@@ -1021,56 +1423,47 @@ const LiveClassRoom = () => {
           return;
         }
 
-        // Replace video track in all peer connections
-        const sender =
-          localStreamRef.current
-            ?.getTracks()
-            .find(
-              (track) =>
-                track.kind ===
-                "video"
-            );
-
-        if (sender) {
-          for (const peerConnection of peerConnectionsRef.current.values()) {
-            const videoSender =
-              peerConnection
-                .getSenders()
-                .find(
-                  (s) =>
-                    s.track?.kind ===
-                    "video"
-                );
-
-            if (videoSender) {
-              await videoSender.replaceTrack(
-                screenTrack
+        for (const peerConnection of peerConnectionsRef.current.values()) {
+          const videoSender =
+            peerConnection
+              .getSenders()
+              .find(
+                (sender) =>
+                  sender.track?.kind ===
+                  "video"
               );
-            }
+
+          if (videoSender) {
+            await videoSender.replaceTrack(
+              screenTrack
+            );
           }
         }
 
-        // Stop sharing when user ends screen share
         screenTrack.onended = () => {
           stopScreenShare();
         };
 
+        screenShareStreamRef.current =
+          screenStream;
+
         setScreenShareStream(
           screenStream
         );
+
         setScreenSharing(true);
 
         showMessage(
-          "Screen sharing started",
+          "Screen sharing started.",
           "success"
         );
       } catch (error) {
         if (
-          error.name ===
+          error?.name ===
           "NotAllowedError"
         ) {
           console.log(
-            "User cancelled screen share"
+            "User cancelled screen share."
           );
         } else {
           console.error(
@@ -1084,57 +1477,47 @@ const LiveClassRoom = () => {
           );
         }
       }
-    },
-    [
+    }, [
       role,
       showMessage,
-    ]
-  );
-
+    ]);
 
   // ==========================================================
   // STOP SCREEN SHARE
   // ==========================================================
 
-  const stopScreenShare = useCallback(
-    async () => {
-      if (
-        !screenShareStream
-      ) {
+  const stopScreenShare =
+    useCallback(async () => {
+      if (!screenShareStreamRef.current) {
         return;
       }
 
-      // Stop screen share tracks
-      screenShareStream
+      screenShareStreamRef.current
         .getTracks()
         .forEach((track) =>
           track.stop()
         );
 
-      // Switch back to camera
-      if (
-        localStreamRef.current
-      ) {
-        const videoTrack =
-          localStreamRef.current
-            .getVideoTracks()[0];
+      screenShareStreamRef.current = null;
 
-        if (videoTrack) {
-          for (const peerConnection of peerConnectionsRef.current.values()) {
-            const videoSender =
-              peerConnection
-                .getSenders()
-                .find(
-                  (s) =>
-                    s.track?.kind ===
-                    "video"
-                );
+      const cameraTrack =
+        localStreamRef.current?.getVideoTracks()[0];
 
-            if (videoSender) {
-              await videoSender.replaceTrack(
-                videoTrack
+      if (cameraTrack) {
+        for (const peerConnection of peerConnectionsRef.current.values()) {
+          const videoSender =
+            peerConnection
+              .getSenders()
+              .find(
+                (sender) =>
+                  sender.track?.kind ===
+                  "video"
               );
-            }
+
+          if (videoSender) {
+            await videoSender.replaceTrack(
+              cameraTrack
+            );
           }
         }
       }
@@ -1143,24 +1526,24 @@ const LiveClassRoom = () => {
       setScreenSharing(false);
 
       showMessage(
-        "Screen sharing stopped",
+        "Screen sharing stopped.",
         "info"
       );
-    },
-    [
-      screenShareStream,
+    }, [
       showMessage,
-    ]
-  );
-
+    ]);
 
   // ==========================================================
   // JOIN CLASS
   // ==========================================================
 
-  const joinLiveClass = useCallback(
-    async () => {
+  const joinLiveClass =
+    useCallback(async () => {
       if (!socketRef.current) {
+        console.warn(
+          "Socket not available."
+        );
+
         return;
       }
 
@@ -1171,10 +1554,14 @@ const LiveClassRoom = () => {
       try {
         setConnecting(true);
 
-        // Get camera
         if (!localStreamRef.current) {
           await getUserMedia();
         }
+
+        console.log(
+          "🚪 Joining live class:",
+          liveClassId
+        );
 
         socketRef.current.emit(
           "join-live-class",
@@ -1195,20 +1582,17 @@ const LiveClassRoom = () => {
 
         setConnecting(false);
       }
-    },
-    [
+    }, [
       getUserMedia,
       liveClassId,
-    ]
-  );
-
+    ]);
 
   // ==========================================================
   // CONNECT SOCKET
   // ==========================================================
 
-  const connectSocket = useCallback(
-    async () => {
+  const connectSocket =
+    useCallback(async () => {
       const token = getToken();
 
       if (!token) {
@@ -1225,7 +1609,10 @@ const LiveClassRoom = () => {
         const socket = io(
           SOCKET_URL,
           {
-            transports: ["websocket", "polling"],
+            transports: [
+              "websocket",
+              "polling",
+            ],
             auth: {
               access_token: token,
               token,
@@ -1246,7 +1633,7 @@ const LiveClassRoom = () => {
           "connect",
           () => {
             console.log(
-              "Socket connected:",
+              "✅ Socket connected:",
               socket.id
             );
 
@@ -1255,21 +1642,22 @@ const LiveClassRoom = () => {
         );
 
         // ----------------------------------------------------
-        // AUTH SUCCESS
+        // SOCKET AUTHENTICATED
         // ----------------------------------------------------
 
         socket.on(
           "socket-authenticated",
           (data) => {
             console.log(
-              "Socket authenticated:",
+              "🔐 Socket authenticated:",
               data
             );
 
-            // If role not loaded from profile
             if (data?.role) {
               setRole(
-                data.role
+                String(
+                  data.role
+                ).toLowerCase()
               );
             }
 
@@ -1279,7 +1667,10 @@ const LiveClassRoom = () => {
               );
             }
 
-            // Join after socket auth
+            /*
+             * IMPORTANT:
+             * Join only after socket authentication.
+             */
             joinLiveClass();
           }
         );
@@ -1292,7 +1683,7 @@ const LiveClassRoom = () => {
           "socket-auth-error",
           (data) => {
             console.error(
-              "Socket auth error:",
+              "❌ Socket auth error:",
               data
             );
 
@@ -1309,21 +1700,32 @@ const LiveClassRoom = () => {
         // JOINED
         // ----------------------------------------------------
 
+        /*
+         * FIX APPLIED HERE:
+         * This handler was previously declared as a plain
+         * arrow function `(data) => { ... }` while its body
+         * used `await createOffer(...)` inside the loop below.
+         * `await` is only legal inside an `async` function,
+         * so this caused:
+         *
+         *   [PARSE_ERROR] `await` is only allowed within
+         *   async functions and at the top levels of modules
+         *
+         * Adding `async` before `(data) =>` fixes it.
+         */
         socket.on(
           "joined-live-class",
-          (data) => {
+          async (data) => {
             console.log(
-              "Joined live class:",
+              "✅ Joined live class:",
               data
             );
 
             setJoined(true);
             setConnecting(false);
 
-            // Existing participants
             const participants =
-              data?.participants ||
-              [];
+              data?.participants || [];
 
             participants.forEach(
               (participant) => {
@@ -1337,7 +1739,9 @@ const LiveClassRoom = () => {
                     role:
                       participant.role,
                     stream:
-                      null,
+                      remoteStreamsRef.current.get(
+                        participant.socketId
+                      ) || null,
                     cameraOn:
                       true,
                   }
@@ -1347,21 +1751,21 @@ const LiveClassRoom = () => {
 
             updateRemoteParticipants();
 
-            // ------------------------------------------------
-            // IMPORTANT:
-            // Existing participant creates offer.
-            // This avoids both sides creating offer.
-            // ------------------------------------------------
-
-            participants.forEach(
-              (participant) => {
-                createOffer(
+            /*
+             * Existing participants:
+             * create offer toward them.
+             */
+            for (const participant of participants) {
+              if (
+                participant.socketId
+              ) {
+                await createOffer(
                   participant.socketId,
                   participant.userId,
                   participant.role
                 );
               }
-            );
+            }
           }
         );
 
@@ -1373,7 +1777,7 @@ const LiveClassRoom = () => {
           "participant-joined",
           (data) => {
             console.log(
-              "Participant joined:",
+              "👤 Participant joined:",
               data
             );
 
@@ -1381,7 +1785,7 @@ const LiveClassRoom = () => {
               socketId,
               userId,
               role,
-            } = data;
+            } = data || {};
 
             if (!socketId) {
               return;
@@ -1393,16 +1797,22 @@ const LiveClassRoom = () => {
                 socketId,
                 userId,
                 role,
-                stream: null,
+                stream:
+                  remoteStreamsRef.current.get(
+                    socketId
+                  ) || null,
                 cameraOn: true,
               }
             );
 
             updateRemoteParticipants();
 
-            // Do NOT create offer here.
-            // Existing participant already
-            // receives this event and creates offer.
+            /*
+             * DO NOT create offer here.
+             *
+             * The participant who receives
+             * joined-live-class creates offer.
+             */
           }
         );
 
@@ -1414,13 +1824,11 @@ const LiveClassRoom = () => {
           "participant-left",
           (data) => {
             console.log(
-              "Participant left:",
+              "👋 Participant left:",
               data
             );
 
-            if (
-              data?.socketId
-            ) {
+            if (data?.socketId) {
               removeParticipant(
                 data.socketId
               );
@@ -1463,7 +1871,7 @@ const LiveClassRoom = () => {
           "live-class-error",
           (data) => {
             console.error(
-              "Live class error:",
+              "❌ Live class error:",
               data
             );
 
@@ -1483,13 +1891,11 @@ const LiveClassRoom = () => {
           "disconnect",
           (reason) => {
             console.log(
-              "Socket disconnected:",
+              "🔌 Socket disconnected:",
               reason
             );
 
-            setSocketConnected(
-              false
-            );
+            setSocketConnected(false);
             setJoined(false);
           }
         );
@@ -1502,14 +1908,15 @@ const LiveClassRoom = () => {
           "connect_error",
           (error) => {
             console.error(
-              "Socket connection error:",
+              "❌ Socket connection error:",
               error
             );
 
             setConnecting(false);
 
             setError(
-              "Unable to connect to live class server."
+              error?.message ||
+                "Unable to connect to live class server."
             );
           }
         );
@@ -1526,8 +1933,7 @@ const LiveClassRoom = () => {
             "Unable to connect."
         );
       }
-    },
-    [
+    }, [
       createOffer,
       handleAnswer,
       handleIceCandidate,
@@ -1536,106 +1942,56 @@ const LiveClassRoom = () => {
       removeParticipant,
       showMessage,
       updateRemoteParticipants,
-    ]
-  );
-
+    ]);
 
   // ==========================================================
-  // END LIVE CLASS API
+  // CLEANUP
   // ==========================================================
 
-  const endLiveClass = async () => {
-    if (role !== "teacher") {
-      return;
-    }
+  const cleanupConnections =
+    useCallback(() => {
+      console.log(
+        "🧹 Cleaning WebRTC connections..."
+      );
 
-    if (!liveClassId) {
-      return;
-    }
+      // ------------------------------------------------------
+      // PREVIEW STREAM
+      // ------------------------------------------------------
 
-    try {
-      setEndingClass(true);
+      if (previewStreamRef.current) {
+        previewStreamRef.current
+          .getTracks()
+          .forEach((track) =>
+            track.stop()
+          );
 
-      const token = getToken();
-
-      if (!token) {
-        throw new Error(
-          "Authentication token not found. Please login again."
-        );
+        previewStreamRef.current = null;
       }
 
-      await api.post(
-        `/live-classes/${liveClassId}/end`
-      );
-
-      showMessage(
-        "Live class ended successfully.",
-        "success"
-      );
-
-      setLiveClass(
-        (previous) => ({
-          ...previous,
-          isLive: false,
-          isCompleted: true,
-        })
-      );
-
-      // Leave socket room
-      socketRef.current?.emit(
-        "leave-live-class",
-        {
-          liveClassId,
-        }
-      );
-
-      // Cleanup
-      cleanupConnections();
-
-      setTimeout(() => {
-        navigate(
-          "/dashboard"
-        );
-      }, 800);
-    } catch (error) {
-      console.error(
-        "End live class error:",
-        error
-      );
-
-      showMessage(
-        error?.message ||
-          "Unable to end live class.",
-        "error"
-      );
-    } finally {
-      setEndingClass(false);
-    }
-  };
-
-
-  // ==========================================================
-  // CLEANUP CONNECTIONS
-  // ==========================================================
-
-  const cleanupConnections = useCallback(
-    () => {
-      console.log(
-        "Cleaning WebRTC connections..."
-      );
-
       // ------------------------------------------------------
-      // Stop local media
+      // SCREEN SHARE
       // ------------------------------------------------------
 
-      if (
-        localStreamRef.current
-      ) {
+      if (screenShareStreamRef.current) {
+        screenShareStreamRef.current
+          .getTracks()
+          .forEach((track) =>
+            track.stop()
+          );
+
+        screenShareStreamRef.current = null;
+      }
+
+      // ------------------------------------------------------
+      // LOCAL STREAM
+      // ------------------------------------------------------
+
+      if (localStreamRef.current) {
         localStreamRef.current
           .getTracks()
-          .forEach((track) => {
-            track.stop();
-          });
+          .forEach((track) =>
+            track.stop()
+          );
 
         localStreamRef.current =
           null;
@@ -1644,7 +2000,7 @@ const LiveClassRoom = () => {
       setLocalStream(null);
 
       // ------------------------------------------------------
-      // Close peer connections
+      // PEER CONNECTIONS
       // ------------------------------------------------------
 
       peerConnectionsRef.current.forEach(
@@ -1663,17 +2019,19 @@ const LiveClassRoom = () => {
       peerConnectionsRef.current.clear();
 
       // ------------------------------------------------------
-      // Clear remote
+      // REMOTE
       // ------------------------------------------------------
 
       remoteStreamsRef.current.clear();
 
       participantsRef.current.clear();
 
+      pendingIceCandidatesRef.current.clear();
+
       setRemoteParticipants([]);
 
       // ------------------------------------------------------
-      // Disconnect socket
+      // SOCKET
       // ------------------------------------------------------
 
       if (socketRef.current) {
@@ -1681,19 +2039,90 @@ const LiveClassRoom = () => {
 
         socketRef.current.disconnect();
 
-        socketRef.current =
-          null;
+        socketRef.current = null;
       }
 
       setSocketConnected(false);
       setJoined(false);
-    },
-    []
-  );
-
+      /*
+       * FIX: cleanupConnections used to depend on
+       * [previewStream, screenShareStream] state. Every time
+       * those state values changed (e.g. openVideoPreview or
+       * startScreenShare calling setPreviewStream/
+       * setScreenShareStream), this function got a NEW
+       * identity. Since it's listed in the main useEffect's
+       * dependency array below, React would tear down and
+       * re-run the whole initialize() flow — which set the
+       * stream state again — causing an infinite
+       * initialize -> cleanup -> initialize loop. Reading
+       * from refs above removes the need for these
+       * dependencies entirely, so this callback is now stable.
+       */
+    }, []);
 
   // ==========================================================
-  // INITIAL LOAD
+  // END LIVE CLASS
+  // ==========================================================
+
+  const endLiveClass = async () => {
+    if (role !== "teacher") {
+      return;
+    }
+
+    if (!liveClassId) {
+      return;
+    }
+
+    try {
+      setEndingClass(true);
+
+      await api.post(
+        `/live-classes/${liveClassId}/end`
+      );
+
+      showMessage(
+        "Live class ended successfully.",
+        "success"
+      );
+
+      setLiveClass(
+        (previous) => ({
+          ...previous,
+          isLive: false,
+          isCompleted: true,
+        })
+      );
+
+      socketRef.current?.emit(
+        "leave-live-class",
+        {
+          liveClassId,
+        }
+      );
+
+      cleanupConnections();
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 800);
+    } catch (error) {
+      console.error(
+        "End live class error:",
+        error
+      );
+
+      showMessage(
+        error?.message ||
+          "Unable to end live class.",
+        "error"
+      );
+    } finally {
+      setEndingClass(false);
+    }
+  };
+
+  // ==========================================================
+  // INITIALIZE
   // ==========================================================
 
   useEffect(() => {
@@ -1704,11 +2133,15 @@ const LiveClassRoom = () => {
         setLoading(true);
         setError("");
 
-        // ----------------------------------------------------
-        // Validate ID
-        // ----------------------------------------------------
-        console.log("🔎 LiveClassRoom route id:", id);
-        console.log("🔎 Parsed liveClassId:", liveClassId);
+        console.log(
+          "🔎 LiveClassRoom route id:",
+          id
+        );
+
+        console.log(
+          "🔎 Parsed liveClassId:",
+          liveClassId
+        );
 
         if (
           !Number.isInteger(
@@ -1722,7 +2155,7 @@ const LiveClassRoom = () => {
         }
 
         // ----------------------------------------------------
-        // Load user
+        // USER
         // ----------------------------------------------------
 
         const user =
@@ -1741,58 +2174,53 @@ const LiveClassRoom = () => {
               user?.userId
           );
 
-        setRole(
-          currentRole
-        );
+        setRole(currentRole);
 
-        setUserId(
-          currentUserId
-        );
+        setUserId(currentUserId);
 
         // ----------------------------------------------------
-        // Load live class
+        // LIVE CLASS
         // ----------------------------------------------------
 
         const classData =
           await loadLiveClass();
 
-        setLiveClass(
-          classData
-        );
+        setLiveClass(classData);
 
         // ----------------------------------------------------
-        // Validate status
+        // STATUS
         // ----------------------------------------------------
 
-        if (
-          classData?.isCancelled
-        ) {
+        if (classData?.isCancelled) {
           throw new Error(
             "This live class has been cancelled."
           );
         }
 
-        if (
-          classData?.isCompleted
-        ) {
+        if (classData?.isCompleted) {
           throw new Error(
             "This live class has already ended."
           );
         }
 
         // ----------------------------------------------------
-        // Show preview for teacher
+        // TEACHER PREVIEW
         // ----------------------------------------------------
 
         if (
-          currentRole ===
-          "teacher"
+          currentRole === "teacher"
         ) {
           await openVideoPreview();
+        } else {
+          /*
+           * Students don't need preview dialog.
+           * Get media before socket connection.
+           */
+          await getUserMedia();
         }
 
         // ----------------------------------------------------
-        // Connect socket
+        // SOCKET
         // ----------------------------------------------------
 
         await connectSocket();
@@ -1802,18 +2230,14 @@ const LiveClassRoom = () => {
           error
         );
 
-        if (
-          mountedRef.current
-        ) {
+        if (mountedRef.current) {
           setError(
             error?.message ||
               "Unable to load live class."
           );
         }
       } finally {
-        if (
-          mountedRef.current
-        ) {
+        if (mountedRef.current) {
           setLoading(false);
         }
       }
@@ -1830,31 +2254,28 @@ const LiveClassRoom = () => {
     cleanupConnections,
     connectSocket,
     getCurrentUser,
+    getUserMedia,
     liveClassId,
     loadLiveClass,
     openVideoPreview,
   ]);
 
-
   // ==========================================================
-  // LEAVE ROOM
+  // LEAVE
   // ==========================================================
 
   const handleLeave = () => {
-    if (socketRef.current) {
-      socketRef.current.emit(
-        "leave-live-class",
-        {
-          liveClassId,
-        }
-      );
-    }
+    socketRef.current?.emit(
+      "leave-live-class",
+      {
+        liveClassId,
+      }
+    );
 
     cleanupConnections();
 
     navigate(-1);
   };
-
 
   // ==========================================================
   // LOADING
@@ -1868,8 +2289,7 @@ const LiveClassRoom = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          bgcolor:
-            "background.default",
+          bgcolor: "background.default",
         }}
       >
         <Stack
@@ -1886,7 +2306,6 @@ const LiveClassRoom = () => {
     );
   }
 
-
   // ==========================================================
   // ERROR
   // ==========================================================
@@ -1900,8 +2319,7 @@ const LiveClassRoom = () => {
           alignItems: "center",
           justifyContent: "center",
           px: 2,
-          bgcolor:
-            "background.default",
+          bgcolor: "background.default",
         }}
       >
         <Card
@@ -1926,7 +2344,9 @@ const LiveClassRoom = () => {
               <Typography
                 variant="h6"
                 fontWeight={700}
-                sx={{ textAlign: "center" }}
+                sx={{
+                  textAlign: "center",
+                }}
               >
                 Unable to Open Live Class
               </Typography>
@@ -1958,29 +2378,25 @@ const LiveClassRoom = () => {
     );
   }
 
-
   // ==========================================================
-  // MAIN UI
+  // UI
   // ==========================================================
 
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        bgcolor:
-          "background.default",
+        bgcolor: "background.default",
         pb: 5,
       }}
     >
       {/* ====================================================
-          VIDEO PREVIEW DIALOG
+          VIDEO PREVIEW
       ==================================================== */}
 
       <Dialog
         open={previewOpen}
-        onClose={
-          closeVideoPreview
-        }
+        onClose={closeVideoPreview}
         maxWidth="sm"
         fullWidth
       >
@@ -1996,8 +2412,7 @@ const LiveClassRoom = () => {
                 sx={{
                   borderRadius: 3,
                   overflow: "hidden",
-                  backgroundColor:
-                    "#000",
+                  backgroundColor: "#000",
                   aspectRatio: "16/9",
                 }}
               >
@@ -2017,6 +2432,10 @@ const LiveClassRoom = () => {
                     ) {
                       video.srcObject =
                         previewStream;
+
+                      video
+                        .play()
+                        .catch(() => {});
                     }
                   }}
                 />
@@ -2050,9 +2469,18 @@ const LiveClassRoom = () => {
 
               <Button
                 variant="contained"
-                onClick={() => {
+                onClick={async () => {
                   closeVideoPreview();
-                  joinLiveClass();
+
+                  /*
+                   * Preview stream is different from
+                   * actual local stream.
+                   *
+                   * Get a fresh stream for WebRTC.
+                   */
+                  await getUserMedia();
+
+                  await joinLiveClass();
                 }}
                 fullWidth
               >
@@ -2063,9 +2491,8 @@ const LiveClassRoom = () => {
         </DialogContent>
       </Dialog>
 
-
       {/* ====================================================
-          SETTINGS DIALOG
+          SETTINGS
       ==================================================== */}
 
       <Dialog
@@ -2085,7 +2512,10 @@ const LiveClassRoom = () => {
             <Box>
               <Typography
                 variant="subtitle2"
-                sx={{ mb: 1, fontWeight: 600 }}
+                sx={{
+                  mb: 1,
+                  fontWeight: 600,
+                }}
               >
                 Video Quality
               </Typography>
@@ -2125,7 +2555,10 @@ const LiveClassRoom = () => {
             <Box>
               <Typography
                 variant="subtitle2"
-                sx={{ mb: 1, fontWeight: 600 }}
+                sx={{
+                  mb: 1,
+                  fontWeight: 600,
+                }}
               >
                 Connection Status
               </Typography>
@@ -2143,7 +2576,9 @@ const LiveClassRoom = () => {
               <Typography
                 variant="body2"
                 color="text.secondary"
-                sx={{ mt: 0.5 }}
+                sx={{
+                  mt: 0.5,
+                }}
               >
                 Joined:{" "}
                 {joined
@@ -2154,10 +2589,13 @@ const LiveClassRoom = () => {
               <Typography
                 variant="body2"
                 color="text.secondary"
-                sx={{ mt: 0.5 }}
+                sx={{
+                  mt: 0.5,
+                }}
               >
                 Participants:{" "}
-                {remoteParticipants.length + 1}
+                {remoteParticipants.length +
+                  1}
               </Typography>
             </Box>
 
@@ -2176,7 +2614,6 @@ const LiveClassRoom = () => {
         </DialogContent>
       </Dialog>
 
-
       {/* ====================================================
           HEADER
       ==================================================== */}
@@ -2189,10 +2626,8 @@ const LiveClassRoom = () => {
           },
           py: 2,
           borderBottom: "1px solid",
-          borderColor:
-            "divider",
-          bgcolor:
-            "background.paper",
+          borderColor: "divider",
+          bgcolor: "background.paper",
           position: "sticky",
           top: 0,
           zIndex: 20,
@@ -2237,10 +2672,11 @@ const LiveClassRoom = () => {
               >
                 <Chip
                   size="small"
-                  icon={
-                    <PeopleIcon />
-                  }
-                  label={`${remoteParticipants.length + 1} participant${
+                  icon={<PeopleIcon />}
+                  label={`${
+                    remoteParticipants.length +
+                    1
+                  } participant${
                     remoteParticipants.length !==
                     0
                       ? "s"
@@ -2335,7 +2771,6 @@ const LiveClassRoom = () => {
         </Stack>
       </Box>
 
-
       {/* ====================================================
           CONTENT
       ==================================================== */}
@@ -2351,7 +2786,6 @@ const LiveClassRoom = () => {
           pt: 3,
         }}
       >
-        {/* Error */}
         {error && (
           <Alert
             severity="error"
@@ -2366,10 +2800,7 @@ const LiveClassRoom = () => {
           </Alert>
         )}
 
-
-        {/* ==================================================
-            CLASS INFO
-        ================================================== */}
+        {/* CLASS INFO */}
 
         <Card
           elevation={0}
@@ -2377,8 +2808,7 @@ const LiveClassRoom = () => {
             mb: 3,
             borderRadius: 3,
             border: "1px solid",
-            borderColor:
-              "divider",
+            borderColor: "divider",
           }}
         >
           <CardContent>
@@ -2406,9 +2836,7 @@ const LiveClassRoom = () => {
                       mt: 1,
                     }}
                   >
-                    {
-                      liveClass.description
-                    }
+                    {liveClass.description}
                   </Typography>
                 )}
               </Box>
@@ -2428,10 +2856,7 @@ const LiveClassRoom = () => {
           </CardContent>
         </Card>
 
-
-        {/* ==================================================
-            VIDEO GRID
-        ================================================== */}
+        {/* VIDEO GRID */}
 
         <Box
           sx={{
@@ -2452,7 +2877,7 @@ const LiveClassRoom = () => {
             gap: 2,
           }}
         >
-          {/* LOCAL VIDEO */}
+          {/* LOCAL */}
 
           <VideoTile
             stream={localStream}
@@ -2463,8 +2888,7 @@ const LiveClassRoom = () => {
             cameraOn={cameraOn}
           />
 
-
-          {/* REMOTE VIDEOS */}
+          {/* REMOTE */}
 
           {remoteParticipants.map(
             (participant) => (
@@ -2488,10 +2912,7 @@ const LiveClassRoom = () => {
           )}
         </Box>
 
-
-        {/* ==================================================
-            WAITING MESSAGE
-        ================================================== */}
+        {/* WAITING */}
 
         {remoteParticipants.length ===
           0 && (
@@ -2501,8 +2922,7 @@ const LiveClassRoom = () => {
               mt: 3,
               borderRadius: 3,
               border: "1px solid",
-              borderColor:
-                "divider",
+              borderColor: "divider",
             }}
           >
             <CardContent>
@@ -2527,7 +2947,9 @@ const LiveClassRoom = () => {
                 <Typography
                   variant="body2"
                   color="text.secondary"
-                  sx={{ textAlign: "center" }}
+                  sx={{
+                    textAlign: "center",
+                  }}
                 >
                   Other participants will
                   appear here when they join
@@ -2538,10 +2960,7 @@ const LiveClassRoom = () => {
           </Card>
         )}
 
-
-        {/* ==================================================
-            CONTROLS
-        ================================================== */}
+        {/* CONTROLS */}
 
         <Box
           sx={{
@@ -2573,9 +2992,7 @@ const LiveClassRoom = () => {
                 }
               >
                 <IconButton
-                  onClick={
-                    toggleMic
-                  }
+                  onClick={toggleMic}
                   sx={{
                     width: 52,
                     height: 52,
@@ -2603,7 +3020,6 @@ const LiveClassRoom = () => {
                 </IconButton>
               </Tooltip>
 
-
               {/* CAMERA */}
 
               <Tooltip
@@ -2614,9 +3030,7 @@ const LiveClassRoom = () => {
                 }
               >
                 <IconButton
-                  onClick={
-                    toggleCamera
-                  }
+                  onClick={toggleCamera}
                   sx={{
                     width: 52,
                     height: 52,
@@ -2644,11 +3058,9 @@ const LiveClassRoom = () => {
                 </IconButton>
               </Tooltip>
 
+              {/* SCREEN SHARE */}
 
-              {/* SCREEN SHARE - TEACHER ONLY */}
-
-              {role ===
-              "teacher" && (
+              {role === "teacher" && (
                 <Tooltip
                   title={
                     screenSharing
@@ -2673,12 +3085,6 @@ const LiveClassRoom = () => {
                         screenSharing
                           ? "#fff"
                           : "text.primary",
-                      "&:hover": {
-                        bgcolor:
-                          screenSharing
-                            ? "success.dark"
-                            : "action.selected",
-                      },
                     }}
                   >
                     {screenSharing ? (
@@ -2690,11 +3096,9 @@ const LiveClassRoom = () => {
                 </Tooltip>
               )}
 
+              {/* END / LEAVE */}
 
-              {/* LEAVE / END */}
-
-              {role ===
-              "teacher" ? (
+              {role === "teacher" ? (
                 <Tooltip title="End live class">
                   <IconButton
                     onClick={
@@ -2710,10 +3114,6 @@ const LiveClassRoom = () => {
                       bgcolor:
                         "error.main",
                       color: "#fff",
-                      "&:hover": {
-                        bgcolor:
-                          "error.dark",
-                      },
                     }}
                   >
                     {endingClass ? (
@@ -2729,9 +3129,7 @@ const LiveClassRoom = () => {
               ) : (
                 <Tooltip title="Leave live class">
                   <IconButton
-                    onClick={
-                      handleLeave
-                    }
+                    onClick={handleLeave}
                     sx={{
                       width: 58,
                       height: 52,
@@ -2739,10 +3137,6 @@ const LiveClassRoom = () => {
                       bgcolor:
                         "error.main",
                       color: "#fff",
-                      "&:hover": {
-                        bgcolor:
-                          "error.dark",
-                      },
                     }}
                   >
                     <CallEndIcon />
@@ -2753,10 +3147,7 @@ const LiveClassRoom = () => {
           </Paper>
         </Box>
 
-
-        {/* ==================================================
-            CONNECTING
-        ================================================== */}
+        {/* CONNECTING */}
 
         {connecting && (
           <Stack
@@ -2781,10 +3172,7 @@ const LiveClassRoom = () => {
           </Stack>
         )}
 
-
-        {/* ==================================================
-            STATUS
-        ================================================== */}
+        {/* STATUS */}
 
         <Box
           sx={{
@@ -2802,10 +3190,7 @@ const LiveClassRoom = () => {
           </Typography>
         </Box>
 
-
-        {/* ==================================================
-            PARTICIPANTS PANEL
-        ================================================== */}
+        {/* PARTICIPANTS */}
 
         {showParticipants && (
           <Card
@@ -2848,189 +3233,175 @@ const LiveClassRoom = () => {
 
                 <Divider />
 
-                <Stack spacing={1}>
-                  {/* LOCAL USER */}
-
-                  <Box
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 2,
-                      bgcolor:
-                        "action.hover",
-                    }}
+                <Box
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 2,
+                    bgcolor:
+                      "action.hover",
+                  }}
+                >
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    alignItems="center"
                   >
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      alignItems="center"
+                    <Avatar
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        bgcolor:
+                          "primary.main",
+                      }}
                     >
-                      <Avatar
-                        sx={{
-                          width: 40,
-                          height: 40,
-                          bgcolor:
-                            "primary.main",
-                        }}
+                      {role ===
+                      "teacher" ? (
+                        <SchoolIcon />
+                      ) : (
+                        <PersonIcon />
+                      )}
+                    </Avatar>
+
+                    <Box flex={1}>
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
                       >
-                        {role ===
-                        "teacher" ? (
-                          <SchoolIcon />
-                        ) : (
-                          <PersonIcon />
-                        )}
-                      </Avatar>
+                        You{" "}
+                        {role &&
+                          `(${role})`}
+                      </Typography>
 
-                      <Box flex={1}>
-                        <Typography
-                          variant="body2"
-                          fontWeight={600}
-                        >
-                          You {role && `(${role})`}
-                        </Typography>
+                      <Stack
+                        direction="row"
+                        spacing={0.5}
+                        mt={0.3}
+                      >
+                        <Chip
+                          label={
+                            cameraOn
+                              ? "📹 On"
+                              : "📹 Off"
+                          }
+                          size="small"
+                          color={
+                            cameraOn
+                              ? "success"
+                              : "default"
+                          }
+                          variant="outlined"
+                        />
 
-                        <Stack
-                          direction="row"
-                          spacing={0.5}
-                          mt={0.3}
+                        <Chip
+                          label={
+                            micOn
+                              ? "🎤 On"
+                              : "🎤 Off"
+                          }
+                          size="small"
+                          color={
+                            micOn
+                              ? "success"
+                              : "default"
+                          }
+                          variant="outlined"
+                        />
+                      </Stack>
+                    </Box>
+                  </Stack>
+                </Box>
+
+                {remoteParticipants.map(
+                  (participant) => (
+                    <Box
+                      key={
+                        participant.socketId
+                      }
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 2,
+                        border: "1px solid",
+                        borderColor:
+                          "divider",
+                      }}
+                    >
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        alignItems="center"
+                      >
+                        <Avatar
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            bgcolor:
+                              participant.role ===
+                              "teacher"
+                                ? "info.main"
+                                : "secondary.main",
+                          }}
                         >
+                          {participant.role ===
+                          "teacher" ? (
+                            <SchoolIcon />
+                          ) : (
+                            <PersonIcon />
+                          )}
+                        </Avatar>
+
+                        <Box flex={1}>
+                          <Typography
+                            variant="body2"
+                            fontWeight={600}
+                          >
+                            User{" "}
+                            {
+                              participant.userId
+                            }{" "}
+                            (
+                            {
+                              participant.role
+                            }
+                            )
+                          </Typography>
+
                           <Chip
                             label={
-                              cameraOn
+                              participant.cameraOn
                                 ? "📹 On"
                                 : "📹 Off"
                             }
                             size="small"
                             color={
-                              cameraOn
+                              participant.cameraOn
                                 ? "success"
                                 : "default"
                             }
                             variant="outlined"
-                          />
-
-                          <Chip
-                            label={
-                              micOn
-                                ? "🎤 On"
-                                : "🎤 Off"
-                            }
-                            size="small"
-                            color={
-                              micOn
-                                ? "success"
-                                : "default"
-                            }
-                            variant="outlined"
-                          />
-                        </Stack>
-                      </Box>
-                    </Stack>
-                  </Box>
-
-                  {/* REMOTE PARTICIPANTS */}
-
-                  {remoteParticipants.map(
-                    (
-                      participant
-                    ) => (
-                      <Box
-                        key={
-                          participant.socketId
-                        }
-                        sx={{
-                          p: 1.5,
-                          borderRadius: 2,
-                          border: "1px solid",
-                          borderColor:
-                            "divider",
-                        }}
-                      >
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          alignItems="center"
-                        >
-                          <Avatar
                             sx={{
-                              width: 40,
-                              height: 40,
-                              bgcolor:
-                                participant.role ===
-                                "teacher"
-                                  ? "info.main"
-                                  : "secondary.main",
+                              mt: 0.5,
                             }}
-                          >
-                            {participant.role ===
-                            "teacher" ? (
-                              <SchoolIcon />
-                            ) : (
-                              <PersonIcon />
-                            )}
-                          </Avatar>
-
-                          <Box flex={1}>
-                            <Typography
-                              variant="body2"
-                              fontWeight={600}
-                            >
-                              User{" "}
-                              {
-                                participant.userId
-                              }{" "}
-                              (
-                              {
-                                participant.role
-                              }
-                              )
-                            </Typography>
-
-                            <Stack
-                              direction="row"
-                              spacing={0.5}
-                              mt={0.3}
-                            >
-                              <Chip
-                                label={
-                                  participant.cameraOn
-                                    ? "📹 On"
-                                    : "📹 Off"
-                                }
-                                size="small"
-                                color={
-                                  participant.cameraOn
-                                    ? "success"
-                                    : "default"
-                                }
-                                variant="outlined"
-                              />
-                            </Stack>
-                          </Box>
-                        </Stack>
-                      </Box>
-                    )
-                  )}
-                </Stack>
+                          />
+                        </Box>
+                      </Stack>
+                    </Box>
+                  )
+                )}
               </Stack>
             </CardContent>
           </Card>
         )}
       </Box>
 
-
-      {/* ====================================================
-          SNACKBAR
-      ==================================================== */}
+      {/* SNACKBAR */}
 
       <Snackbar
-        open={
-          snackbar.open
-        }
+        open={snackbar.open}
         autoHideDuration={3500}
         onClose={() =>
           setSnackbar(
-            (prev) => ({
-              ...prev,
+            (previous) => ({
+              ...previous,
               open: false,
             })
           )
@@ -3043,8 +3414,8 @@ const LiveClassRoom = () => {
           variant="filled"
           onClose={() =>
             setSnackbar(
-              (prev) => ({
-                ...prev,
+              (previous) => ({
+                ...previous,
                 open: false,
               })
             )

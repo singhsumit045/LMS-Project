@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -34,8 +33,8 @@ const initialForm = {
   description: "",
   duration: "",
   totalMarks: "",
-  passingMarks: "",
- isPublished: false,
+  passingPercentage: "",
+  isPublished: false,
 };
 
 const ManageExams = () => {
@@ -100,11 +99,8 @@ const ManageExams = () => {
       description: exam.description || "",
       duration: exam.duration ?? "",
       totalMarks: exam.totalMarks ?? "",
-      passingMarks:
-        exam.passingMarks ??
-        exam.passingPercentage ??
-        "",
-     isPublished: exam.isPublished ?? false,
+      passingPercentage: exam.passingPercentage ?? "",
+      isPublished: exam.isPublished ?? false,
     });
 
     setOpen(true);
@@ -211,28 +207,23 @@ const ManageExams = () => {
     }
 
     // ---------------------------------------------------
-    // Passing marks validation
+    // Passing percentage validation
     // ---------------------------------------------------
 
     if (
-      formData.passingMarks === "" ||
-      Number(formData.passingMarks) < 0
+      formData.passingPercentage === "" ||
+      Number(formData.passingPercentage) < 0
     ) {
-      alert("Please enter valid passing marks");
+      alert("Please enter valid passing percentage");
       return;
     }
 
     // ---------------------------------------------------
-    // Passing marks validation
+    // Passing percentage validation
     // ---------------------------------------------------
 
-    if (
-      Number(formData.passingMarks) >
-      Number(formData.totalMarks)
-    ) {
-      alert(
-        "Passing marks cannot be greater than total marks"
-      );
+    if (Number(formData.passingPercentage) > 100) {
+      alert("Passing percentage cannot be greater than 100");
       return;
     }
 
@@ -255,8 +246,8 @@ const ManageExams = () => {
         totalMarks:
           Number(formData.totalMarks),
 
-        passingMarks:
-          Number(formData.passingMarks),
+        passingPercentage:
+          Number(formData.passingPercentage),
 
         isPublished:
           Boolean(formData.isPublished),
@@ -486,10 +477,7 @@ const ManageExams = () => {
               exam.isPublished ??
               false;
 
-            const passingMarks =
-              exam.passingMarks ??
-              exam.passingPercentage ??
-              0;
+            const passingPercentage = exam.passingPercentage ?? 0;
 
             return (
               <Grid
@@ -606,9 +594,9 @@ const ManageExams = () => {
 
                       <Typography variant="body2">
                         <strong>
-                          Passing Marks:
+                          Passing:
                         </strong>{" "}
-                        {passingMarks}
+                        {passingPercentage}%
                       </Typography>
                     </Box>
                   </CardContent>
@@ -764,20 +752,21 @@ const ManageExams = () => {
           />
 
           {/* =================================================
-              PASSING MARKS
+              PASSING PERCENTAGE
           ================================================= */}
 
           <TextField
             fullWidth
             required
-            label="Passing Marks"
-            name="passingMarks"
+            label="Passing Percentage (%)"
+            name="passingPercentage"
             type="number"
-            value={formData.passingMarks}
+            value={formData.passingPercentage}
             onChange={handleChange}
             margin="normal"
             slotProps={{
               min: 0,
+              max: 100,
             }}
           />
 
@@ -840,4 +829,3 @@ const ManageExams = () => {
 };
 
 export default ManageExams;
-

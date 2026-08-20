@@ -33,6 +33,9 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import Hero3DBackground from "./Hero3DBackground";
+import Tilt3DCard from "./Tilt3DCard";
+import Reveal from "./Reveal";
+import CountUp from "./CountUp";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -190,8 +193,7 @@ const Home = () => {
           }}
         />
 
-        {/* Interactive 3D scene layer — sits above the glow blobs,
-            below the hero content (which is zIndex 2) */}
+        {/* Interactive 3D scene layer — above glow blobs, below hero content */}
 
         <Hero3DBackground
           primary={primary}
@@ -381,207 +383,209 @@ const Home = () => {
               </Stack>
             </Grid>
 
-            {/* RIGHT DASHBOARD PREVIEW */}
+            {/* RIGHT DASHBOARD PREVIEW — now with 3D tilt */}
 
             <Grid size={{ xs: 12, md: 5 }}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: {
-                    xs: 2,
-                    md: 3,
-                  },
-                  borderRadius: 5,
-                  bgcolor: alpha(
-                    theme.palette.background.paper,
-                    isDark ? 0.72 : 0.82
-                  ),
-                  backdropFilter: "blur(20px)",
-                  border: `1px solid ${alpha(
-                    theme.palette.divider,
-                    0.7
-                  )}`,
-                  boxShadow: isDark
-                    ? `0 30px 80px ${alpha("#000", 0.4)}`
-                    : `0 30px 80px ${alpha(primary, 0.12)}`,
-                }}
-              >
-                {/* Header */}
-
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  mb={3}
-                >
-                  <Box>
-                    <Typography fontWeight={800}>
-                      Student Dashboard
-                    </Typography>
-
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                    >
-                      Your learning overview
-                    </Typography>
-                  </Box>
-
-                  <Avatar
-                    sx={{
-                      bgcolor: alpha(primary, 0.12),
-                      color: primary,
-                    }}
-                  >
-                    S
-                  </Avatar>
-                </Stack>
-
-                {/* Course Card */}
-
+              <Tilt3DCard maxTilt={6} scale={1.015}>
                 <Paper
                   elevation={0}
                   sx={{
-                    p: 2.5,
-                    borderRadius: 4,
-                    bgcolor: isDark
-                      ? alpha("#fff", 0.05)
-                      : alpha(primary, 0.035),
+                    p: {
+                      xs: 2,
+                      md: 3,
+                    },
+                    borderRadius: 5,
+                    bgcolor: alpha(
+                      theme.palette.background.paper,
+                      isDark ? 0.72 : 0.82
+                    ),
+                    backdropFilter: "blur(20px)",
                     border: `1px solid ${alpha(
                       theme.palette.divider,
                       0.7
                     )}`,
+                    boxShadow: isDark
+                      ? `0 30px 80px ${alpha("#000", 0.4)}`
+                      : `0 30px 80px ${alpha(primary, 0.12)}`,
                   }}
                 >
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Avatar
-                      variant="rounded"
-                      sx={{
-                        width: 50,
-                        height: 50,
-                        bgcolor: alpha(primary, 0.12),
-                        color: primary,
-                      }}
-                    >
-                      <Code />
-                    </Avatar>
+                  {/* Header */}
 
-                    <Box flex={1}>
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    mb={3}
+                  >
+                    <Box>
                       <Typography fontWeight={800}>
-                        Web Development
+                        Student Dashboard
                       </Typography>
 
                       <Typography
                         variant="body2"
                         color="text.secondary"
                       >
-                        React + NestJS
+                        Your learning overview
                       </Typography>
                     </Box>
-                  </Stack>
 
-                  <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    mt={3}
-                    mb={1}
-                  >
-                    <Typography variant="body2" fontWeight={700}>
-                      Course Progress
-                    </Typography>
-
-                    <Typography
-                      variant="body2"
-                      fontWeight={800}
-                      color="primary"
+                    <Avatar
+                      sx={{
+                        bgcolor: alpha(primary, 0.12),
+                        color: primary,
+                      }}
                     >
-                      75%
-                    </Typography>
+                      S
+                    </Avatar>
                   </Stack>
 
-                  <LinearProgress
-                    variant="determinate"
-                    value={75}
+                  {/* Course Card */}
+
+                  <Paper
+                    elevation={0}
                     sx={{
-                      height: 8,
-                      borderRadius: 10,
-                      bgcolor: alpha(primary, 0.10),
-
-                      "& .MuiLinearProgress-bar": {
-                        borderRadius: 10,
-                        background: `linear-gradient(
-                          90deg,
-                          ${primary},
-                          ${secondary}
-                        )`,
-                      },
+                      p: 2.5,
+                      borderRadius: 4,
+                      bgcolor: isDark
+                        ? alpha("#fff", 0.05)
+                        : alpha(primary, 0.035),
+                      border: `1px solid ${alpha(
+                        theme.palette.divider,
+                        0.7
+                      )}`,
                     }}
-                  />
-                </Paper>
-
-                {/* Dashboard stats */}
-
-                <Grid container spacing={2} mt={1}>
-                  {[
-                    ["15", "Videos Completed"],
-                    ["92%", "Exam Score"],
-                    ["01", "Certificate"],
-                    ["08", "Learning Hours"],
-                  ].map(([value, label]) => (
-                    <Grid key={label} size={{ xs: 6 }}>
-                      <Paper
-                        elevation={0}
+                  >
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <Avatar
+                        variant="rounded"
                         sx={{
-                          p: 2,
-                          borderRadius: 3,
-                          bgcolor: isDark
-                            ? alpha("#fff", 0.04)
-                            : alpha(primary, 0.035),
-                          border: `1px solid ${alpha(
-                            theme.palette.divider,
-                            0.6
-                          )}`,
+                          width: 50,
+                          height: 50,
+                          bgcolor: alpha(primary, 0.12),
+                          color: primary,
                         }}
                       >
-                        <Typography
-                          variant="h5"
-                          fontWeight={900}
-                          color="primary"
-                        >
-                          {value}
+                        <Code />
+                      </Avatar>
+
+                      <Box flex={1}>
+                        <Typography fontWeight={800}>
+                          Web Development
                         </Typography>
 
                         <Typography
-                          variant="caption"
+                          variant="body2"
                           color="text.secondary"
                         >
-                          {label}
+                          React + NestJS
                         </Typography>
-                      </Paper>
-                    </Grid>
-                  ))}
-                </Grid>
+                      </Box>
+                    </Stack>
 
-                <Button
-                  fullWidth
-                  endIcon={<ArrowForward />}
-                  sx={{
-                    mt: 3,
-                    borderRadius: 3,
-                    textTransform: "none",
-                    fontWeight: 800,
-                  }}
-                >
-                  View Learning Dashboard
-                </Button>
-              </Paper>
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      mt={3}
+                      mb={1}
+                    >
+                      <Typography variant="body2" fontWeight={700}>
+                        Course Progress
+                      </Typography>
+
+                      <Typography
+                        variant="body2"
+                        fontWeight={800}
+                        color="primary"
+                      >
+                        75%
+                      </Typography>
+                    </Stack>
+
+                    <LinearProgress
+                      variant="determinate"
+                      value={75}
+                      sx={{
+                        height: 8,
+                        borderRadius: 10,
+                        bgcolor: alpha(primary, 0.10),
+
+                        "& .MuiLinearProgress-bar": {
+                          borderRadius: 10,
+                          background: `linear-gradient(
+                            90deg,
+                            ${primary},
+                            ${secondary}
+                          )`,
+                        },
+                      }}
+                    />
+                  </Paper>
+
+                  {/* Dashboard stats */}
+
+                  <Grid container spacing={2} mt={1}>
+                    {[
+                      ["15", "Videos Completed"],
+                      ["92%", "Exam Score"],
+                      ["01", "Certificate"],
+                      ["08", "Learning Hours"],
+                    ].map(([value, label]) => (
+                      <Grid key={label} size={{ xs: 6 }}>
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 2,
+                            borderRadius: 3,
+                            bgcolor: isDark
+                              ? alpha("#fff", 0.04)
+                              : alpha(primary, 0.035),
+                            border: `1px solid ${alpha(
+                              theme.palette.divider,
+                              0.6
+                            )}`,
+                          }}
+                        >
+                          <Typography
+                            variant="h5"
+                            fontWeight={900}
+                            color="primary"
+                          >
+                            {value}
+                          </Typography>
+
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                          >
+                            {label}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                    ))}
+                  </Grid>
+
+                  <Button
+                    fullWidth
+                    endIcon={<ArrowForward />}
+                    sx={{
+                      mt: 3,
+                      borderRadius: 3,
+                      textTransform: "none",
+                      fontWeight: 800,
+                    }}
+                  >
+                    View Learning Dashboard
+                  </Button>
+                </Paper>
+              </Tilt3DCard>
             </Grid>
           </Grid>
         </Container>
       </Box>
 
       {/* =====================================================
-          STATS
+          STATS — now with animated count-up
       ===================================================== */}
 
       <Container
@@ -595,70 +599,71 @@ const Home = () => {
           zIndex: 5,
         }}
       >
-        <Paper
-          elevation={0}
-          sx={{
-            p: {
-              xs: 2,
-              md: 4,
-            },
-            borderRadius: 5,
-            border: `1px solid ${theme.palette.divider}`,
-            bgcolor: "background.paper",
-            boxShadow: isDark
-              ? `0 20px 60px ${alpha("#000", 0.25)}`
-              : `0 20px 60px ${alpha(primary, 0.10)}`,
-          }}
-        >
-          <Grid container spacing={2}>
-            {stats.map((item) => (
-              <Grid
-                key={item.label}
-                size={{
-                  xs: 6,
-                  md: 3,
-                }}
-              >
-                <Stack
-                  alignItems="center"
-                  spacing={1}
-                  sx={{
-                    py: 1,
+        <Reveal>
+          <Paper
+            elevation={0}
+            sx={{
+              p: {
+                xs: 2,
+                md: 4,
+              },
+              borderRadius: 5,
+              border: `1px solid ${theme.palette.divider}`,
+              bgcolor: "background.paper",
+              boxShadow: isDark
+                ? `0 20px 60px ${alpha("#000", 0.25)}`
+                : `0 20px 60px ${alpha(primary, 0.10)}`,
+            }}
+          >
+            <Grid container spacing={2}>
+              {stats.map((item) => (
+                <Grid
+                  key={item.label}
+                  size={{
+                    xs: 6,
+                    md: 3,
                   }}
                 >
-                  <Avatar
+                  <Stack
+                    alignItems="center"
+                    spacing={1}
                     sx={{
-                      bgcolor: alpha(primary, 0.10),
-                      color: primary,
+                      py: 1,
                     }}
                   >
-                    {item.icon}
-                  </Avatar>
+                    <Avatar
+                      sx={{
+                        bgcolor: alpha(primary, 0.10),
+                        color: primary,
+                      }}
+                    >
+                      {item.icon}
+                    </Avatar>
 
-                  <Typography
-                    variant="h4"
-                    fontWeight={900}
-                    color="primary"
-                  >
-                    {item.value}
-                  </Typography>
+                    <CountUp
+                      value={item.value}
+                      variant="h4"
+                      fontWeight={900}
+                      color="primary"
+                    />
 
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    textAlign="center"
-                  >
-                    {item.label}
-                  </Typography>
-                </Stack>
-              </Grid>
-            ))}
-          </Grid>
-        </Paper>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      textAlign="center"
+                    >
+                      {item.label}
+                    </Typography>
+                  </Stack>
+                </Grid>
+              ))}
+            </Grid>
+          </Paper>
+        </Reveal>
       </Container>
 
       {/* =====================================================
-          FEATURES
+          FEATURES — now with scroll reveal + 3D tilt cards
       ===================================================== */}
 
       <Container
@@ -670,147 +675,10 @@ const Home = () => {
           },
         }}
       >
-        <Box textAlign="center" mb={7}>
-          <Chip
-            label="LEARNHUB FEATURES"
-            sx={{
-              mb: 2,
-              fontWeight: 800,
-              color: primary,
-              bgcolor: alpha(primary, 0.09),
-            }}
-          />
-
-          <Typography
-            variant="h3"
-            fontWeight={900}
-            sx={{
-              fontSize: {
-                xs: "2rem",
-                md: "3rem",
-              },
-            }}
-          >
-            Everything You Need To Learn
-          </Typography>
-
-          <Typography
-            mt={2}
-            color="text.secondary"
-            maxWidth={650}
-            mx="auto"
-            lineHeight={1.8}
-          >
-            A complete learning platform designed to help students learn
-            technology, practice skills, measure progress and achieve their
-            career goals.
-          </Typography>
-        </Box>
-
-        <Grid container spacing={3}>
-          {features.map((feature) => (
-            <Grid
-              key={feature.title}
-              size={{
-                xs: 12,
-                sm: 6,
-                md: 3,
-              }}
-            >
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 4,
-                  height: "100%",
-                  borderRadius: 5,
-                  border: `1px solid ${theme.palette.divider}`,
-                  bgcolor: "background.paper",
-                  transition: "all .3s ease",
-
-                  "&:hover": {
-                    transform: "translateY(-10px)",
-                    borderColor: alpha(primary, 0.35),
-                    boxShadow: `0 20px 45px ${alpha(primary, 0.12)}`,
-
-                    "& .feature-icon": {
-                      transform: "scale(1.08) rotate(-4deg)",
-                    },
-                  },
-                }}
-              >
-                <Box
-                  className="feature-icon"
-                  sx={{
-                    width: 64,
-                    height: 64,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: 3,
-                    color: "#fff",
-                    background: `linear-gradient(
-                      135deg,
-                      ${primary},
-                      ${secondary}
-                    )`,
-                    mb: 3,
-                    transition: "0.3s",
-                    boxShadow: `0 10px 25px ${alpha(primary, 0.25)}`,
-                  }}
-                >
-                  {feature.icon}
-                </Box>
-
-                <Typography variant="h6" fontWeight={800}>
-                  {feature.title}
-                </Typography>
-
-                <Typography
-                  mt={2}
-                  color="text.secondary"
-                  lineHeight={1.75}
-                >
-                  {feature.description}
-                </Typography>
-
-                <Button
-                  endIcon={<ArrowForward />}
-                  sx={{
-                    mt: 2,
-                    px: 0,
-                    textTransform: "none",
-                    fontWeight: 800,
-                  }}
-                >
-                  Learn More
-                </Button>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
-
-      {/* =====================================================
-          LEARNING JOURNEY
-      ===================================================== */}
-
-      <Box
-        sx={{
-          py: {
-            xs: 9,
-            md: 13,
-          },
-          bgcolor: isDark
-            ? alpha(primary, 0.035)
-            : alpha(primary, 0.025),
-          borderTop: `1px solid ${theme.palette.divider}`,
-          borderBottom: `1px solid ${theme.palette.divider}`,
-        }}
-      >
-        <Container maxWidth="xl">
-          <Box textAlign="center" mb={8}>
+        <Reveal>
+          <Box textAlign="center" mb={7}>
             <Chip
-              label="HOW IT WORKS"
+              label="LEARNHUB FEATURES"
               sx={{
                 mb: 2,
                 fontWeight: 800,
@@ -829,13 +697,157 @@ const Home = () => {
                 },
               }}
             >
-              Your Learning Journey
+              Everything You Need To Learn
             </Typography>
 
-            <Typography mt={2} color="text.secondary">
-              From beginner to confident professional.
+            <Typography
+              mt={2}
+              color="text.secondary"
+              maxWidth={650}
+              mx="auto"
+              lineHeight={1.8}
+            >
+              A complete learning platform designed to help students learn
+              technology, practice skills, measure progress and achieve their
+              career goals.
             </Typography>
           </Box>
+        </Reveal>
+
+        <Grid container spacing={3}>
+          {features.map((feature, i) => (
+            <Grid
+              key={feature.title}
+              size={{
+                xs: 12,
+                sm: 6,
+                md: 3,
+              }}
+            >
+              <Reveal delay={i * 0.08}>
+                <Tilt3DCard maxTilt={12} scale={1.03}>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 4,
+                      height: "100%",
+                      borderRadius: 5,
+                      border: `1px solid ${theme.palette.divider}`,
+                      bgcolor: "background.paper",
+                      transition: "all .3s ease",
+
+                      "&:hover": {
+                        borderColor: alpha(primary, 0.35),
+                        boxShadow: `0 20px 45px ${alpha(primary, 0.12)}`,
+
+                        "& .feature-icon": {
+                          transform: "scale(1.08) rotate(-4deg)",
+                        },
+                      },
+                    }}
+                  >
+                    <Box
+                      className="feature-icon"
+                      sx={{
+                        width: 64,
+                        height: 64,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: 3,
+                        color: "#fff",
+                        background: `linear-gradient(
+                          135deg,
+                          ${primary},
+                          ${secondary}
+                        )`,
+                        mb: 3,
+                        transition: "0.3s",
+                        boxShadow: `0 10px 25px ${alpha(primary, 0.25)}`,
+                      }}
+                    >
+                      {feature.icon}
+                    </Box>
+
+                    <Typography variant="h6" fontWeight={800}>
+                      {feature.title}
+                    </Typography>
+
+                    <Typography
+                      mt={2}
+                      color="text.secondary"
+                      lineHeight={1.75}
+                    >
+                      {feature.description}
+                    </Typography>
+
+                    <Button
+                      endIcon={<ArrowForward />}
+                      sx={{
+                        mt: 2,
+                        px: 0,
+                        textTransform: "none",
+                        fontWeight: 800,
+                      }}
+                    >
+                      Learn More
+                    </Button>
+                  </Paper>
+                </Tilt3DCard>
+              </Reveal>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+
+      {/* =====================================================
+          LEARNING JOURNEY — scroll reveal + tilt
+      ===================================================== */}
+
+      <Box
+        sx={{
+          py: {
+            xs: 9,
+            md: 13,
+          },
+          bgcolor: isDark
+            ? alpha(primary, 0.035)
+            : alpha(primary, 0.025),
+          borderTop: `1px solid ${theme.palette.divider}`,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <Container maxWidth="xl">
+          <Reveal>
+            <Box textAlign="center" mb={8}>
+              <Chip
+                label="HOW IT WORKS"
+                sx={{
+                  mb: 2,
+                  fontWeight: 800,
+                  color: primary,
+                  bgcolor: alpha(primary, 0.09),
+                }}
+              />
+
+              <Typography
+                variant="h3"
+                fontWeight={900}
+                sx={{
+                  fontSize: {
+                    xs: "2rem",
+                    md: "3rem",
+                  },
+                }}
+              >
+                Your Learning Journey
+              </Typography>
+
+              <Typography mt={2} color="text.secondary">
+                From beginner to confident professional.
+              </Typography>
+            </Box>
+          </Reveal>
 
           <Grid container spacing={3}>
             {journey.map((item, index) => (
@@ -847,77 +859,81 @@ const Home = () => {
                   md: 3,
                 }}
               >
-                <Paper
-                  elevation={0}
-                  sx={{
-                    position: "relative",
-                    p: 4,
-                    height: "100%",
-                    borderRadius: 5,
-                    border: `1px solid ${theme.palette.divider}`,
-                    bgcolor: "background.paper",
-                    overflow: "hidden",
-
-                    "&:hover": {
-                      borderColor: alpha(primary, 0.35),
-                    },
-                  }}
-                > 
-                  <Typography
-                    sx={{
-                      position: "absolute",
-                      top: 15,
-                      right: 20,
-                      fontSize: "3rem",
-                      fontWeight: 900,
-                      color: alpha(primary, 0.07),
-                    }}
-                  >
-                    {item.number}
-                  </Typography>
-
-                  <Avatar
-                    sx={{
-                      width: 58,
-                      height: 58,
-                      mb: 3,
-                      bgcolor: alpha(primary, 0.10),
-                      color: primary,
-                    }}
-                  >
-                    {item.icon}
-                  </Avatar>
-
-                  <Typography
-                    variant="h6"
-                    fontWeight={800}
-                  >
-                    {item.title}
-                  </Typography>
-
-                  <Typography
-                    mt={2}
-                    color="text.secondary"
-                    lineHeight={1.7}
-                  >
-                    {item.desc}
-                  </Typography>
-
-                  {index < journey.length - 1 && (
-                    <ArrowForward
+                <Reveal delay={index * 0.08}>
+                  <Tilt3DCard maxTilt={10} scale={1.02}>
+                    <Paper
+                      elevation={0}
                       sx={{
-                        position: "absolute",
-                        right: 18,
-                        bottom: 18,
-                        color: alpha(primary, 0.35),
-                        display: {
-                          xs: "none",
-                          md: "block",
+                        position: "relative",
+                        p: 4,
+                        height: "100%",
+                        borderRadius: 5,
+                        border: `1px solid ${theme.palette.divider}`,
+                        bgcolor: "background.paper",
+                        overflow: "hidden",
+
+                        "&:hover": {
+                          borderColor: alpha(primary, 0.35),
                         },
                       }}
-                    />
-                  )}
-                </Paper>
+                    >
+                      <Typography
+                        sx={{
+                          position: "absolute",
+                          top: 15,
+                          right: 20,
+                          fontSize: "3rem",
+                          fontWeight: 900,
+                          color: alpha(primary, 0.07),
+                        }}
+                      >
+                        {item.number}
+                      </Typography>
+
+                      <Avatar
+                        sx={{
+                          width: 58,
+                          height: 58,
+                          mb: 3,
+                          bgcolor: alpha(primary, 0.10),
+                          color: primary,
+                        }}
+                      >
+                        {item.icon}
+                      </Avatar>
+
+                      <Typography
+                        variant="h6"
+                        fontWeight={800}
+                      >
+                        {item.title}
+                      </Typography>
+
+                      <Typography
+                        mt={2}
+                        color="text.secondary"
+                        lineHeight={1.7}
+                      >
+                        {item.desc}
+                      </Typography>
+
+                      {index < journey.length - 1 && (
+                        <ArrowForward
+                          sx={{
+                            position: "absolute",
+                            right: 18,
+                            bottom: 18,
+                            color: alpha(primary, 0.35),
+                            display: {
+                              xs: "none",
+                              md: "block",
+                            },
+                          }}
+                        />
+                      )}
+                    </Paper>
+                  </Tilt3DCard>
+                </Reveal>
               </Grid>
             ))}
           </Grid>
@@ -925,7 +941,7 @@ const Home = () => {
       </Box>
 
       {/* =====================================================
-          STUDENT + TEACHER ECOSYSTEM
+          STUDENT + TEACHER ECOSYSTEM — tilt on the gradient card
       ===================================================== */}
 
       <Container
@@ -948,198 +964,204 @@ const Home = () => {
           {/* LEFT */}
 
           <Grid size={{ xs: 12, md: 6 }}>
-            <Chip
-              label="COMPLETE LMS ECOSYSTEM"
-              sx={{
-                mb: 2,
-                fontWeight: 800,
-                color: primary,
-                bgcolor: alpha(primary, 0.09),
-              }}
-            />
+            <Reveal>
+              <Chip
+                label="COMPLETE LMS ECOSYSTEM"
+                sx={{
+                  mb: 2,
+                  fontWeight: 800,
+                  color: primary,
+                  bgcolor: alpha(primary, 0.09),
+                }}
+              />
 
-            <Typography
-              variant="h3"
-              fontWeight={900}
-              sx={{
-                fontSize: {
-                  xs: "2rem",
-                  md: "3rem",
-                },
-              }}
-            >
-              Built For Students
-              <br />
-              & Teachers
-            </Typography>
+              <Typography
+                variant="h3"
+                fontWeight={900}
+                sx={{
+                  fontSize: {
+                    xs: "2rem",
+                    md: "3rem",
+                  },
+                }}
+              >
+                Built For Students
+                <br />
+                & Teachers
+              </Typography>
 
-            <Typography
-              mt={3}
-              color="text.secondary"
-              lineHeight={1.8}
-              maxWidth={600}
-            >
-              LearnHub brings students and teachers together in one complete
-              learning ecosystem. Teachers can manage courses and students can
-              learn, practice, take exams and track their progress.
-            </Typography>
+              <Typography
+                mt={3}
+                color="text.secondary"
+                lineHeight={1.8}
+                maxWidth={600}
+              >
+                LearnHub brings students and teachers together in one complete
+                learning ecosystem. Teachers can manage courses and students can
+                learn, practice, take exams and track their progress.
+              </Typography>
 
-            <Stack spacing={2.2} mt={4}>
-              {[
-                "Teacher course management",
-                "Video based learning",
-                "Student progress tracking",
-                "Online examinations",
-                "Digital certificates",
-              ].map((item) => (
-                <Stack
-                  key={item}
-                  direction="row"
-                  spacing={1.5}
-                  alignItems="center"
-                >
-                  <CheckCircle
-                    sx={{
-                      color: primary,
-                      fontSize: 22,
-                    }}
-                  />
+              <Stack spacing={2.2} mt={4}>
+                {[
+                  "Teacher course management",
+                  "Video based learning",
+                  "Student progress tracking",
+                  "Online examinations",
+                  "Digital certificates",
+                ].map((item) => (
+                  <Stack
+                    key={item}
+                    direction="row"
+                    spacing={1.5}
+                    alignItems="center"
+                  >
+                    <CheckCircle
+                      sx={{
+                        color: primary,
+                        fontSize: 22,
+                      }}
+                    />
 
-                  <Typography fontWeight={600}>
-                    {item}
-                  </Typography>
-                </Stack>
-              ))}
-            </Stack>
+                    <Typography fontWeight={600}>
+                      {item}
+                    </Typography>
+                  </Stack>
+                ))}
+              </Stack>
+            </Reveal>
           </Grid>
 
           {/* RIGHT */}
 
           <Grid size={{ xs: 12, md: 6 }}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: {
-                  xs: 3,
-                  md: 5,
-                },
-                borderRadius: 6,
-                color: "#fff",
-                position: "relative",
-                overflow: "hidden",
-
-                background: `linear-gradient(
-                  135deg,
-                  ${primary},
-                  ${secondary}
-                )`,
-
-                boxShadow: `0 25px 60px ${alpha(primary, 0.25)}`,
-              }}
-            >
-              <Box
-                sx={{
-                  position: "absolute",
-                  width: 250,
-                  height: 250,
-                  borderRadius: "50%",
-                  bgcolor: alpha("#fff", 0.08),
-                  right: -100,
-                  top: -100,
-                }}
-              />
-
-              <Stack
-                direction="row"
-                spacing={2}
-                alignItems="center"
-                position="relative"
-              >
-                <Avatar
+            <Reveal delay={0.15}>
+              <Tilt3DCard maxTilt={8} scale={1.02}>
+                <Paper
+                  elevation={0}
                   sx={{
-                    bgcolor: "#fff",
-                    color: primary,
-                    width: 58,
-                    height: 58,
+                    p: {
+                      xs: 3,
+                      md: 5,
+                    },
+                    borderRadius: 6,
+                    color: "#fff",
+                    position: "relative",
+                    overflow: "hidden",
+
+                    background: `linear-gradient(
+                      135deg,
+                      ${primary},
+                      ${secondary}
+                    )`,
+
+                    boxShadow: `0 25px 60px ${alpha(primary, 0.25)}`,
                   }}
                 >
-                  <AutoGraph />
-                </Avatar>
-
-                <Box>
-                  <Typography
-                    variant="h6"
-                    fontWeight={900}
-                  >
-                    Learning Analytics
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
+                  <Box
                     sx={{
-                      opacity: 0.8,
+                      position: "absolute",
+                      width: 250,
+                      height: 250,
+                      borderRadius: "50%",
+                      bgcolor: alpha("#fff", 0.08),
+                      right: -100,
+                      top: -100,
                     }}
-                  >
-                    Understand your learning performance
-                  </Typography>
-                </Box>
-              </Stack>
+                  />
 
-              <Grid
-                container
-                spacing={2}
-                mt={3}
-                position="relative"
-              >
-                {[
-                  ["75%", "Course Progress"],
-                  ["92%", "Exam Score"],
-                  ["15", "Videos Completed"],
-                  ["01", "Certificate"],
-                ].map(([value, label]) => (
-                  <Grid
-                    key={label}
-                    size={{
-                      xs: 6,
-                    }}
+                  <Stack
+                    direction="row"
+                    spacing={2}
+                    alignItems="center"
+                    position="relative"
                   >
-                    <Paper
-                      elevation={0}
+                    <Avatar
                       sx={{
-                        p: 2.5,
-                        borderRadius: 3,
-                        bgcolor: alpha("#fff", 0.13),
-                        color: "#fff",
-                        border: `1px solid ${alpha("#fff", 0.12)}`,
+                        bgcolor: "#fff",
+                        color: primary,
+                        width: 58,
+                        height: 58,
                       }}
                     >
+                      <AutoGraph />
+                    </Avatar>
+
+                    <Box>
                       <Typography
-                        variant="h5"
+                        variant="h6"
                         fontWeight={900}
                       >
-                        {value}
+                        Learning Analytics
                       </Typography>
 
                       <Typography
                         variant="body2"
                         sx={{
                           opacity: 0.8,
-                          mt: 0.5,
                         }}
                       >
-                        {label}
+                        Understand your learning performance
                       </Typography>
-                    </Paper>
+                    </Box>
+                  </Stack>
+
+                  <Grid
+                    container
+                    spacing={2}
+                    mt={3}
+                    position="relative"
+                  >
+                    {[
+                      ["75%", "Course Progress"],
+                      ["92%", "Exam Score"],
+                      ["15", "Videos Completed"],
+                      ["01", "Certificate"],
+                    ].map(([value, label]) => (
+                      <Grid
+                        key={label}
+                        size={{
+                          xs: 6,
+                        }}
+                      >
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 2.5,
+                            borderRadius: 3,
+                            bgcolor: alpha("#fff", 0.13),
+                            color: "#fff",
+                            border: `1px solid ${alpha("#fff", 0.12)}`,
+                          }}
+                        >
+                          <Typography
+                            variant="h5"
+                            fontWeight={900}
+                          >
+                            {value}
+                          </Typography>
+
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              opacity: 0.8,
+                              mt: 0.5,
+                            }}
+                          >
+                            {label}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                    ))}
                   </Grid>
-                ))}
-              </Grid>
-            </Paper>
+                </Paper>
+              </Tilt3DCard>
+            </Reveal>
           </Grid>
         </Grid>
       </Container>
 
       {/* =====================================================
-          FINAL CTA
+          FINAL CTA — reveal + subtle tilt
       ===================================================== */}
 
       <Container
@@ -1151,119 +1173,123 @@ const Home = () => {
           },
         }}
       >
-        <Paper
-          elevation={0}
-          sx={{
-            position: "relative",
-            overflow: "hidden",
-            p: {
-              xs: 5,
-              md: 9,
-            },
-            borderRadius: 7,
-            textAlign: "center",
-            color: "#fff",
-
-            background: `linear-gradient(
-              135deg,
-              ${theme.palette.primary.dark},
-              ${primary},
-              ${secondary}
-            )`,
-          }}
-        >
-          {/* Decorative circles */}
-
-          <Box
-            sx={{
-              position: "absolute",
-              width: 300,
-              height: 300,
-              borderRadius: "50%",
-              bgcolor: alpha("#fff", 0.06),
-              top: -180,
-              left: -100,
-            }}
-          />
-
-          <Box
-            sx={{
-              position: "absolute",
-              width: 300,
-              height: 300,
-              borderRadius: "50%",
-              bgcolor: alpha("#fff", 0.06),
-              bottom: -180,
-              right: -100,
-            }}
-          />
-
-          <Box position="relative">
-            <Avatar
+        <Reveal>
+          <Tilt3DCard maxTilt={4} scale={1.008} glare={false}>
+            <Paper
+              elevation={0}
               sx={{
-                width: 70,
-                height: 70,
-                mx: "auto",
-                bgcolor: alpha("#fff", 0.14),
+                position: "relative",
+                overflow: "hidden",
+                p: {
+                  xs: 5,
+                  md: 9,
+                },
+                borderRadius: 7,
+                textAlign: "center",
                 color: "#fff",
+
+                background: `linear-gradient(
+                  135deg,
+                  ${theme.palette.primary.dark},
+                  ${primary},
+                  ${secondary}
+                )`,
               }}
             >
-              <RocketLaunch sx={{ fontSize: 34 }} />
-            </Avatar>
+              {/* Decorative circles */}
 
-            <Typography
-              variant="h3"
-              fontWeight={900}
-              mt={3}
-              sx={{
-                fontSize: {
-                  xs: "2rem",
-                  md: "3rem",
-                },
-              }}
-            >
-              Start Building Your Future Today
-            </Typography>
+              <Box
+                sx={{
+                  position: "absolute",
+                  width: 300,
+                  height: 300,
+                  borderRadius: "50%",
+                  bgcolor: alpha("#fff", 0.06),
+                  top: -180,
+                  left: -100,
+                }}
+              />
 
-            <Typography
-              mt={3}
-              maxWidth={650}
-              mx="auto"
-              sx={{
-                opacity: 0.85,
-                lineHeight: 1.8,
-              }}
-            >
-              Join LearnHub and transform your learning into real skills,
-              projects and career opportunities.
-            </Typography>
+              <Box
+                sx={{
+                  position: "absolute",
+                  width: 300,
+                  height: 300,
+                  borderRadius: "50%",
+                  bgcolor: alpha("#fff", 0.06),
+                  bottom: -180,
+                  right: -100,
+                }}
+              />
 
-            <Button
-              size="large"
-              onClick={() => navigate("/register")}
-              sx={{
-                mt: 5,
-                px: 5,
-                py: 1.6,
-                borderRadius: 3,
-                bgcolor: "#fff",
-                color: primary,
-                fontWeight: 900,
-                textTransform: "none",
-                fontSize: "1rem",
+              <Box position="relative">
+                <Avatar
+                  sx={{
+                    width: 70,
+                    height: 70,
+                    mx: "auto",
+                    bgcolor: alpha("#fff", 0.14),
+                    color: "#fff",
+                  }}
+                >
+                  <RocketLaunch sx={{ fontSize: 34 }} />
+                </Avatar>
 
-                "&:hover": {
-                  bgcolor: "#f8fafc",
-                  transform: "translateY(-2px)",
-                },
+                <Typography
+                  variant="h3"
+                  fontWeight={900}
+                  mt={3}
+                  sx={{
+                    fontSize: {
+                      xs: "2rem",
+                      md: "3rem",
+                    },
+                  }}
+                >
+                  Start Building Your Future Today
+                </Typography>
 
-                transition: "0.25s",
-              }}
-            >
-              Create Free Account
-            </Button>
-          </Box>
-        </Paper>
+                <Typography
+                  mt={3}
+                  maxWidth={650}
+                  mx="auto"
+                  sx={{
+                    opacity: 0.85,
+                    lineHeight: 1.8,
+                  }}
+                >
+                  Join LearnHub and transform your learning into real skills,
+                  projects and career opportunities.
+                </Typography>
+
+                <Button
+                  size="large"
+                  onClick={() => navigate("/register")}
+                  sx={{
+                    mt: 5,
+                    px: 5,
+                    py: 1.6,
+                    borderRadius: 3,
+                    bgcolor: "#fff",
+                    color: primary,
+                    fontWeight: 900,
+                    textTransform: "none",
+                    fontSize: "1rem",
+
+                    "&:hover": {
+                      bgcolor: "#f8fafc",
+                      transform: "translateY(-2px)",
+                    },
+
+                    transition: "0.25s",
+                  }}
+                >
+                  Create Free Account
+                </Button>
+              </Box>
+            </Paper>
+          </Tilt3DCard>
+        </Reveal>
       </Container>
     </Box>
   );
