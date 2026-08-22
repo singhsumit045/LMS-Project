@@ -34,13 +34,24 @@ import {
     EventAvailable,
     ExpandMore,
     ExpandLess,
-    TrendingUp,
 } from "@mui/icons-material";
 
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
+
 import { useNavigate } from "react-router-dom";
+
+import {
+    alpha,
+    useTheme,
+} from "@mui/material/styles";
+
 import api from "../../services/api";
 
 import {
@@ -48,17 +59,38 @@ import {
     endLiveClass,
 } from "../../services/liveClassService";
 
-// ======================================================
-// HOW MANY LIVE CLASS CARDS TO SHOW BEFORE "SHOW ALL"
-// ======================================================
 const LIVE_CLASSES_VISIBLE_LIMIT = 6;
 
 const TeacherDashboard = () => {
     const navigate = useNavigate();
+    const theme = useTheme();
 
-    // ======================================================
-    // DASHBOARD STATE
-    // ======================================================
+    // =========================================================
+    // THEME
+    // =========================================================
+
+    const primary = theme.palette.primary.main;
+    const success = theme.palette.success.main;
+    const warning = theme.palette.warning.main;
+    const errorColor = theme.palette.error.main;
+
+    const paperBg = theme.palette.background.paper;
+    const defaultBg = theme.palette.background.default;
+
+    const textPrimary = theme.palette.text.primary;
+    const textSecondary = theme.palette.text.secondary;
+
+    const divider = theme.palette.divider;
+
+    const cardShadow =
+        theme.shadows[2];
+
+    const cardHoverShadow =
+        theme.shadows[8];
+
+    // =========================================================
+    // STATE
+    // =========================================================
 
     const [dashboard, setDashboard] = useState({
         totalCourses: 0,
@@ -80,14 +112,12 @@ const TeacherDashboard = () => {
     const [actionLoading, setActionLoading] =
         useState(null);
 
-    // Controls whether all live classes are shown or just
-    // the first LIVE_CLASSES_VISIBLE_LIMIT
     const [showAllLiveClasses, setShowAllLiveClasses] =
         useState(false);
 
-    // ======================================================
+    // =========================================================
     // FETCH TEACHER DASHBOARD
-    // ======================================================
+    // =========================================================
 
     const fetchTeacherDashboard = useCallback(
         async () => {
@@ -118,14 +148,14 @@ const TeacherDashboard = () => {
                             ? data.courses
                             : [],
                 });
-            } catch (error) {
+            } catch (err) {
                 console.error(
                     "Teacher dashboard error:",
-                    error
+                    err
                 );
 
                 setError(
-                    error?.response?.data?.message ||
+                    err?.response?.data?.message ||
                     "Unable to load teacher dashboard."
                 );
             } finally {
@@ -135,9 +165,9 @@ const TeacherDashboard = () => {
         []
     );
 
-    // ======================================================
-    // FETCH TEACHER LIVE CLASSES
-    // ======================================================
+    // =========================================================
+    // FETCH LIVE CLASSES
+    // =========================================================
 
     const fetchLiveClasses = useCallback(
         async () => {
@@ -158,14 +188,14 @@ const TeacherDashboard = () => {
                         : [];
 
                 setLiveClasses(classes);
-            } catch (error) {
+            } catch (err) {
                 console.error(
                     "Live classes error:",
-                    error
+                    err
                 );
 
                 setLiveClassError(
-                    error?.response?.data?.message ||
+                    err?.response?.data?.message ||
                     "Unable to load live classes."
                 );
 
@@ -177,9 +207,9 @@ const TeacherDashboard = () => {
         []
     );
 
-    // ======================================================
+    // =========================================================
     // INITIAL LOAD
-    // ======================================================
+    // =========================================================
 
     useEffect(() => {
         fetchTeacherDashboard();
@@ -189,9 +219,9 @@ const TeacherDashboard = () => {
         fetchLiveClasses,
     ]);
 
-    // ======================================================
+    // =========================================================
     // START LIVE CLASS
-    // ======================================================
+    // =========================================================
 
     const handleStartLiveClass = async (
         liveClassId
@@ -208,15 +238,15 @@ const TeacherDashboard = () => {
             navigate(
                 `/live-class/${liveClassId}`
             );
-        } catch (error) {
+        } catch (err) {
             console.error(
                 "Start live class error:",
-                error
+                err
             );
 
             alert(
-                error?.response?.data?.message ||
-                error?.message ||
+                err?.response?.data?.message ||
+                err?.message ||
                 "Unable to start live class."
             );
         } finally {
@@ -224,9 +254,9 @@ const TeacherDashboard = () => {
         }
     };
 
-    // ======================================================
+    // =========================================================
     // END LIVE CLASS
-    // ======================================================
+    // =========================================================
 
     const handleEndLiveClass = async (
         liveClassId
@@ -235,9 +265,7 @@ const TeacherDashboard = () => {
             "Are you sure you want to end this live class?"
         );
 
-        if (!confirmed) {
-            return;
-        }
+        if (!confirmed) return;
 
         try {
             setActionLoading(
@@ -247,15 +275,15 @@ const TeacherDashboard = () => {
             await endLiveClass(liveClassId);
 
             await fetchLiveClasses();
-        } catch (error) {
+        } catch (err) {
             console.error(
                 "End live class error:",
-                error
+                err
             );
 
             alert(
-                error?.response?.data?.message ||
-                error?.message ||
+                err?.response?.data?.message ||
+                err?.message ||
                 "Unable to end live class."
             );
         } finally {
@@ -263,9 +291,9 @@ const TeacherDashboard = () => {
         }
     };
 
-    // ======================================================
-    // OPEN LIVE CLASSROOM
-    // ======================================================
+    // =========================================================
+    // OPEN LIVE CLASS
+    // =========================================================
 
     const handleOpenLiveClass = (
         liveClassId
@@ -275,9 +303,9 @@ const TeacherDashboard = () => {
         );
     };
 
-    // ======================================================
+    // =========================================================
     // DATE FORMATTER
-    // ======================================================
+    // =========================================================
 
     const formatDateTime = (date) => {
         if (!date) {
@@ -303,9 +331,9 @@ const TeacherDashboard = () => {
         );
     };
 
-    // ======================================================
+    // =========================================================
     // LIVE CLASS STATUS
-    // ======================================================
+    // =========================================================
 
     const getLiveClassStatus = (
         liveClass
@@ -337,9 +365,9 @@ const TeacherDashboard = () => {
         };
     };
 
-    // ======================================================
+    // =========================================================
     // SORT LIVE CLASSES
-    // ======================================================
+    // =========================================================
 
     const sortedLiveClasses = useMemo(() => {
         return [...liveClasses].sort(
@@ -370,10 +398,6 @@ const TeacherDashboard = () => {
         );
     }, [liveClasses]);
 
-    // ======================================================
-    // LIVE CLASSES TO ACTUALLY RENDER (6 by default)
-    // ======================================================
-
     const visibleLiveClasses = useMemo(() => {
         return showAllLiveClasses
             ? sortedLiveClasses
@@ -381,61 +405,90 @@ const TeacherDashboard = () => {
                 0,
                 LIVE_CLASSES_VISIBLE_LIMIT
             );
-    }, [sortedLiveClasses, showAllLiveClasses]);
+    }, [
+        sortedLiveClasses,
+        showAllLiveClasses,
+    ]);
 
     const hasMoreLiveClasses =
         sortedLiveClasses.length >
         LIVE_CLASSES_VISIBLE_LIMIT;
 
-    // Reset the "show all" toggle if the underlying list
-    // shrinks back below the limit (e.g. after a refetch)
     useEffect(() => {
-        if (!hasMoreLiveClasses && showAllLiveClasses) {
+        if (
+            !hasMoreLiveClasses &&
+            showAllLiveClasses
+        ) {
             setShowAllLiveClasses(false);
         }
-    }, [hasMoreLiveClasses, showAllLiveClasses]);
+    }, [
+        hasMoreLiveClasses,
+        showAllLiveClasses,
+    ]);
 
-    // ======================================================
+    // =========================================================
     // TOTAL ENROLLMENTS
-    // ======================================================
+    // =========================================================
 
     const totalEnrollments =
         dashboard.courses.reduce(
             (total, course) =>
                 total +
-                (course.students?.length ||
-                    0),
+                (course.students?.length || 0),
             0
         );
 
-    // ======================================================
-    // OVERVIEW STAT CARDS CONFIG (admin-style)
-    // ======================================================
+    // =========================================================
+    // COMMON CARD
+    // =========================================================
+
+    const commonCardSx = {
+        bgcolor: "background.paper",
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: 3,
+        boxShadow: cardShadow,
+        transition:
+            "transform .2s ease, box-shadow .2s ease, border-color .2s ease",
+
+        "&:hover": {
+            transform: "translateY(-4px)",
+            boxShadow: cardHoverShadow,
+            borderColor: alpha(
+                primary,
+                0.35
+            ),
+        },
+    };
+
+    // =========================================================
+    // STAT CARDS
+    // =========================================================
 
     const statCards = [
         {
             key: "courses",
             label: "My Courses",
             value: dashboard.totalCourses,
+            subtitle: "Courses you teach",
             icon: <MenuBook />,
-            color: "#1976d2",
-            bg: "linear-gradient(135deg, rgba(25,118,210,0.10), rgba(25,118,210,0.02))",
+            color: primary,
         },
         {
             key: "students",
             label: "Total Students",
             value: dashboard.totalStudents,
+            subtitle: "Currently enrolled",
             icon: <People />,
-            color: "#2e7d32",
-            bg: "linear-gradient(135deg, rgba(46,125,50,0.10), rgba(46,125,50,0.02))",
+            color: success,
         },
         {
             key: "enrollments",
             label: "Enrollments",
             value: totalEnrollments,
+            subtitle: "Total course enrollments",
             icon: <School />,
-            color: "#ed6c02",
-            bg: "linear-gradient(135deg, rgba(237,108,2,0.10), rgba(237,108,2,0.02))",
+            color: warning,
         },
         {
             key: "results",
@@ -443,16 +496,17 @@ const TeacherDashboard = () => {
             value: null,
             subtitle: "View student performance",
             icon: <Assessment />,
-            color: "#0288d1",
-            bg: "linear-gradient(135deg, rgba(2,136,209,0.10), rgba(2,136,209,0.02))",
+            color: primary,
             onClick: () =>
-                navigate("/teacher/exam-results"),
+                navigate(
+                    "/teacher/exam-results"
+                ),
         },
     ];
 
-    // ======================================================
+    // =========================================================
     // LOADING
-    // ======================================================
+    // =========================================================
 
     if (loading) {
         return (
@@ -460,9 +514,9 @@ const TeacherDashboard = () => {
                 sx={{
                     minHeight: "70vh",
                     display: "flex",
-                    justifyContent:
-                        "center",
                     alignItems: "center",
+                    justifyContent: "center",
+                    bgcolor: defaultBg,
                 }}
             >
                 <CircularProgress />
@@ -470,313 +524,473 @@ const TeacherDashboard = () => {
         );
     }
 
-    // ======================================================
+    // =========================================================
     // ERROR
-    // ======================================================
+    // =========================================================
 
     if (error) {
         return (
             <Container
                 maxWidth="xl"
-                sx={{
-                    py: 5,
-                }}
+                sx={{ py: 5 }}
             >
-                <Alert severity="error">
+                <Alert
+                    severity="error"
+                    sx={{
+                        borderRadius: 2,
+                    }}
+                >
                     {error}
                 </Alert>
             </Container>
         );
     }
 
+    // =========================================================
+    // MAIN UI
+    // =========================================================
+
     return (
-        <Container
-            maxWidth="xl"
+        <Box
             sx={{
-                py: {
-                    xs: 2.5,
-                    sm: 3.5,
-                    md: 5,
-                },
+                minHeight: "100%",
+                bgcolor: defaultBg,
             }}
         >
-            {/* =====================================================
-                HEADER
-            ===================================================== */}
-
-            <Paper
-                elevation={0}
+            <Container
+                maxWidth="xl"
                 sx={{
-                    p: {
+                    py: {
                         xs: 2.5,
                         sm: 3.5,
                         md: 5,
                     },
-                    mb: {
-                        xs: 3,
-                        md: 4,
-                    },
-                    borderRadius: {
-                        xs: 3,
-                        md: 4,
-                    },
-                    color: "white",
-                    background:
-                        "linear-gradient(135deg, #1976d2 0%, #7b1fa2 100%)",
-                    position: "relative",
-                    overflow: "hidden",
                 }}
             >
-                <Box
-                    sx={{
-                        position: "absolute",
-                        width: {
-                            xs: 140,
-                            md: 250,
-                        },
-                        height: {
-                            xs: 140,
-                            md: 250,
-                        },
-                        borderRadius: "50%",
-                        background:
-                            "rgba(255,255,255,0.08)",
-                        right: {
-                            xs: -70,
-                            md: -100,
-                        },
-                        top: {
-                            xs: -70,
-                            md: -120,
-                        },
-                    }}
-                />
+                {/* =====================================================
+                    HERO
+                ===================================================== */}
 
-                <Box
+                <Paper
+                    elevation={0}
                     sx={{
                         position: "relative",
-                        zIndex: 1,
+                        overflow: "hidden",
+                        p: {
+                            xs: 2.5,
+                            sm: 3.5,
+                            md: 4,
+                        },
+                        mb: {
+                            xs: 3,
+                            md: 4,
+                        },
+                        borderRadius: 4,
+                        bgcolor: alpha(primary, 0.12),
+                        border: "1px solid",
+                        borderColor: "divider",
+                        boxShadow: cardShadow,
+
+                        "&::after": {
+                            content: '""',
+                            position: "absolute",
+                            width: 180,
+                            height: 180,
+                            borderRadius: "50%",
+                            right: -80,
+                            top: -80,
+                            bgcolor: alpha(
+                                primary,
+                                0.07
+                            ),
+                            pointerEvents: "none",
+                        },
                     }}
                 >
-                    <Typography
-                        fontWeight={700}
+                    <Box
                         sx={{
-                            fontSize: {
-                                xs: "1.7rem",
-                                sm: "2.2rem",
-                                md: "3rem",
+                            position: "relative",
+                            zIndex: 1,
+                            display: "flex",
+                            alignItems: {
+                                xs: "flex-start",
+                                md: "center",
                             },
-                            lineHeight: 1.2,
+                            justifyContent:
+                                "space-between",
+                            gap: 3,
+                            flexDirection: {
+                                xs: "column",
+                                md: "row",
+                            },
                         }}
                     >
-                        Teacher Dashboard 👨‍🏫
-                    </Typography>
-
-                    <Typography
-                        sx={{
-                            mt: 1,
-                            opacity: 0.9,
-                            fontSize: {
-                                xs: "0.9rem",
-                                sm: "1rem",
-                                md: "1.1rem",
-                            },
-                            maxWidth: 650,
-                        }}
-                    >
-                        Manage your courses,
-                        students, exams and
-                        live classes from one
-                        place.
-                    </Typography>
-                </Box>
-            </Paper>
-
-            {/* =====================================================
-                OVERVIEW  (admin-style stat cards)
-            ===================================================== */}
-
+                        <Box
+    sx={{
+        width: "100%",
+        position: "relative",
+    }}
+>
+    {/* HEADER */}
+    <Box
+        sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 2,
+            pr: { xs: 1, sm: 2, md: 3 },
+        }}
+    >
+        {/* TEXT */}
+        <Box sx={{ minWidth: 0 }}>
             <Typography
-                variant="h5"
-                fontWeight={700}
+                variant="overline"
+                fontWeight={800}
                 sx={{
-                    mb: 2.5,
+                    color: theme.palette.primary.main,
+                    letterSpacing: 1.2,
                     fontSize: {
-                        xs: "1.35rem",
-                        sm: "1.5rem",
+                        xs: "0.65rem",
+                        sm: "0.75rem",
                     },
+                    lineHeight: 1.2,
                 }}
             >
-                Overview
+                TEACHER PORTAL
             </Typography>
 
-            <Grid
-                container
-                spacing={{
-                    xs: 2,
-                    sm: 2.5,
-                    md: 3,
-                }}
+          <Typography
+    variant="h4"
+    fontWeight={800}
+    sx={{
+        mt: 0.4,
+        color: theme.palette.text.primary,
+
+        fontSize: {
+            xs: "1.35rem",
+            sm: "2rem",
+            md: "2.45rem",
+        },
+
+        lineHeight: 1.2,
+
+        // Mobile par ek hi line
+        whiteSpace: "nowrap",
+
+        // Agar screen bahut chhoti ho
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+    }}
+>
+    Teacher Dashboard
+</Typography>
+        </Box>
+
+        {/* ICON - RIGHT SIDE */}
+        <Box
+            sx={{
+                width: {
+                    xs: 48,
+                    sm: 56,
+                    md: 64,
+                },
+                height: {
+                    xs: 48,
+                    sm: 56,
+                    md: 64,
+                },
+                minWidth: {
+                    xs: 48,
+                    sm: 56,
+                    md: 64,
+                },
+
+                borderRadius: {
+                    xs: "14px",
+                    sm: "16px",
+                },
+
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+
+                backgroundColor:
+                    `${theme.palette.primary.main}14`,
+
+                color:
+                    theme.palette.primary.main,
+
+                border:
+                    `1px solid ${theme.palette.primary.main}25`,
+            }}
+        >
+            <School
                 sx={{
-                    mb: {
-                        xs: 4,
-                        md: 5,
+                    fontSize: {
+                        xs: 25,
+                        sm: 30,
+                        md: 34,
                     },
                 }}
-            >
-                {statCards.map((card) => (
+            />
+        </Box>
+    </Box>
+
+    {/* DESCRIPTION */}
+    <Typography
+        sx={{
+            mt: 1,
+
+            maxWidth: 650,
+
+            lineHeight: 1.7,
+
+            color:
+                theme.palette.text.secondary,
+
+            fontSize: {
+                xs: "0.82rem",
+                sm: "0.95rem",
+            },
+        }}
+    >
+        Manage your courses, students, exams and
+        live classes from one place.
+    </Typography>
+</Box>
+
+                       
+                    </Box>
+                </Paper>
+
+                {/* =====================================================
+                    OVERVIEW
+                ===================================================== */}
+
+                <Box sx={{ mb: 5 }}>
+                    <Box sx={{ mb: 2.5 }}>
+                        <Typography
+                            variant="h5"
+                            fontWeight={800}
+                        >
+                            Overview
+                        </Typography>
+
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mt: 0.5 }}
+                        >
+                            A quick snapshot of your
+                            teaching activity.
+                        </Typography>
+                    </Box>
+
                     <Grid
-                        key={card.key}
-                        size={{
-                            xs: 12,
-                            sm: 6,
+                        container
+                        spacing={{
+                            xs: 2,
+                            sm: 2.5,
                             md: 3,
                         }}
                     >
-                        <Paper
-                            elevation={0}
-                            onClick={card.onClick}
-                            sx={{
-                                p: {
-                                    xs: 2.2,
-                                    sm: 2.5,
-                                    md: 3,
-                                },
-                                borderRadius: 3,
-                                borderLeft: `4px solid ${card.color}`,
-                                border: "1px solid",
-                                borderColor: "divider",
-                                borderLeftWidth: 4,
-                                borderLeftColor: card.color,
-                                height: "100%",
-                                cursor: card.onClick
-                                    ? "pointer"
-                                    : "default",
-                                background: card.bg,
-                                transition: "all 0.25s ease",
-                                "&:hover": {
-                                    transform:
-                                        "translateY(-4px)",
-                                    boxShadow:
-                                        "0 12px 28px rgba(0,0,0,0.10)",
-                                },
-                            }}
-                        >
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    justifyContent:
-                                        "space-between",
-                                    alignItems:
-                                        "flex-start",
-                                    gap: 2,
-                                }}
-                            >
-                                <Box sx={{ minWidth: 0 }}>
-                                    <Typography
-                                        color="text.secondary"
-                                        fontSize={{
-                                            xs: "0.85rem",
-                                            sm: "0.9rem",
-                                        }}
-                                        fontWeight={600}
-                                    >
-                                        {card.label}
-                                    </Typography>
+                        {statCards.map(
+                            (card) => (
+                                <Grid
+                                    key={card.key}
+                                    size={{
+                                        xs: 12,
+                                        sm: 6,
+                                        lg: 3,
+                                    }}
+                                >
+                                    <Paper
+                                        elevation={0}
+                                        onClick={
+                                            card.onClick
+                                        }
+                                        sx={{
+                                            position:
+                                                "relative",
+                                            p: {
+                                                xs: 2.5,
+                                                sm: 3,
+                                            },
+                                            minHeight: 160,
+                                            height: "100%",
+                                            overflow:
+                                                "hidden",
+                                            bgcolor:
+                                                "background.paper",
+                                            border: "1px solid",
+                                                
+                                            borderColor:  "divider",
+                                               
+                                            borderRadius: 3,
+                                            cursor:  "pointer",
+                                                    
+                                            transition:
+                                                "transform .2s ease, box-shadow .2s ease, border-color .2s ease",
 
-                                    {card.value !== null ? (
-                                        <Typography
-                                            variant="h4"
-                                            fontWeight={700}
-                                            sx={{
-                                                mt: 0.5,
-                                                fontSize: {
-                                                    xs: "1.8rem",
-                                                    sm: "2rem",
+                                            "&::before":
+                                                {
+                                                    content:
+                                                        '""',
+                                                    position:
+                                                        "absolute",
+                                                    top: 0,
+                                                    left: 0,
+                                                    right: 0,
+                                                    height: 3,
+                                                    bgcolor:
+                                                        card.color,
                                                 },
+
+                                            "&:hover":
+                                               
+                                                     {
+                                                        transform:
+                                                            "translateY(-4px)",
+                                                        boxShadow:
+                                                            cardHoverShadow,
+                                                        borderColor:
+                                                            alpha(
+                                                                card.color,
+                                                                0.45
+                                                            ),
+                                                    }
+                                                    
+                                        }}
+                                    >
+                                        <Box
+                                            sx={{
+                                                display:
+                                                    "flex",
+                                                justifyContent:
+                                                    "space-between",
+                                                alignItems:
+                                                    "flex-start",
+                                                gap: 2,
                                             }}
                                         >
-                                            {card.value}
-                                        </Typography>
-                                    ) : (
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                            sx={{ mt: 0.8 }}
-                                        >
-                                            {card.subtitle}
-                                        </Typography>
-                                    )}
-                                </Box>
+                                            <Box
+                                                sx={{
+                                                    minWidth: 0,
+                                                }}
+                                            >
+                                                <Typography
+                                                    variant="body2"
+                                                    color="text.secondary"
+                                                    fontWeight={
+                                                        700
+                                                    }
+                                                >
+                                                    {
+                                                        card.label
+                                                    }
+                                                </Typography>
 
-                                <Avatar
-                                    sx={{
-                                        width: {
-                                            xs: 45,
-                                            sm: 52,
-                                        },
-                                        height: {
-                                            xs: 45,
-                                            sm: 52,
-                                        },
-                                        bgcolor: card.color,
-                                    }}
-                                >
-                                    {card.icon}
-                                </Avatar>
-                            </Box>
+                                                {card.value !==
+                                                null ? (
+                                                    <Typography
+                                                        variant="h4"
+                                                        fontWeight={
+                                                            800
+                                                        }
+                                                        sx={{
+                                                            mt: 0.7,
+                                                        }}
+                                                    >
+                                                        {
+                                                            card.value
+                                                        }
+                                                    </Typography>
+                                                ) : (
+                                                    <Typography
+                                                        variant="body2"
+                                                        color="text.secondary"
+                                                        sx={{
+                                                            mt: 1,
+                                                            lineHeight:
+                                                                1.5,
+                                                        }}
+                                                    >
+                                                        {
+                                                            card.subtitle
+                                                        }
+                                                    </Typography>
+                                                )}
 
-                            {card.onClick && (
-                                <Button
-                                    variant="text"
-                                    size="small"
-                                    endIcon={<ArrowForward />}
-                                    sx={{
-                                        mt: 1.5,
-                                        textTransform: "none",
-                                        fontWeight: 600,
-                                        p: 0,
-                                        color: card.color,
-                                    }}
-                                >
-                                    View Results
-                                </Button>
-                            )}
-                        </Paper>
+                                                {card.value !==
+                                                    null && (
+                                                    <Typography
+                                                        variant="caption"
+                                                        color="text.secondary"
+                                                    >
+                                                        {
+                                                            card.subtitle
+                                                        }
+                                                    </Typography>
+                                                )}
+                                            </Box>
+
+                                            <Avatar
+                                                sx={{
+                                                    width: 52,
+                                                    height: 52,
+                                                    flexShrink: 0,
+                                                    bgcolor:
+                                                        alpha(
+                                                            card.color,
+                                                            0.12
+                                                        ),
+                                                    color:
+                                                        card.color,
+                                                }}
+                                            >
+                                                {
+                                                    card.icon
+                                                }
+                                            </Avatar>
+                                        </Box>
+
+                                        {card.onClick && (
+                                            <Button
+                                                size="small"
+                                                endIcon={
+                                                    <ArrowForward />
+                                                }
+                                                sx={{
+                                                    mt: 1.5,
+                                                    p: 0,
+                                                    textTransform:
+                                                        "none",
+                                                    fontWeight: 700,
+                                                    color:
+                                                        card.color,
+                                                    "&:hover":
+                                                        {
+                                                            bgcolor:  "transparent",
+                                                               
+                                                        },  
+                                                }}
+                                            >
+                                                View Results
+                                            </Button>
+                                        )}
+                                    </Paper>
+                                </Grid>
+                            )
+                        )}
                     </Grid>
-                ))}
-            </Grid>
+                </Box>
 
-            {/* =====================================================
-                AI QUIZ GENERATOR
-            ===================================================== */}
+                {/* =====================================================
+                    AI TOOLS
+                ===================================================== */}
 
-            <Box
-                sx={{
-                    mb: {
-                        xs: 4,
-                        md: 5,
-                    },
-                }}
-            >
-                <Box
-                    sx={{
-                        display: "flex",
-                        alignItems: {
-                            xs: "flex-start",
-                            md: "center",
-                        },
-                        justifyContent:
-                            "space-between",
-                        flexDirection: {
-                            xs: "column",
-                            md: "row",
-                        },
-                        gap: 2,
-                        mb: 2.5,
-                    }}
-                >
-                    <Box>
+                <Box sx={{ mb: 5 }}>
+                    <Box sx={{ mb: 2.5 }}>
                         <Box
                             sx={{
                                 display: "flex",
@@ -785,353 +999,205 @@ const TeacherDashboard = () => {
                                 gap: 1,
                             }}
                         >
-                            <AutoAwesomeIcon
-                                color="primary"
-                            />
-
-                            <Typography
-                                variant="h5"
-                                fontWeight={700}
-                                sx={{
-                                    fontSize: {
-                                        xs: "1.35rem",
-                                        sm: "1.5rem",
-                                    },
-                                }}
-                            >
-                                AI Teaching Tools
-                            </Typography>
-                        </Box>
-
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{
-                                mt: 0.5,
-                            }}
-                        >
-                            Create quizzes and
-                            learning material
-                            quickly with AI.
-                        </Typography>
-                    </Box>
-                </Box>
-
-                <Grid
-                    container
-                    spacing={{
-                        xs: 2,
-                        sm: 2.5,
-                        md: 3,
-                    }}
-                >
-                    <Grid
-                        size={{
-                            xs: 12,
-                            md: 6,
-                            lg: 4,
-                        }}
-                    >
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: {
-                                    xs: 2.5,
-                                    sm: 3,
-                                },
-                                height: "100%",
-                                borderRadius: 3,
-                                border: "1px solid",
-                                borderColor:
-                                    "divider",
-                                position:
-                                    "relative",
-                                overflow:
-                                    "hidden",
-                                transition:
-                                    "all 0.25s ease",
-                                "&:hover": {
-                                    transform:
-                                        "translateY(-4px)",
-                                    boxShadow:
-                                        "0 12px 30px rgba(0,0,0,0.10)",
-                                    borderColor:
-                                        "primary.main",
-                                },
-                            }}
-                        >
-                            <Box
-                                sx={{
-                                    position:
-                                        "absolute",
-                                    width: 100,
-                                    height: 100,
-                                    borderRadius:
-                                        "50%",
-                                    bgcolor:
-                                        "primary.main",
-                                    opacity: 0.08,
-                                    right: -35,
-                                    top: -35,
-                                }}
-                            />
-
                             <Avatar
                                 sx={{
-                                    width: 52,
-                                    height: 52,
-                                    bgcolor:
-                                        "primary.main",
-                                    mb: 2,
+                                    width: 38,
+                                    height: 38,
+                                    bgcolor: alpha(
+                                        primary,
+                                        0.12
+                                    ),
+                                    color: primary,
                                 }}
                             >
-                                <AutoAwesomeIcon />
+                                <AutoAwesomeIcon
+                                    fontSize="small"
+                                />
                             </Avatar>
 
-                            <Typography
-                                variant="h6"
-                                fontWeight={700}
+                            <Box>
+                                <Typography
+                                    variant="h5"
+                                    fontWeight={800}
+                                >
+                                    AI Teaching Tools
+                                </Typography>
+
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                >
+                                    Create learning
+                                    material faster
+                                    with AI.
+                                </Typography>
+                            </Box>
+                        </Box>
+                    </Box>
+
+                    <Grid container spacing={3}>
+                        <Grid
+                            size={{
+                                xs: 12,
+                                sm: 6,
+                                md: 4,
+                            }}
+                        >
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    ...commonCardSx,
+                                    p: 3,
+                                    height: "100%",
+                                }}
                             >
-                                AI Quiz Generator
-                            </Typography>
+                                <Avatar
+                                    sx={{
+                                        width: 54,
+                                        height: 54,
+                                        bgcolor:
+                                            alpha(
+                                                primary,
+                                                0.12
+                                            ),
+                                        color: primary,
+                                        mb: 2,
+                                    }}
+                                >
+                                    <AutoAwesomeIcon />
+                                </Avatar>
+
+                                <Typography
+                                    variant="h6"
+                                    fontWeight={800}
+                                >
+                                    AI Quiz Generator
+                                </Typography>
+
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    sx={{
+                                        mt: 1,
+                                        mb: 2.5,
+                                        lineHeight: 1.7,
+                                    }}
+                                >
+                                    Generate
+                                    multiple-choice
+                                    quizzes
+                                    automatically
+                                    using AI. Choose
+                                    topic, difficulty
+                                    and number of
+                                    questions.
+                                </Typography>
+
+                                <Button
+                                    variant="contained"
+                                    startIcon={
+                                        <AutoAwesomeIcon />
+                                    }
+                                    onClick={() =>
+                                        navigate(
+                                            "/teacher/ai-quiz-generator"
+                                        )
+                                    }
+                                    sx={{
+                                        borderRadius: 2,
+                                        textTransform:
+                                            "none",
+                                        fontWeight: 700,
+                                        boxShadow: "none",
+                                    }}
+                                >
+                                    Generate Quiz
+                                </Button>
+                            </Paper>
+                        </Grid>
+                    </Grid>
+                </Box>
+
+                {/* =====================================================
+                    LIVE CLASSES
+                ===================================================== */}
+
+                <Box sx={{ mb: 5 }}>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent:
+                                "space-between",
+                            alignItems: {
+                                xs: "flex-start",
+                                md: "center",
+                            },
+                            flexDirection: {
+                                xs: "column",
+                                md: "row",
+                            },
+                            gap: 2,
+                            mb: 2.5,
+                        }}
+                    >
+                        <Box>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    alignItems:
+                                        "center",
+                                    gap: 1,
+                                    flexWrap: "wrap",
+                                }}
+                            >
+                                <Avatar
+                                    sx={{
+                                        width: 38,
+                                        height: 38,
+                                        bgcolor:
+                                            alpha(
+                                                primary,
+                                                0.12
+                                            ),
+                                        color: primary,
+                                    }}
+                                >
+                                    <VideoCall />
+                                </Avatar>
+
+                                <Typography
+                                    variant="h5"
+                                    fontWeight={800}
+                                >
+                                    Live Classes
+                                </Typography>
+
+                                {sortedLiveClasses.length >
+                                    0 && (
+                                    <Chip
+                                        size="small"
+                                        label={
+                                            sortedLiveClasses.length
+                                        }
+                                        color="primary"
+                                        variant="outlined"
+                                        sx={{
+                                            fontWeight: 700,
+                                        }}
+                                    />
+                                )}
+                            </Box>
 
                             <Typography
                                 variant="body2"
                                 color="text.secondary"
-                                sx={{
-                                    mt: 1,
-                                    mb: 2.5,
-                                    lineHeight: 1.6,
-                                }}
+                                sx={{ mt: 0.8 }}
                             >
-                                Generate
-                                multiple-choice
-                                quizzes
-                                automatically
-                                using AI. Choose
-                                the topic,
-                                difficulty and
-                                number of
-                                questions.
+                                Schedule, start and
+                                manage your online
+                                classes.
                             </Typography>
-
-                            <Button
-                                variant="contained"
-                                startIcon={
-                                    <AutoAwesomeIcon />
-                                }
-                                onClick={() =>
-                                    navigate(
-                                        "/teacher/ai-quiz-generator"
-                                    )
-                                }
-                                sx={{
-                                    borderRadius: 2,
-                                    textTransform:
-                                        "none",
-                                    fontWeight: 700,
-                                    boxShadow:
-                                        "none",
-                                    "&:hover": {
-                                        boxShadow:
-                                            "none",
-                                    },
-                                }}
-                            >
-                                Generate Quiz
-                            </Button>
-                        </Paper>
-                    </Grid>
-                </Grid>
-            </Box>
-
-            {/* =====================================================
-                LIVE CLASSES  (max 6 cards, expandable)
-            ===================================================== */}
-
-            <Box
-                sx={{
-                    mb: {
-                        xs: 4,
-                        md: 5,
-                    },
-                }}
-            >
-                <Box
-                    sx={{
-                        display: "flex",
-                        alignItems: {
-                            xs: "flex-start",
-                            md: "center",
-                        },
-                        justifyContent:
-                            "space-between",
-                        flexDirection: {
-                            xs: "column",
-                            md: "row",
-                        },
-                        gap: 2,
-                        mb: 2.5,
-                    }}
-                >
-                    <Box>
-                        <Box
-                            sx={{
-                                display: "flex",
-                                alignItems:
-                                    "center",
-                                gap: 1,
-                            }}
-                        >
-                            <VideoCall
-                                color="primary"
-                            />
-
-                            <Typography
-                                variant="h5"
-                                fontWeight={700}
-                                sx={{
-                                    fontSize: {
-                                        xs: "1.35rem",
-                                        sm: "1.5rem",
-                                    },
-                                }}
-                            >
-                                Live Classes
-                            </Typography>
-
-                            {sortedLiveClasses.length > 0 && (
-                                <Chip
-                                    size="small"
-                                    label={
-                                        sortedLiveClasses.length
-                                    }
-                                    color="primary"
-                                    variant="outlined"
-                                />
-                            )}
                         </Box>
-
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{
-                                mt: 0.5,
-                            }}
-                        >
-                            Schedule, start and
-                            manage your online
-                            classes.
-                        </Typography>
-                    </Box>
-
-                    <Button
-                        variant="contained"
-                        startIcon={<Add />}
-                        onClick={() =>
-                            navigate(
-                                "/live-class/create"
-                            )
-                        }
-                        sx={{
-                            borderRadius: 2,
-                            textTransform:
-                                "none",
-                            fontWeight: 700,
-                            px: 2.5,
-                            boxShadow: "none",
-                            "&:hover": {
-                                boxShadow:
-                                    "none",
-                            },
-                        }}
-                    >
-                        Schedule Live Class
-                    </Button>
-                </Box>
-
-                {liveClassError && (
-                    <Alert
-                        severity="warning"
-                        sx={{
-                            mb: 2,
-                            borderRadius: 2,
-                        }}
-                    >
-                        {liveClassError}
-                    </Alert>
-                )}
-
-                {liveClassesLoading ? (
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            minHeight: 220,
-                            borderRadius: 3,
-                            border: "1px solid",
-                            borderColor:
-                                "divider",
-                            display: "flex",
-                            justifyContent:
-                                "center",
-                            alignItems:
-                                "center",
-                        }}
-                    >
-                        <CircularProgress />
-                    </Paper>
-                ) : sortedLiveClasses.length ===
-                    0 ? (
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            p: {
-                                xs: 4,
-                                sm: 5,
-                            },
-                            textAlign: "center",
-                            borderRadius: 3,
-                            border: "1px solid",
-                            borderColor:
-                                "divider",
-                        }}
-                    >
-                        <Avatar
-                            sx={{
-                                width: 64,
-                                height: 64,
-                                mx: "auto",
-                                mb: 2,
-                                bgcolor:
-                                    "primary.main",
-                            }}
-                        >
-                            <VideoCall
-                                sx={{
-                                    fontSize: 32,
-                                }}
-                            />
-                        </Avatar>
-
-                        <Typography
-                            variant="h6"
-                            fontWeight={700}
-                        >
-                            No live classes yet
-                        </Typography>
-
-                        <Typography
-                            color="text.secondary"
-                            sx={{
-                                mt: 0.8,
-                                mb: 2.5,
-                            }}
-                        >
-                            Schedule your first
-                            live class and
-                            start teaching
-                            online.
-                        </Typography>
 
                         <Button
                             variant="contained"
@@ -1142,18 +1208,709 @@ const TeacherDashboard = () => {
                                 )
                             }
                             sx={{
+                                borderRadius: 2,
                                 textTransform:
                                     "none",
-                                borderRadius: 2,
-                                fontWeight: 600,
+                                fontWeight: 700,
+                                boxShadow: "none",
+                                width: {
+                                    xs: "100%",
+                                    sm: "auto",
+                                },
                             }}
                         >
-                            Schedule Your First
-                            Class
+                            Schedule Live Class
                         </Button>
-                    </Paper>
-                ) : (
-                    <>
+                    </Box>
+
+                    {liveClassError && (
+                        <Alert
+                            severity="warning"
+                            sx={{
+                                mb: 2,
+                                borderRadius: 2,
+                            }}
+                        >
+                            {liveClassError}
+                        </Alert>
+                    )}
+
+                    {liveClassesLoading ? (
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                ...commonCardSx,
+                                minHeight: 220,
+                                display: "flex",
+                                alignItems:
+                                    "center",
+                                justifyContent:
+                                    "center",
+                            }}
+                        >
+                            <CircularProgress />
+                        </Paper>
+                    ) : sortedLiveClasses.length ===
+                      0 ? (
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                ...commonCardSx,
+                                p: {
+                                    xs: 3,
+                                    sm: 5,
+                                },
+                                textAlign: "center",
+                            }}
+                        >
+                            <Avatar
+                                sx={{
+                                    width: 68,
+                                    height: 68,
+                                    mx: "auto",
+                                    mb: 2,
+                                    bgcolor:
+                                        alpha(
+                                            primary,
+                                            0.12
+                                        ),
+                                    color: primary,
+                                }}
+                            >
+                                <VideoCall
+                                    sx={{
+                                        fontSize: 32,
+                                    }}
+                                />
+                            </Avatar>
+
+                            <Typography
+                                variant="h6"
+                                fontWeight={800}
+                            >
+                                No live classes yet
+                            </Typography>
+
+                            <Typography
+                                color="text.secondary"
+                                sx={{
+                                    mt: 1,
+                                    mb: 2.5,
+                                }}
+                            >
+                                Schedule your first
+                                live class and
+                                start teaching
+                                online.
+                            </Typography>
+
+                            <Button
+                                variant="contained"
+                                startIcon={<Add />}
+                                onClick={() =>
+                                    navigate(
+                                        "/live-class/create"
+                                    )
+                                }
+                                sx={{
+                                    textTransform:
+                                        "none",
+                                    borderRadius: 2,
+                                    fontWeight: 700,
+                                }}
+                            >
+                                Schedule Your First
+                                Class
+                            </Button>
+                        </Paper>
+                    ) : (
+                        <>
+                            <Grid
+                                container
+                                spacing={{
+                                    xs: 2,
+                                    sm: 2.5,
+                                    md: 3,
+                                }}
+                            >
+                                {visibleLiveClasses.map(
+                                    (liveClass) => {
+                                        const status =
+                                            getLiveClassStatus(
+                                                liveClass
+                                            );
+
+                                        const isStarting =
+                                            actionLoading ===
+                                            `start-${liveClass.id}`;
+
+                                        const isEnding =
+                                            actionLoading ===
+                                            `end-${liveClass.id}`;
+
+                                        return (
+                                            <Grid
+                                                key={
+                                                    liveClass.id
+                                                }
+                                                size={{
+                                                    xs: 12,
+                                                    md: 6,
+                                                    lg: 4,
+                                                }}
+                                            >
+                                                <Paper
+                                                    elevation={
+                                                        0
+                                                    }
+                                                    sx={{
+                                                        ...commonCardSx,
+                                                        height: "100%",
+                                                        overflow:
+                                                            "hidden",
+                                                        borderColor:
+                                                            liveClass.isLive
+                                                                ? alpha(
+                                                                    success,
+                                                                    0.55
+                                                                )
+                                                                : divider,
+                                                    }}
+                                                >
+                                                    {/* CARD HEADER */}
+
+                                                    <Box
+                                                        sx={{
+                                                            p: 2.5,
+                                                            bgcolor:
+                                                                liveClass.isLive
+                                                                    ? alpha(
+                                                                        success,
+                                                                        0.07
+                                                                    )
+                                                                    : alpha(
+                                                                        primary,
+                                                                        0.05
+                                                                    ),
+                                                            borderBottom:
+                                                                "1px solid",
+                                                            borderColor:
+                                                                "divider",
+                                                        }}
+                                                    >
+                                                        <Box
+                                                            sx={{
+                                                                display:
+                                                                    "flex",
+                                                                alignItems:
+                                                                    "center",
+                                                                justifyContent:
+                                                                    "space-between",
+                                                                gap: 2,
+                                                            }}
+                                                        >
+                                                            <Avatar
+                                                                sx={{
+                                                                    bgcolor:
+                                                                        liveClass.isLive
+                                                                            ? alpha(
+                                                                                success,
+                                                                                0.14
+                                                                            )
+                                                                            : alpha(
+                                                                                primary,
+                                                                                0.12
+                                                                            ),
+                                                                    color:
+                                                                        liveClass.isLive
+                                                                            ? success
+                                                                            : primary,
+                                                                }}
+                                                            >
+                                                                {liveClass.isLive ? (
+                                                                    <PlayCircle />
+                                                                ) : (
+                                                                    <VideoCall />
+                                                                )}
+                                                            </Avatar>
+
+                                                            <Chip
+                                                                label={
+                                                                    status.label
+                                                                }
+                                                                color={
+                                                                    status.color
+                                                                }
+                                                                size="small"
+                                                                sx={{
+                                                                    fontWeight: 700,
+                                                                }}
+                                                            />
+                                                        </Box>
+                                                    </Box>
+
+                                                    {/* CARD BODY */}
+
+                                                    <Box
+                                                        sx={{
+                                                            p: 2.5,
+                                                            display:
+                                                                "flex",
+                                                            flexDirection:
+                                                                "column",
+                                                            minHeight: 315,
+                                                            height: "100%",
+                                                        }}
+                                                    >
+                                                        <Typography
+                                                            variant="h6"
+                                                            fontWeight={800}
+                                                            sx={{
+                                                                display:
+                                                                    "-webkit-box",
+                                                                WebkitLineClamp: 2,
+                                                                WebkitBoxOrient:
+                                                                    "vertical",
+                                                                overflow:
+                                                                    "hidden",
+                                                            }}
+                                                        >
+                                                            {
+                                                                liveClass.title
+                                                            }
+                                                        </Typography>
+
+                                                        {liveClass.description && (
+                                                            <Typography
+                                                                variant="body2"
+                                                                color="text.secondary"
+                                                                sx={{
+                                                                    mt: 1,
+                                                                    display:
+                                                                        "-webkit-box",
+                                                                    WebkitLineClamp: 2,
+                                                                    WebkitBoxOrient:
+                                                                        "vertical",
+                                                                    overflow:
+                                                                        "hidden",
+                                                                    lineHeight:
+                                                                        1.6,
+                                                                }}
+                                                            >
+                                                                {
+                                                                    liveClass.description
+                                                                }
+                                                            </Typography>
+                                                        )}
+
+                                                        <Divider
+                                                            sx={{
+                                                                my: 2,
+                                                            }}
+                                                        />
+
+                                                        <Box
+                                                            sx={{
+                                                                display:
+                                                                    "flex",
+                                                                alignItems:
+                                                                    "center",
+                                                                gap: 1.2,
+                                                                mb: 1.5,
+                                                            }}
+                                                        >
+                                                            <Avatar
+                                                                sx={{
+                                                                    width: 34,
+                                                                    height: 34,
+                                                                    bgcolor:
+                                                                        alpha(
+                                                                            primary,
+                                                                            0.1
+                                                                        ),
+                                                                    color: primary,
+                                                                }}
+                                                            >
+                                                                <MenuBook
+                                                                    sx={{
+                                                                        fontSize: 18,
+                                                                    }}
+                                                                />
+                                                            </Avatar>
+
+                                                            <Box
+                                                                sx={{
+                                                                    minWidth: 0,
+                                                                }}
+                                                            >
+                                                                <Typography
+                                                                    variant="caption"
+                                                                    color="text.secondary"
+                                                                    fontWeight={
+                                                                        600
+                                                                    }
+                                                                >
+                                                                    Course
+                                                                </Typography>
+
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    fontWeight={700}
+                                                                    noWrap
+                                                                >
+                                                                    {liveClass.course
+                                                                        ?.title ||
+                                                                        liveClass.courseTitle ||
+                                                                        `Course #${liveClass.courseId}`}
+                                                                </Typography>
+                                                            </Box>
+                                                        </Box>
+
+                                                        <Box
+                                                            sx={{
+                                                                display:
+                                                                    "flex",
+                                                                alignItems:
+                                                                    "center",
+                                                                gap: 1.2,
+                                                            }}
+                                                        >
+                                                            <Avatar
+                                                                sx={{
+                                                                    width: 34,
+                                                                    height: 34,
+                                                                    bgcolor:
+                                                                        alpha(
+                                                                            warning,
+                                                                            0.1
+                                                                        ),
+                                                                    color: warning,
+                                                                }}
+                                                            >
+                                                                <CalendarMonth
+                                                                    sx={{
+                                                                        fontSize: 18,
+                                                                    }}
+                                                                />
+                                                            </Avatar>
+
+                                                            <Box>
+                                                                <Typography
+                                                                    variant="caption"
+                                                                    color="text.secondary"
+                                                                    fontWeight={
+                                                                        600
+                                                                    }
+                                                                >
+                                                                    Scheduled
+                                                                </Typography>
+
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    fontWeight={700}
+                                                                >
+                                                                    {formatDateTime(
+                                                                        liveClass.scheduledAt
+                                                                    )}
+                                                                </Typography>
+                                                            </Box>
+                                                        </Box>
+
+                                                        <Stack
+                                                            direction={{
+                                                                xs: "column",
+                                                                sm: "row",
+                                                            }}
+                                                            spacing={1}
+                                                            sx={{
+                                                                mt: "auto",
+                                                                pt: 2.5,
+                                                            }}
+                                                        >
+                                                            {liveClass.isLive && (
+                                                                <>
+                                                                    <Button
+                                                                        variant="contained"
+                                                                        color="success"
+                                                                        fullWidth
+                                                                        startIcon={
+                                                                            <OpenInNew />
+                                                                        }
+                                                                        onClick={() =>
+                                                                            handleOpenLiveClass(
+                                                                                liveClass.id
+                                                                            )
+                                                                        }
+                                                                        sx={{
+                                                                            borderRadius: 2,
+                                                                            textTransform:
+                                                                                "none",
+                                                                            fontWeight: 700,
+                                                                        }}
+                                                                    >
+                                                                        Open Classroom
+                                                                    </Button>
+
+                                                                    <Tooltip title="End live class">
+                                                                        <span>
+                                                                            <IconButton
+                                                                                color="error"
+                                                                                disabled={
+                                                                                    isEnding
+                                                                                }
+                                                                                onClick={() =>
+                                                                                    handleEndLiveClass(
+                                                                                        liveClass.id
+                                                                                    )
+                                                                                }
+                                                                                sx={{
+                                                                                    border: "1px solid",
+                                                                                    borderColor:
+                                                                                        "errorColor.main",
+                                                                                    borderRadius: 2,
+                                                                                }}
+                                                                            >
+                                                                                {isEnding ? (
+                                                                                    <CircularProgress
+                                                                                        size={
+                                                                                            22
+                                                                                        }
+                                                                                        color="inherit"
+                                                                                    />
+                                                                                ) : (
+                                                                                    <StopCircle />
+                                                                                )}
+                                                                            </IconButton>
+                                                                        </span>
+                                                                    </Tooltip>
+                                                                </>
+                                                            )}
+
+                                                            {!liveClass.isLive &&
+                                                                !liveClass.isCompleted &&
+                                                                !liveClass.isCancelled && (
+                                                                    <Button
+                                                                        variant="contained"
+                                                                        fullWidth
+                                                                        disabled={
+                                                                            isStarting
+                                                                        }
+                                                                        startIcon={
+                                                                            isStarting ? (
+                                                                                <CircularProgress
+                                                                                    size={
+                                                                                        18
+                                                                                    }
+                                                                                    color="inherit"
+                                                                                />
+                                                                            ) : (
+                                                                                <PlayCircle />
+                                                                            )
+                                                                        }
+                                                                        onClick={() =>
+                                                                            handleStartLiveClass(
+                                                                                liveClass.id
+                                                                            )
+                                                                        }
+                                                                        sx={{
+                                                                            borderRadius: 2,
+                                                                            textTransform:
+                                                                                "none",
+                                                                            fontWeight: 700,
+                                                                            boxShadow:
+                                                                                "none",
+                                                                        }}
+                                                                    >
+                                                                        {isStarting
+                                                                            ? "Starting..."
+                                                                            : "Start Class"}
+                                                                    </Button>
+                                                                )}
+
+                                                            {liveClass.isCompleted && (
+                                                                <Button
+                                                                    variant="outlined"
+                                                                    fullWidth
+                                                                    disabled
+                                                                    startIcon={
+                                                                        <EventAvailable />
+                                                                    }
+                                                                    sx={{
+                                                                        borderRadius: 2,
+                                                                        textTransform:
+                                                                            "none",
+                                                                    }}
+                                                                >
+                                                                    Class
+                                                                    Completed
+                                                                </Button>
+                                                            )}
+
+                                                            {liveClass.isCancelled && (
+                                                                <Button
+                                                                    variant="outlined"
+                                                                    color="error"
+                                                                    fullWidth
+                                                                    disabled
+                                                                    sx={{
+                                                                        borderRadius: 2,
+                                                                        textTransform:
+                                                                            "none",
+                                                                    }}
+                                                                >
+                                                                    Class
+                                                                    Cancelled
+                                                                </Button>
+                                                            )}
+                                                        </Stack>
+                                                    </Box>
+                                                </Paper>
+                                            </Grid>
+                                        );
+                                    }
+                                )}
+                            </Grid>
+
+                            {hasMoreLiveClasses && (
+                                <Box
+                                    sx={{
+                                        display:
+                                            "flex",
+                                        justifyContent:
+                                            "center",
+                                        mt: 3,
+                                    }}
+                                >
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() =>
+                                            setShowAllLiveClasses(
+                                                (prev) =>
+                                                    !prev
+                                            )
+                                        }
+                                        endIcon={
+                                            showAllLiveClasses ? (
+                                                <ExpandLess />
+                                            ) : (
+                                                <ExpandMore />
+                                            )
+                                        }
+                                        sx={{
+                                            borderRadius: 2,
+                                            textTransform:
+                                                "none",
+                                            fontWeight: 700,
+                                        }}
+                                    >
+                                        {showAllLiveClasses
+                                            ? "Show Less"
+                                            : `Show All (${sortedLiveClasses.length})`}
+                                    </Button>
+                                </Box>
+                            )}
+                        </>
+                    )}
+                </Box>
+
+                {/* =====================================================
+                    MY COURSES
+                ===================================================== */}
+
+                <Box sx={{ mb: 5 }}>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent:
+                                "space-between",
+                            alignItems: {
+                                xs: "flex-start",
+                                sm: "center",
+                            },
+                            flexDirection: {
+                                xs: "column",
+                                sm: "row",
+                            },
+                            gap: 2,
+                            mb: 2.5,
+                        }}
+                    >
+                        <Box>
+                            <Typography
+                                variant="h5"
+                                fontWeight={800}
+                            >
+                                My Courses
+                            </Typography>
+
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ mt: 0.5 }}
+                            >
+                                Manage and monitor
+                                your courses.
+                            </Typography>
+                        </Box>
+
+                        <Chip
+                            icon={<MenuBook />}
+                            label={`${dashboard.totalCourses} Courses`}
+                            color="primary"
+                            variant="outlined"
+                            sx={{
+                                fontWeight: 700,
+                            }}
+                        />
+                    </Box>
+
+                    {dashboard.courses.length ===
+                    0 ? (
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                ...commonCardSx,
+                                p: {
+                                    xs: 3,
+                                    sm: 5,
+                                },
+                                textAlign: "center",
+                            }}
+                        >
+                            <Avatar
+                                sx={{
+                                    width: 70,
+                                    height: 70,
+                                    mx: "auto",
+                                    mb: 2,
+                                    bgcolor:
+                                        alpha(
+                                            primary,
+                                            0.1
+                                        ),
+                                    color: primary,
+                                }}
+                            >
+                                <MenuBook />
+                            </Avatar>
+
+                            <Typography
+                                variant="h6"
+                                fontWeight={800}
+                            >
+                                No courses created
+                                yet
+                            </Typography>
+
+                            <Typography
+                                color="text.secondary"
+                                sx={{ mt: 1 }}
+                            >
+                                Create a course to
+                                see it here.
+                            </Typography>
+                        </Paper>
+                    ) : (
                         <Grid
                             container
                             spacing={{
@@ -1162,115 +1919,155 @@ const TeacherDashboard = () => {
                                 md: 3,
                             }}
                         >
-                            {visibleLiveClasses.map(
-                                (liveClass) => {
-                                    const status =
-                                        getLiveClassStatus(
-                                            liveClass
-                                        );
-
-                                    const isStarting =
-                                        actionLoading ===
-                                        `start-${liveClass.id}`;
-
-                                    const isEnding =
-                                        actionLoading ===
-                                        `end-${liveClass.id}`;
+                            {dashboard.courses.map(
+                                (course) => {
+                                    const studentCount =
+                                        course
+                                            .students
+                                            ?.length ||
+                                        0;
 
                                     return (
                                         <Grid
                                             key={
-                                                liveClass.id
+                                                course.id
                                             }
                                             size={{
                                                 xs: 12,
-                                                md: 6,
+                                                sm: 6,
                                                 lg: 4,
                                             }}
                                         >
                                             <Paper
-                                                elevation={0}
+                                                elevation={
+                                                    0
+                                                }
                                                 sx={{
+                                                    ...commonCardSx,
                                                     height: "100%",
+                                                    overflow:
+                                                        "hidden",
                                                     display:
                                                         "flex",
                                                     flexDirection:
                                                         "column",
-                                                    borderRadius: 3,
-                                                    overflow:
-                                                        "hidden",
-                                                    border:
-                                                        "1px solid",
-                                                    borderColor:
-                                                        liveClass.isLive
-                                                            ? "success.main"
-                                                            : "divider",
-                                                    transition:
-                                                        "all 0.25s ease",
-                                                    "&:hover":
-                                                        {
-                                                            transform:
-                                                                "translateY(-4px)",
-                                                            boxShadow:
-                                                                "0 12px 30px rgba(0,0,0,0.10)",
-                                                        },
                                                 }}
                                             >
-                                                {/* CARD HEADER */}
+                                                {/* COURSE IMAGE */}
 
                                                 <Box
                                                     sx={{
-                                                        p: 2.2,
-                                                        background:
-                                                            liveClass.isLive
-                                                                ? "linear-gradient(135deg, rgba(46,125,50,0.12), rgba(76,175,80,0.04))"
-                                                                : "linear-gradient(135deg, rgba(25,118,210,0.10), rgba(123,31,162,0.04))",
+                                                        height: {
+                                                            xs: 170,
+                                                            sm: 190,
+                                                        },
+                                                        position:
+                                                            "relative",
+                                                        overflow:
+                                                            "hidden",
+                                                        bgcolor:
+                                                            alpha(
+                                                                primary,
+                                                                0.08
+                                                            ),
                                                     }}
                                                 >
+                                                    {course.thumbnail ? (
+                                                        <Box
+                                                            component="img"
+                                                            src={
+                                                                course.thumbnail
+                                                            }
+                                                            alt={
+                                                                course.title ||
+                                                                "Course"
+                                                            }
+                                                            sx={{
+                                                                width: "100%",
+                                                                height: "100%",
+                                                                objectFit:
+                                                                    "cover",
+                                                                transition:
+                                                                    "transform .3s ease",
+                                                                "&:hover":
+                                                                    {
+                                                                        transform:
+                                                                            "scale(1.04)",
+                                                                    },
+                                                            }}
+                                                            onError={(
+                                                                event
+                                                            ) => {
+                                                                event.currentTarget.style.display =
+                                                                    "none";
+
+                                                                const fallback =
+                                                                    event
+                                                                        .currentTarget
+                                                                        .parentElement?.querySelector(
+                                                                            ".fallback-icon"
+                                                                        );
+
+                                                                if (
+                                                                    fallback
+                                                                ) {
+                                                                    fallback.style.display =
+                                                                        "flex";
+                                                                }
+                                                            }}
+                                                        />
+                                                    ) : null}
+
                                                     <Box
+                                                        className="fallback-icon"
                                                         sx={{
                                                             display:
-                                                                "flex",
-                                                            justifyContent:
-                                                                "space-between",
+                                                                course.thumbnail
+                                                                    ? "none"
+                                                                    : "flex",
+                                                            position:
+                                                                "absolute",
+                                                            inset: 0,
                                                             alignItems:
-                                                                "flex-start",
-                                                            gap: 1,
+                                                                "center",
+                                                            justifyContent:
+                                                                "center",
                                                         }}
                                                     >
-                                                        <Avatar
+                                                        <MenuBook
                                                             sx={{
-                                                                width: 46,
-                                                                height: 46,
-                                                                bgcolor:
-                                                                    liveClass.isLive
-                                                                        ? "success.main"
-                                                                        : "primary.main",
-                                                            }}
-                                                        >
-                                                            {liveClass.isLive ? (
-                                                                <PlayCircle />
-                                                            ) : (
-                                                                <VideoCall />
-                                                            )}
-                                                        </Avatar>
-
-                                                        <Chip
-                                                            label={
-                                                                status.label
-                                                            }
-                                                            color={
-                                                                status.color
-                                                            }
-                                                            size="small"
-                                                            sx={{
-                                                                fontWeight: 700,
+                                                                fontSize: 65,
+                                                                color: primary,
                                                             }}
                                                         />
                                                     </Box>
+
+                                                    {course.category && (
+                                                        <Chip
+                                                            label={
+                                                                course.category
+                                                            }
+                                                            size="small"
+                                                            sx={{
+                                                                position:
+                                                                    "absolute",
+                                                                top: 12,
+                                                                left: 12,
+                                                                bgcolor:
+                                                                    alpha(
+                                                                        paperBg,
+                                                                        0.9
+                                                                    ),
+                                                                backdropFilter:
+                                                                    "blur(8px)",
+                                                                fontWeight:
+                                                                    700,
+                                                            }}
+                                                        />
+                                                    )}
                                                 </Box>
 
-                                                {/* CARD CONTENT */}
+                                                {/* COURSE CONTENT */}
 
                                                 <Box
                                                     sx={{
@@ -1284,48 +2081,96 @@ const TeacherDashboard = () => {
                                                 >
                                                     <Typography
                                                         variant="h6"
-                                                        fontWeight={
-                                                            700
-                                                        }
+                                                        fontWeight={800}
                                                         sx={{
-                                                            lineHeight:
-                                                                1.35,
                                                             display:
                                                                 "-webkit-box",
-                                                            WebkitLineClamp:
-                                                                2,
+                                                            WebkitLineClamp: 2,
                                                             WebkitBoxOrient:
                                                                 "vertical",
                                                             overflow:
                                                                 "hidden",
+                                                            minHeight: 56,
                                                         }}
                                                     >
                                                         {
-                                                            liveClass.title
+                                                            course.title
                                                         }
                                                     </Typography>
 
-                                                    {liveClass.description && (
-                                                        <Typography
-                                                            variant="body2"
-                                                            color="text.secondary"
+                                                    <Typography
+                                                        variant="body2"
+                                                        color="text.secondary"
+                                                        sx={{
+                                                            mt: 1,
+                                                            lineHeight: 1.6,
+                                                            display:
+                                                                "-webkit-box",
+                                                            WebkitLineClamp: 2,
+                                                            WebkitBoxOrient:
+                                                                "vertical",
+                                                            overflow:
+                                                                "hidden",
+                                                            minHeight: 45,
+                                                        }}
+                                                    >
+                                                        {course.description ||
+                                                            "No description available."}
+                                                    </Typography>
+
+                                                    <Box
+                                                        sx={{
+                                                            display:
+                                                                "flex",
+                                                            alignItems:
+                                                                "center",
+                                                            gap: 1,
+                                                            mt: 2,
+                                                        }}
+                                                    >
+                                                        <Avatar
                                                             sx={{
-                                                                mt: 1,
-                                                                display:
-                                                                    "-webkit-box",
-                                                                WebkitLineClamp:
-                                                                    2,
-                                                                WebkitBoxOrient:
-                                                                    "vertical",
-                                                                overflow:
-                                                                    "hidden",
+                                                                width: 36,
+                                                                height: 36,
+                                                                bgcolor:
+                                                                    alpha(
+                                                                        success,
+                                                                        0.1
+                                                                    ),
+                                                                color: success,
                                                             }}
                                                         >
-                                                            {
-                                                                liveClass.description
-                                                            }
-                                                        </Typography>
-                                                    )}
+                                                            <People
+                                                                sx={{
+                                                                    fontSize: 19,
+                                                                }}
+                                                            />
+                                                        </Avatar>
+
+                                                        <Box>
+                                                            <Typography
+                                                                variant="body2"
+                                                                fontWeight={800}
+                                                            >
+                                                                {
+                                                                    studentCount
+                                                                }{" "}
+                                                                Student
+                                                                {studentCount !==
+                                                                1
+                                                                    ? "s"
+                                                                    : ""}
+                                                            </Typography>
+
+                                                            <Typography
+                                                                variant="caption"
+                                                                color="text.secondary"
+                                                            >
+                                                                Enrolled
+                                                                learners
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
 
                                                     <Divider
                                                         sx={{
@@ -1333,279 +2178,90 @@ const TeacherDashboard = () => {
                                                         }}
                                                     />
 
-                                                    {/* COURSE */}
-
                                                     <Box
                                                         sx={{
                                                             display:
-                                                                "flex",
-                                                            alignItems:
-                                                                "center",
-                                                            gap: 1.2,
-                                                            mb: 1.3,
-                                                        }}
-                                                    >
-                                                        <Avatar
-                                                            sx={{
-                                                                width: 32,
-                                                                height: 32,
-                                                                bgcolor:
-                                                                    "primary.main",
-                                                            }}
-                                                        >
-                                                            <MenuBook
-                                                                sx={{
-                                                                    fontSize: 17,
-                                                                }}
-                                                            />
-                                                        </Avatar>
-
-                                                        <Box
-                                                            sx={{
-                                                                minWidth: 0,
-                                                            }}
-                                                        >
-                                                            <Typography
-                                                                variant="caption"
-                                                                color="text.secondary"
-                                                            >
-                                                                Course
-                                                            </Typography>
-
-                                                            <Typography
-                                                                variant="body2"
-                                                                fontWeight={
-                                                                    600
-                                                                }
-                                                                sx={{
-                                                                    overflow:
-                                                                        "hidden",
-                                                                    textOverflow:
-                                                                        "ellipsis",
-                                                                    whiteSpace:
-                                                                        "nowrap",
-                                                                }}
-                                                            >
-                                                                {liveClass.course
-                                                                    ?.title ||
-                                                                    liveClass.courseTitle ||
-                                                                    `Course #${liveClass.courseId}`}
-                                                            </Typography>
-                                                        </Box>
-                                                    </Box>
-
-                                                    {/* DATE */}
-
-                                                    <Box
-                                                        sx={{
-                                                            display:
-                                                                "flex",
-                                                            alignItems:
-                                                                "center",
-                                                            gap: 1.2,
-                                                            mb: 1.3,
-                                                        }}
-                                                    >
-                                                        <Avatar
-                                                            sx={{
-                                                                width: 32,
-                                                                height: 32,
-                                                                bgcolor:
-                                                                    "warning.main",
-                                                            }}
-                                                        >
-                                                            <CalendarMonth
-                                                                sx={{
-                                                                    fontSize: 17,
-                                                                }}
-                                                            />
-                                                        </Avatar>
-
-                                                        <Box>
-                                                            <Typography
-                                                                variant="caption"
-                                                                color="text.secondary"
-                                                            >
-                                                                Scheduled
-                                                            </Typography>
-
-                                                            <Typography
-                                                                variant="body2"
-                                                                fontWeight={
-                                                                    600
-                                                                }
-                                                            >
-                                                                {formatDateTime(
-                                                                    liveClass.scheduledAt
-                                                                )}
-                                                            </Typography>
-                                                        </Box>
-                                                    </Box>
-
-                                                    {/* ACTIONS */}
-
-                                                    <Stack
-                                                        direction={{
-                                                            xs: "column",
-                                                            sm: "row",
-                                                        }}
-                                                        spacing={1}
-                                                        sx={{
+                                                                "grid",
+                                                            gridTemplateColumns:
+                                                                {
+                                                                    xs: "1fr",
+                                                                    sm: "1fr 1fr",
+                                                                },
+                                                            gap: 1,
                                                             mt: "auto",
-                                                            pt: 1,
                                                         }}
                                                     >
-                                                        {liveClass.isLive && (
-                                                            <>
-                                                                <Button
-                                                                    variant="contained"
-                                                                    color="success"
-                                                                    fullWidth
-                                                                    startIcon={
-                                                                        <OpenInNew />
-                                                                    }
-                                                                    onClick={() =>
-                                                                        handleOpenLiveClass(
-                                                                            liveClass.id
-                                                                        )
-                                                                    }
-                                                                    sx={{
-                                                                        borderRadius: 2,
-                                                                        textTransform:
-                                                                            "none",
-                                                                        fontWeight:
-                                                                            700,
-                                                                        boxShadow:
-                                                                            "none",
-                                                                        "&:hover":
-                                                                            {
-                                                                                boxShadow:
-                                                                                    "none",
-                                                                            },
-                                                                    }}
-                                                                >
-                                                                    Open Classroom
-                                                                </Button>
+                                                        <Button
+                                                            variant="outlined"
+                                                            size="small"
+                                                            startIcon={
+                                                                <Visibility />
+                                                            }
+                                                            onClick={() =>
+                                                                navigate(
+                                                                    `/courses/${course.id}`
+                                                                )
+                                                            }
+                                                            sx={{
+                                                                borderRadius: 2,
+                                                                textTransform:
+                                                                    "none",
+                                                                fontWeight: 700,
+                                                            }}
+                                                        >
+                                                            View
+                                                        </Button>
 
-                                                                <Tooltip title="End live class">
-                                                                    <IconButton
-                                                                        color="error"
-                                                                        onClick={() =>
-                                                                            handleEndLiveClass(
-                                                                                liveClass.id
-                                                                            )
-                                                                        }
-                                                                        disabled={
-                                                                            isEnding
-                                                                        }
-                                                                        sx={{
-                                                                            border:
-                                                                                "1px solid",
-                                                                            borderColor:
-                                                                                "error.main",
-                                                                            borderRadius: 2,
-                                                                        }}
-                                                                    >
-                                                                        {isEnding ? (
-                                                                            <CircularProgress
-                                                                                size={
-                                                                                    22
-                                                                                }
-                                                                                color="inherit"
-                                                                            />
-                                                                        ) : (
-                                                                            <StopCircle />
-                                                                        )}
-                                                                    </IconButton>
-                                                                </Tooltip>
-                                                            </>
-                                                        )}
+                                                        <Button
+                                                            variant="contained"
+                                                            size="small"
+                                                            startIcon={
+                                                                <Settings />
+                                                            }
+                                                            onClick={() =>
+                                                                navigate(
+                                                                    `/courses/${course.id}/manage-content`
+                                                                )
+                                                            }
+                                                            sx={{
+                                                                borderRadius: 2,
+                                                                textTransform:
+                                                                    "none",
+                                                                fontWeight: 700,
+                                                                boxShadow:
+                                                                    "none",
+                                                            }}
+                                                        >
+                                                            Manage
+                                                        </Button>
 
-                                                        {!liveClass.isLive &&
-                                                            !liveClass.isCompleted &&
-                                                            !liveClass.isCancelled && (
-                                                                <Button
-                                                                    variant="contained"
-                                                                    fullWidth
-                                                                    startIcon={
-                                                                        isStarting ? (
-                                                                            <CircularProgress
-                                                                                size={
-                                                                                    18
-                                                                                }
-                                                                                color="inherit"
-                                                                            />
-                                                                        ) : (
-                                                                            <PlayCircle />
-                                                                        )
-                                                                    }
-                                                                    disabled={
-                                                                        isStarting
-                                                                    }
-                                                                    onClick={() =>
-                                                                        handleStartLiveClass(
-                                                                            liveClass.id
-                                                                        )
-                                                                    }
-                                                                    sx={{
-                                                                        borderRadius: 2,
-                                                                        textTransform:
-                                                                            "none",
-                                                                        fontWeight:
-                                                                            700,
-                                                                        boxShadow:
-                                                                            "none",
-                                                                        "&:hover":
-                                                                            {
-                                                                                boxShadow:
-                                                                                    "none",
-                                                                            },
-                                                                    }}
-                                                                >
-                                                                    {isStarting
-                                                                        ? "Starting..."
-                                                                        : "Start Class"}
-                                                                </Button>
-                                                            )}
-
-                                                        {liveClass.isCompleted && (
-                                                            <Button
-                                                                variant="outlined"
-                                                                fullWidth
-                                                                startIcon={
-                                                                    <EventAvailable />
-                                                                }
-                                                                disabled
-                                                                sx={{
-                                                                    borderRadius: 2,
-                                                                    textTransform:
-                                                                        "none",
-                                                                    fontWeight:
-                                                                        600,
-                                                                }}
-                                                            >
-                                                                Class Completed
-                                                            </Button>
-                                                        )}
-
-                                                        {liveClass.isCancelled && (
-                                                            <Button
-                                                                variant="outlined"
-                                                                color="error"
-                                                                fullWidth
-                                                                disabled
-                                                                sx={{
-                                                                    borderRadius: 2,
-                                                                    textTransform:
-                                                                        "none",
-                                                                    fontWeight:
-                                                                        600,
-                                                                }}
-                                                            >
-                                                                Class Cancelled
-                                                            </Button>
-                                                        )}
-                                                    </Stack>
+                                                        <Button
+                                                            variant="text"
+                                                            size="small"
+                                                            startIcon={
+                                                                <Edit />
+                                                            }
+                                                            onClick={() =>
+                                                                navigate(
+                                                                    `/courses/edit/${course.id}`
+                                                                )
+                                                            }
+                                                            sx={{
+                                                                borderRadius: 2,
+                                                                textTransform:
+                                                                    "none",
+                                                                fontWeight: 700,
+                                                                gridColumn:
+                                                                    {
+                                                                        xs: "auto",
+                                                                        sm: "1 / -1",
+                                                                    },
+                                                            }}
+                                                        >
+                                                            Edit
+                                                            Course
+                                                        </Button>
+                                                    </Box>
                                                 </Box>
                                             </Paper>
                                         </Grid>
@@ -1613,431 +2269,178 @@ const TeacherDashboard = () => {
                                 }
                             )}
                         </Grid>
+                    )}
+                </Box>
 
-                        {/* SHOW ALL / SHOW LESS TOGGLE */}
+                {/* =====================================================
+                    MY STUDENTS
+                ===================================================== */}
 
-                        {hasMoreLiveClasses && (
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    mt: 3,
-                                }}
-                            >
-                                <Button
-                                    variant="outlined"
-                                    onClick={() =>
-                                        setShowAllLiveClasses(
-                                            (prev) => !prev
-                                        )
-                                    }
-                                    endIcon={
-                                        showAllLiveClasses ? (
-                                            <ExpandLess />
-                                        ) : (
-                                            <ExpandMore />
-                                        )
-                                    }
-                                    sx={{
-                                        borderRadius: 2,
-                                        textTransform: "none",
-                                        fontWeight: 700,
-                                        px: 3,
-                                    }}
-                                >
-                                    {showAllLiveClasses
-                                        ? "Show Less"
-                                        : `Show All (${sortedLiveClasses.length})`}
-                                </Button>
-                            </Box>
-                        )}
-                    </>
-                )}
-            </Box>
-
-            {/* =====================================================
-                MY COURSES
-            ===================================================== */}
-
-            <Box
-                sx={{
-                    mb: {
-                        xs: 4,
-                        md: 5,
-                    },
-                }}
-            >
-                <Box
-                    sx={{
-                        display: "flex",
-                        alignItems: {
-                            xs: "flex-start",
-                            sm: "center",
-                        },
-                        justifyContent:
-                            "space-between",
-                        flexDirection: {
-                            xs: "column",
-                            sm: "row",
-                        },
-                        gap: 1,
-                        mb: 2.5,
-                    }}
-                >
-                    <Box>
+                <Box sx={{ mb: 3 }}>
+                    <Box sx={{ mb: 2.5 }}>
                         <Typography
                             variant="h5"
-                            fontWeight={700}
-                            sx={{
-                                fontSize: {
-                                    xs: "1.35rem",
-                                    sm: "1.5rem",
-                                },
-                            }}
+                            fontWeight={800}
                         >
-                            My Courses
+                            My Students
                         </Typography>
 
                         <Typography
                             variant="body2"
                             color="text.secondary"
-                            sx={{
-                                mt: 0.5,
-                            }}
+                            sx={{ mt: 0.5 }}
                         >
-                            Manage and monitor
-                            your courses
+                            View your enrolled
+                            students and their
+                            courses.
                         </Typography>
                     </Box>
 
-                    <Chip
-                        icon={<MenuBook />}
-                        label={`${dashboard.totalCourses} Courses`}
-                        color="primary"
-                        variant="outlined"
-                    />
-                </Box>
-
-                {dashboard.courses.length ===
-                0 ? (
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            p: {
-                                xs: 4,
-                                sm: 5,
-                            },
-                            textAlign: "center",
-                            borderRadius: 3,
-                            border: "1px solid",
-                            borderColor:
-                                "divider",
-                        }}
-                    >
-                        <MenuBook
+                    {dashboard.students.length ===
+                    0 ? (
+                        <Paper
+                            elevation={0}
                             sx={{
-                                fontSize: 60,
-                                color:
-                                    "text.secondary",
-                                mb: 1,
-                            }}
-                        />
-
-                        <Typography
-                            variant="h6"
-                            fontWeight={600}
-                        >
-                            No courses created yet
-                        </Typography>
-
-                        <Typography
-                            color="text.secondary"
-                            sx={{
-                                mt: 1,
+                                ...commonCardSx,
+                                p: {
+                                    xs: 3,
+                                    sm: 5,
+                                },
+                                textAlign: "center",
                             }}
                         >
-                            Create a course to
-                            see it here.
-                        </Typography>
-                    </Paper>
-                ) : (
-                    <Grid
-                        container
-                        spacing={{
-                            xs: 2,
-                            sm: 2.5,
-                            md: 3,
-                        }}
-                    >
-                        {dashboard.courses.map(
-                            (course) => {
-                                const studentCount =
-                                    course
-                                        .students
-                                        ?.length ||
-                                    0;
+                            <Avatar
+                                sx={{
+                                    width: 70,
+                                    height: 70,
+                                    mx: "auto",
+                                    mb: 2,
+                                    bgcolor:
+                                        alpha(
+                                            primary,
+                                            0.1
+                                        ),
+                                    color: primary,
+                                }}
+                            >
+                                <People />
+                            </Avatar>
 
-                                return (
-                                    <Grid
-                                        key={
-                                            course.id
-                                        }
-                                        size={{
-                                            xs: 12,
-                                            sm: 6,
-                                            lg: 4,
-                                        }}
-                                    >
-                                        <Paper
-                                            elevation={0}
-                                            sx={{
-                                                height: "100%",
-                                                display:
-                                                    "flex",
-                                                flexDirection:
-                                                    "column",
-                                                overflow:
-                                                    "hidden",
-                                                borderRadius: 3,
-                                                border:
-                                                    "1px solid",
-                                                borderColor:
-                                                    "divider",
-                                                transition:
-                                                    "all 0.25s ease",
-                                                "&:hover":
-                                                    {
-                                                        transform:
-                                                            "translateY(-5px)",
-                                                        boxShadow:
-                                                            "0 12px 30px rgba(0,0,0,0.10)",
-                                                        borderColor:
-                                                            "primary.main",
-                                                    },
+                            <Typography
+                                variant="h6"
+                                fontWeight={800}
+                            >
+                                No students enrolled
+                                yet
+                            </Typography>
+
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ mt: 1 }}
+                            >
+                                Students will appear
+                                here when they enroll
+                                in your courses.
+                            </Typography>
+                        </Paper>
+                    ) : (
+                        <Grid
+                            container
+                            spacing={{
+                                xs: 2,
+                                sm: 2.5,
+                                md: 3,
+                            }}
+                        >
+                            {dashboard.students.map(
+                                (student) => {
+                                    const courses =
+                                        student.courses ||
+                                        [];
+
+                                    const studentName =
+                                        student.name ||
+                                        "Student";
+
+                                    return (
+                                        <Grid
+                                            key={
+                                                student.id
+                                            }
+                                            size={{
+                                                xs: 12,
+                                                sm: 6,
+                                                md: 4,
                                             }}
                                         >
-                                            {/* THUMBNAIL */}
-
-                                            <Box
+                                            <Paper
+                                                elevation={
+                                                    0
+                                                }
                                                 sx={{
-                                                    height: {
-                                                        xs: 190,
-                                                        sm: 180,
-                                                        md: 190,
-                                                    },
-                                                    position:
-                                                        "relative",
-                                                    overflow:
-                                                        "hidden",
-                                                    background:
-                                                        "linear-gradient(135deg, #1976d2 0%, #7b1fa2 100%)",
+                                                    ...commonCardSx,
+                                                    p: 2.5,
+                                                    height: "100%",
                                                 }}
                                             >
-                                                {course.thumbnail ? (
-                                                    <Box
-                                                        component="img"
-                                                        src={
-                                                            course.thumbnail
-                                                        }
-                                                        alt={
-                                                            course.title
-                                                        }
-                                                        sx={{
-                                                            width: "100%",
-                                                            height: "100%",
-                                                            objectFit:
-                                                                "cover",
-                                                            display:
-                                                                "block",
-                                                            transition:
-                                                                "transform 0.4s ease",
-                                                            "&:hover":
-                                                                {
-                                                                    transform:
-                                                                        "scale(1.05)",
-                                                                },
-                                                        }}
-                                                        onError={(
-                                                            event
-                                                        ) => {
-                                                            event.currentTarget.style.display =
-                                                                "none";
-
-                                                            const fallback =
-                                                                event
-                                                                    .currentTarget
-                                                                    .parentElement?.querySelector(
-                                                                        ".fallback-icon"
-                                                                    );
-
-                                                            if (
-                                                                fallback
-                                                            ) {
-                                                                fallback.style.display =
-                                                                    "flex";
-                                                            }
-                                                        }}
-                                                    />
-                                                ) : null}
-
-                                                <Box
-                                                    className="fallback-icon"
-                                                    sx={{
-                                                        display:
-                                                            course.thumbnail
-                                                                ? "none"
-                                                                : "flex",
-                                                        position:
-                                                            "absolute",
-                                                        inset: 0,
-                                                        alignItems:
-                                                            "center",
-                                                        justifyContent:
-                                                            "center",
-                                                    }}
-                                                >
-                                                    <MenuBook
-                                                        sx={{
-                                                            fontSize: 70,
-                                                            color:
-                                                                "white",
-                                                            opacity: 0.9,
-                                                        }}
-                                                    />
-                                                </Box>
-
-                                                {course.category && (
-                                                    <Chip
-                                                        label={
-                                                            course.category
-                                                        }
-                                                        size="small"
-                                                        sx={{
-                                                            position:
-                                                                "absolute",
-                                                            top: 12,
-                                                            left: 12,
-                                                            color:
-                                                                "white",
-                                                            fontWeight:
-                                                                600,
-                                                            backgroundColor:
-                                                                "rgba(0,0,0,0.55)",
-                                                            backdropFilter:
-                                                                "blur(5px)",
-                                                        }}
-                                                    />
-                                                )}
-                                            </Box>
-
-                                            {/* COURSE CONTENT */}
-
-                                            <Box
-                                                sx={{
-                                                    p: {
-                                                        xs: 2.2,
-                                                        sm: 2.5,
-                                                    },
-                                                    display:
-                                                        "flex",
-                                                    flexDirection:
-                                                        "column",
-                                                    flexGrow: 1,
-                                                }}
-                                            >
-                                                <Typography
-                                                    variant="h6"
-                                                    fontWeight={
-                                                        700
-                                                    }
-                                                    sx={{
-                                                        lineHeight:
-                                                            1.35,
-                                                        display:
-                                                            "-webkit-box",
-                                                        WebkitLineClamp:
-                                                            2,
-                                                        WebkitBoxOrient:
-                                                            "vertical",
-                                                        overflow:
-                                                            "hidden",
-                                                    }}
-                                                >
-                                                    {
-                                                        course.title
-                                                    }
-                                                </Typography>
-
-                                                <Typography
-                                                    variant="body2"
-                                                    color="text.secondary"
-                                                    sx={{
-                                                        mt: 1,
-                                                        lineHeight:
-                                                            1.6,
-                                                        display:
-                                                            "-webkit-box",
-                                                        WebkitLineClamp:
-                                                            2,
-                                                        WebkitBoxOrient:
-                                                            "vertical",
-                                                        overflow:
-                                                            "hidden",
-                                                        minHeight: 45,
-                                                    }}
-                                                >
-                                                    {course.description ||
-                                                        "No description available."}
-                                                </Typography>
-
                                                 <Box
                                                     sx={{
                                                         display:
                                                             "flex",
                                                         alignItems:
                                                             "center",
-                                                        gap: 1,
-                                                        mt: 2,
+                                                        gap: 2,
                                                     }}
                                                 >
                                                     <Avatar
                                                         sx={{
-                                                            width: 32,
-                                                            height: 32,
+                                                            width: 52,
+                                                            height: 52,
                                                             bgcolor:
-                                                                "primary.main",
+                                                                alpha(
+                                                                    primary,
+                                                                    0.12
+                                                                ),
+                                                            color: primary,
+                                                            fontWeight: 800,
                                                         }}
                                                     >
-                                                        <People
-                                                            sx={{
-                                                                fontSize: 18,
-                                                            }}
-                                                        />
+                                                        {studentName
+                                                            .charAt(
+                                                                0
+                                                            )
+                                                            .toUpperCase()}
                                                     </Avatar>
 
-                                                    <Box>
+                                                    <Box
+                                                        sx={{
+                                                            minWidth: 0,
+                                                        }}
+                                                    >
                                                         <Typography
-                                                            variant="body2"
                                                             fontWeight={
-                                                                600
+                                                                800
                                                             }
+                                                            noWrap
                                                         >
                                                             {
-                                                                studentCount
-                                                            }{" "}
-                                                            Student
-                                                            {studentCount !==
-                                                            1
-                                                                ? "s"
-                                                                : ""}
+                                                                studentName
+                                                            }
                                                         </Typography>
 
                                                         <Typography
-                                                            variant="caption"
+                                                            variant="body2"
                                                             color="text.secondary"
                                                         >
-                                                            Enrolled
-                                                            learners
+                                                            {
+                                                                courses.length
+                                                            }{" "}
+                                                            Course
+                                                            {courses.length !==
+                                                            1
+                                                                ? "s"
+                                                                : ""}
                                                         </Typography>
                                                     </Box>
                                                 </Box>
@@ -2048,335 +2451,86 @@ const TeacherDashboard = () => {
                                                     }}
                                                 />
 
-                                                <Box
-                                                    sx={{
-                                                        display:
-                                                            "flex",
-                                                        flexDirection:
-                                                            {
-                                                                xs: "column",
-                                                                sm: "row",
-                                                            },
-                                                        gap: 1,
-                                                        mt: "auto",
-                                                    }}
-                                                >
-                                                    <Button
-                                                        variant="outlined"
-                                                        size="small"
-                                                        fullWidth
-                                                        startIcon={
-                                                            <Visibility />
-                                                        }
-                                                        endIcon={
-                                                            <ArrowForward
-                                                                sx={{
-                                                                    fontSize:
-                                                                        "16px !important",
-                                                                }}
-                                                            />
-                                                        }
-                                                        onClick={() =>
-                                                            navigate(
-                                                                `/courses/${course.id}`
-                                                            )
-                                                        }
-                                                        sx={{
-                                                            borderRadius: 2,
-                                                            textTransform:
-                                                                "none",
-                                                            fontWeight:
-                                                                600,
-                                                            py: 1,
-                                                        }}
-                                                    >
-                                                        View
-                                                    </Button>
-
-                                                    <Button
-                                                        variant="contained"
-                                                        size="small"
-                                                        fullWidth
-                                                        startIcon={
-                                                            <Settings />
-                                                        }
-                                                        onClick={() =>
-                                                            navigate(
-                                                                `/courses/${course.id}/manage-content`
-                                                            )
-                                                        }
-                                                        sx={{
-                                                            borderRadius: 2,
-                                                            textTransform:
-                                                                "none",
-                                                            fontWeight:
-                                                                600,
-                                                            py: 1,
-                                                            boxShadow:
-                                                                "none",
-                                                            "&:hover":
-                                                                {
-                                                                    boxShadow:
-                                                                        "none",
-                                                                },
-                                                        }}
-                                                    >
-                                                        Manage
-                                                    </Button>
-
-                                                    <Button
-                                                        variant="text"
-                                                        size="small"
-                                                        fullWidth
-                                                        startIcon={
-                                                            <Edit />
-                                                        }
-                                                        onClick={() =>
-                                                            navigate(
-                                                                `/courses/edit/${course.id}`
-                                                            )
-                                                        }
-                                                        sx={{
-                                                            borderRadius: 2,
-                                                            textTransform:
-                                                                "none",
-                                                            fontWeight:
-                                                                600,
-                                                            py: 1,
-                                                        }}
-                                                    >
-                                                        Edit
-                                                    </Button>
-                                                </Box>
-                                            </Box>
-                                        </Paper>
-                                    </Grid>
-                                );
-                            }
-                        )}
-                    </Grid>
-                )}
-            </Box>
-
-            {/* =====================================================
-                MY STUDENTS
-            ===================================================== */}
-
-            <Typography
-                variant="h5"
-                fontWeight={700}
-                sx={{
-                    mb: 2.5,
-                    fontSize: {
-                        xs: "1.35rem",
-                        sm: "1.5rem",
-                    },
-                }}
-            >
-                My Students
-            </Typography>
-
-            {dashboard.students.length ===
-            0 ? (
-                <Paper
-                    elevation={0}
-                    sx={{
-                        p: {
-                            xs: 4,
-                            sm: 5,
-                        },
-                        textAlign: "center",
-                        borderRadius: 3,
-                        border: "1px solid",
-                        borderColor:
-                            "divider",
-                    }}
-                >
-                    <People
-                        sx={{
-                            fontSize: 55,
-                            color:
-                                "text.secondary",
-                        }}
-                    />
-
-                    <Typography
-                        variant="h6"
-                        fontWeight={600}
-                        sx={{
-                            mt: 1,
-                        }}
-                    >
-                        No students enrolled yet
-                    </Typography>
-                </Paper>
-            ) : (
-                <Grid
-                    container
-                    spacing={{
-                        xs: 2,
-                        sm: 2.5,
-                        md: 3,
-                    }}
-                >
-                    {dashboard.students.map(
-                        (student) => {
-                            const courses =
-                                student.courses ||
-                                [];
-
-                            return (
-                                <Grid
-                                    key={
-                                        student.id
-                                    }
-                                    size={{
-                                        xs: 12,
-                                        sm: 6,
-                                        md: 4,
-                                    }}
-                                >
-                                    <Paper
-                                        elevation={0}
-                                        sx={{
-                                            p: {
-                                                xs: 2.5,
-                                                sm: 3,
-                                            },
-                                            height: "100%",
-                                            borderRadius: 3,
-                                            border:
-                                                "1px solid",
-                                            borderColor:
-                                                "divider",
-                                            transition:
-                                                "all 0.25s ease",
-                                            "&:hover":
-                                                {
-                                                    transform:
-                                                        "translateY(-3px)",
-                                                    boxShadow:
-                                                        "0 10px 25px rgba(0,0,0,0.08)",
-                                                },
-                                        }}
-                                    >
-                                        <Box
-                                            sx={{
-                                                display:
-                                                    "flex",
-                                                alignItems:
-                                                    "center",
-                                                gap: 2,
-                                            }}
-                                        >
-                                            <Avatar
-                                                sx={{
-                                                    width: 48,
-                                                    height: 48,
-                                                    bgcolor:
-                                                        "primary.main",
-                                                }}
-                                            >
-                                                {student.name
-                                                    ?.charAt(
-                                                        0
-                                                    )
-                                                    .toUpperCase()}
-                                            </Avatar>
-
-                                            <Box
-                                                sx={{
-                                                    minWidth: 0,
-                                                }}
-                                            >
-                                                <Typography
-                                                    fontWeight={
-                                                        700
-                                                    }
-                                                    sx={{
-                                                        overflow:
-                                                            "hidden",
-                                                        textOverflow:
-                                                            "ellipsis",
-                                                        whiteSpace:
-                                                            "nowrap",
-                                                    }}
-                                                >
-                                                    {
-                                                        student.name
-                                                    }
-                                                </Typography>
-
-                                                <Typography
-                                                    variant="body2"
-                                                    color="text.secondary"
-                                                >
-                                                    {
-                                                        courses.length
-                                                    }{" "}
-                                                    Course
-                                                    {courses.length !==
-                                                    1
-                                                        ? "s"
-                                                        : ""}
-                                                </Typography>
-                                            </Box>
-                                        </Box>
-
-                                        <Divider
-                                            sx={{
-                                                my: 2,
-                                            }}
-                                        />
-
-                                        {courses.map(
-                                            (
-                                                course
-                                            ) => (
-                                                <Box
-                                                    key={
-                                                        course.id
-                                                    }
-                                                    sx={{
-                                                        display:
-                                                            "flex",
-                                                        alignItems:
-                                                            "center",
-                                                        gap: 1,
-                                                        mb: 1,
-                                                    }}
-                                                >
-                                                    <Person
-                                                        fontSize="small"
-                                                        color="primary"
-                                                    />
-
+                                                {courses.length ===
+                                                0 ? (
                                                     <Typography
                                                         variant="body2"
-                                                        sx={{
-                                                            overflow:
-                                                                "hidden",
-                                                            textOverflow:
-                                                                "ellipsis",
-                                                            whiteSpace:
-                                                                "nowrap",
-                                                        }}
+                                                        color="text.secondary"
                                                     >
-                                                        {
-                                                            course.title
-                                                        }
+                                                        No
+                                                        courses
+                                                        assigned.
                                                     </Typography>
-                                                </Box>
-                                            )
-                                        )}
-                                    </Paper>
-                                </Grid>
-                            );
-                        }
+                                                ) : (
+                                                    <Stack
+                                                        spacing={
+                                                            1
+                                                        }
+                                                    >
+                                                        {courses.map(
+                                                            (
+                                                                course
+                                                            ) => (
+                                                                <Box
+                                                                    key={
+                                                                        course.id
+                                                                    }
+                                                                    sx={{
+                                                                        display:
+                                                                            "flex",
+                                                                        alignItems:
+                                                                            "center",
+                                                                        gap: 1,
+                                                                        minWidth: 0,
+                                                                        p: 1,
+                                                                        borderRadius: 1.5,
+                                                                        bgcolor:
+                                                                            alpha(
+                                                                                primary,
+                                                                                0.04
+                                                                            ),
+                                                                    }}
+                                                                >
+                                                                    <Person
+                                                                        fontSize="small"
+                                                                        sx={{
+                                                                            color: primary,
+                                                                            flexShrink: 0,
+                                                                        }}
+                                                                    />
+
+                                                                    <Typography
+                                                                        variant="body2"
+                                                                        sx={{
+                                                                            overflow:
+                                                                                "hidden",
+                                                                            textOverflow:
+                                                                                "ellipsis",
+                                                                            whiteSpace:
+                                                                                "nowrap",
+                                                                            fontWeight:
+                                                                                600,
+                                                                        }}
+                                                                    >
+                                                                        {
+                                                                            course.title
+                                                                        }
+                                                                    </Typography>
+                                                                </Box>
+                                                            )
+                                                        )}
+                                                    </Stack>
+                                                )}
+                                            </Paper>
+                                        </Grid>
+                                    );
+                                }
+                            )}
+                        </Grid>
                     )}
-                </Grid>
-            )}
-        </Container>
+                </Box>
+            </Container>
+        </Box>
     );
 };
 

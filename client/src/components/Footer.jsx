@@ -12,18 +12,22 @@ import {
   GitHub,
   LinkedIn,
   Email,
-  ArrowForward,
 } from "@mui/icons-material";
 
 import { Link as RouterLink } from "react-router-dom";
 
-import logo from "../assets/LearnHub.png";
+import { useTheme } from "@mui/material/styles";
+
+import logo from "../assets/LearnHub-removebg-preview.png";
 
 const Footer = () => {
+  const theme = useTheme();
+
   const linkStyles = {
     opacity: 0.82,
     transition: "all 0.2s ease",
     display: "inline-block",
+
     "&:hover": {
       opacity: 1,
       transform: "translateX(4px)",
@@ -31,12 +35,26 @@ const Footer = () => {
   };
 
   const socialButtonStyles = {
-    color: "inherit",
-    backgroundColor: "rgba(255,255,255,0.1)",
+    color: theme.palette.primary.contrastText,
+
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.08)"
+        : "rgba(255,255,255,0.14)",
+
+    border:
+      theme.palette.mode === "dark"
+        ? "1px solid rgba(255,255,255,0.10)"
+        : "1px solid rgba(255,255,255,0.16)",
+
     transition: "all 0.2s ease",
 
     "&:hover": {
-      backgroundColor: "rgba(255,255,255,0.2)",
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? "rgba(255,255,255,0.16)"
+          : "rgba(255,255,255,0.24)",
+
       transform: "translateY(-3px)",
     },
   };
@@ -46,11 +64,21 @@ const Footer = () => {
       component="footer"
       sx={{
         mt: 8,
-        // Match the navbar's purple -> blue gradient instead of a flat color.
-        // Adjust the hex stops here if your navbar uses different theme colors
-        // (e.g. swap for `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`).
-        background: "linear-gradient(90deg, #6a3de8 0%, #3f6fe0 50%, #2f6fed 100%)",
-        color: "primary.contrastText",
+
+        /*
+         * Theme based footer.
+         * Same primary/secondary colors used
+         * by the application theme.
+         */
+background:
+  "linear-gradient(135deg, #0B4F8A 0%, #1769AA 50%, #3B82C4 100%)",
+        color: theme.palette.primary.contrastText,
+
+        borderRadius: "24px 24px 0 0",
+
+        overflow: "hidden",
+
+        transition: "background 0.3s ease",
       }}
     >
       {/* =====================================================
@@ -62,7 +90,14 @@ const Footer = () => {
         sx={{
           py: {
             xs: 5,
+            sm: 6,
             md: 7,
+          },
+
+          px: {
+            xs: 2.5,
+            sm: 3,
+            md: 4,
           },
         }}
       >
@@ -73,7 +108,8 @@ const Footer = () => {
           }}
           spacing={{
             xs: 5,
-            md: 8,
+            md: 6,
+            lg: 8,
           }}
           sx={{
             justifyContent: "space-between",
@@ -96,8 +132,16 @@ const Footer = () => {
               sx={{
                 display: "inline-flex",
                 alignItems: "center",
+
                 textDecoration: "none",
+
                 mb: 2,
+
+                transition: "transform 0.2s ease",
+
+                "&:hover": {
+                  transform: "translateY(-2px)",
+                },
               }}
             >
               <Box
@@ -105,12 +149,23 @@ const Footer = () => {
                 src={logo}
                 alt="LearnHub"
                 sx={{
-                  width: 150,
-                  height: "auto",
-                  maxHeight: 55,
+                  width: {
+                    xs: 120,
+                    sm: 140,
+                    md: 150,
+                  },
+
+                  height: {
+                    xs: 65,
+                    sm: 70,
+                    md: 75,
+                  },
+
                   objectFit: "contain",
+
+                  objectPosition: "left center",
+
                   display: "block",
-                  borderRadius: 1,
                 }}
               />
             </Box>
@@ -120,7 +175,15 @@ const Footer = () => {
             <Typography
               sx={{
                 opacity: 0.82,
+
                 lineHeight: 1.8,
+
+                maxWidth: 360,
+
+                fontSize: {
+                  xs: "0.9rem",
+                  sm: "0.95rem",
+                },
               }}
             >
               Learn practical skills, build real-world
@@ -134,13 +197,20 @@ const Footer = () => {
               spacing={1}
               sx={{
                 mt: 2,
+
                 opacity: 0.9,
+
                 alignItems: "center",
               }}
             >
               <Email fontSize="small" />
 
-              <Typography variant="body2">
+              <Typography
+                variant="body2"
+                sx={{
+                  wordBreak: "break-word",
+                }}
+              >
                 learnhub.lms@gmail.com
               </Typography>
             </Stack>
@@ -156,6 +226,7 @@ const Footer = () => {
               fontWeight={700}
               sx={{
                 mb: 2,
+                fontSize: "1rem",
               }}
             >
               Quick Links
@@ -214,14 +285,13 @@ const Footer = () => {
               fontWeight={700}
               sx={{
                 mb: 2,
+                fontSize: "1rem",
               }}
             >
               Support
             </Typography>
 
             <Stack spacing={1.3}>
-              {/* HELP CENTER */}
-
               <Link
                 component={RouterLink}
                 to="/help"
@@ -232,8 +302,6 @@ const Footer = () => {
                 Help Center
               </Link>
 
-              {/* CONTACT US */}
-
               <Link
                 component={RouterLink}
                 to="/contact"
@@ -243,8 +311,6 @@ const Footer = () => {
               >
                 Contact Us
               </Link>
-
-              {/* PRIVACY POLICY */}
 
               <Link
                 component={RouterLink}
@@ -268,6 +334,7 @@ const Footer = () => {
               fontWeight={700}
               sx={{
                 mb: 2,
+                fontSize: "1rem",
               }}
             >
               Follow Us
@@ -308,8 +375,11 @@ const Footer = () => {
               variant="body2"
               sx={{
                 mt: 2,
+
                 opacity: 0.75,
+
                 maxWidth: 220,
+
                 lineHeight: 1.6,
               }}
             >
@@ -326,7 +396,8 @@ const Footer = () => {
 
       <Divider
         sx={{
-          borderColor: "rgba(255,255,255,0.18)",
+          borderColor:
+            "rgba(255,255,255,0.18)",
         }}
       />
 
@@ -338,6 +409,12 @@ const Footer = () => {
         maxWidth="xl"
         sx={{
           py: 2.5,
+
+          px: {
+            xs: 2.5,
+            sm: 3,
+            md: 4,
+          },
         }}
       >
         <Stack
@@ -348,15 +425,15 @@ const Footer = () => {
           spacing={1}
           sx={{
             justifyContent: "space-between",
+
             alignItems: "center",
           }}
         >
-          {/* COPYRIGHT */}
-
           <Typography
             variant="body2"
             sx={{
               opacity: 0.75,
+
               textAlign: {
                 xs: "center",
                 sm: "left",
@@ -366,32 +443,6 @@ const Footer = () => {
             © {new Date().getFullYear()} LearnHub.
             All rights reserved.
           </Typography>
-
-          {/* TAGLINE */}
-
-          <Stack
-            direction="row"
-            spacing={0.5}
-            sx={{
-              alignItems: "center",
-            }}
-          >
-            <Typography
-              variant="body2"
-              sx={{
-                opacity: 0.75,
-              }}
-            >
-              Keep learning
-            </Typography>
-
-            <ArrowForward
-              sx={{
-                fontSize: 17,
-                opacity: 0.75,
-              }}
-            />
-          </Stack>
         </Stack>
       </Container>
     </Box>

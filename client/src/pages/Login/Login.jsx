@@ -21,7 +21,7 @@ import {
 import { useState } from "react";
 import { useTheme } from "@mui/material/styles";
 
-import logo from "../../assets/LearnHub.png";
+import logo from "../../assets/LearnHub-removebg-preview.png";
 
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -174,27 +174,7 @@ const Login = () => {
                 }}
             />
 
-            <Box
-                sx={{
-                    height: "100vh",
-                    maxHeight: "100vh",
-                    width: "100%",
-                    overflow: "hidden",
-                    position: "relative",
-
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-
-                    background: isDark
-                        ? "linear-gradient(135deg, #0f0f0f 0%, #171717 100%)"
-                        : "linear-gradient(135deg, #f4f8ff 0%, #eef3fa 100%)",
-
-                    boxSizing: "border-box",
-
-                    p: { xs: 1.5, sm: 2 },
-                }}
-            >
+        
                 {/* =========================
                       MAIN CARD
                 ========================= */}
@@ -204,37 +184,19 @@ const Login = () => {
                         elevation={0}
                         sx={{
                             width: "100%",
-                            maxWidth: { xs: "100%", sm: 720, md: 1000, lg: 1050 },
-
                             height: "100%",
-                            maxHeight: 640,
                            
 
                             display: "flex",
                             flexDirection: { xs: "column", md: "row" },
 
-                            overflow: "hidden",
-
-                            borderRadius: { xs: 3, sm: 4, md: 5 },
-                            border: "1px solid",
-
-                            border: {
-                                xs: "none",
-                                sm: "1px solid",
-                            },
-
+                          
                             borderColor: isDark
                                 ? "rgba(255,255,255,0.08)"
                                 : "rgba(15,23,42,0.08)",
 
                             backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
 
-                            boxShadow: {
-                                xs: "none",
-                                sm: isDark
-                                    ? "0 25px 70px rgba(0,0,0,0.45)"
-                                    : "0 25px 70px rgba(31,41,55,0.12)",
-                            },
                         }}
                     >
                         {/* =====================================================
@@ -243,7 +205,7 @@ const Login = () => {
 
                         <Box
                             sx={{
-                                width: { xs: "100%", md: "47%" },
+                                width: { xs: "100%", md: "50%" },
 
                                 display: { xs: "none", md: "flex" },
 
@@ -642,7 +604,7 @@ const Login = () => {
                         </Box>
                     </Paper>
                 </Fade>
-            </Box>
+           
         </>
     );
 };

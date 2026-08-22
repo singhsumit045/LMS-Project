@@ -14,6 +14,7 @@ import {
 
 import {
     School,
+    SchoolOutlined,
     PlayCircle,
     CheckCircle,
     EmojiEvents,
@@ -28,16 +29,14 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { getMyCourses } from "../../services/enrollmentService";
+import { getMyCourses } from "../../services/enrollmentService";  
 
-import {
-    getStudentLiveClasses,
-} from "../../services/liveClassService";
+import { getStudentLiveClasses,} from "../../services/liveClassService";
 
 // ======================================================
 // HOW MANY LIVE CLASS CARDS TO SHOW BEFORE "SHOW ALL"
 // ======================================================
-const LIVE_CLASSES_VISIBLE_LIMIT = 6;
+const LIVE_CLASSES_VISIBLE_LIMIT = 6;  
 
 const StudentDashboard = () => {
     const navigate = useNavigate();
@@ -53,23 +52,17 @@ const StudentDashboard = () => {
     // =====================================================
 
     const [myCourses, setMyCourses] = useState([]);
-    const [loadingCourses, setLoadingCourses] =
-        useState(true);
-    const [coursesError, setCoursesError] =
-        useState("");
+    const [loadingCourses, setLoadingCourses] = useState(true);
+    const [coursesError, setCoursesError] = useState("");
 
     // =====================================================
     // LIVE CLASSES
     // =====================================================
 
     const [liveClasses, setLiveClasses] = useState([]);
-    const [loadingLiveClasses, setLoadingLiveClasses] =
-        useState(true);
-    const [liveClassError, setLiveClassError] =
-        useState("");
+    const [loadingLiveClasses, setLoadingLiveClasses] = useState(true);
+    const [liveClassError, setLiveClassError] = useState("");
 
-    // Controls whether all live classes are shown or just
-    // the first LIVE_CLASSES_VISIBLE_LIMIT
     const [showAllLiveClasses, setShowAllLiveClasses] =
         useState(false);
 
@@ -78,17 +71,13 @@ const StudentDashboard = () => {
     // =====================================================
 
     useEffect(() => {
-        const storedUser =
-            localStorage.getItem("user");
+        const storedUser = localStorage.getItem("user");
 
         if (storedUser) {
             try {
                 setUser(JSON.parse(storedUser));
             } catch (error) {
-                console.error(
-                    "User data error:",
-                    error
-                );
+                console.error("User data error:", error);
             }
         }
     }, []);
@@ -106,29 +95,19 @@ const StudentDashboard = () => {
             setLoadingCourses(true);
             setCoursesError("");
 
-            const response =
-                await getMyCourses();
+            const response = await getMyCourses();
 
-            console.log(
-                "Student Courses:",
-                response.data
-            );
+            console.log("Student Courses:", response.data);
 
-            const coursesData =
-                Array.isArray(response.data)
-                    ? response.data
-                    : Array.isArray(
-                          response.data?.data
-                      )
-                    ? response.data.data
-                    : [];
+            const coursesData = Array.isArray(response.data)
+                ? response.data
+                : Array.isArray(response.data?.data)
+                ? response.data.data
+                : [];
 
             setMyCourses(coursesData);
         } catch (error) {
-            console.error(
-                "Dashboard courses error:",
-                error
-            );
+            console.error("Dashboard courses error:", error);
 
             setCoursesError(
                 error.response?.data?.message ||
@@ -152,29 +131,19 @@ const StudentDashboard = () => {
             setLoadingLiveClasses(true);
             setLiveClassError("");
 
-            const response =
-                await getStudentLiveClasses();
+            const response = await getStudentLiveClasses();
 
-            console.log(
-                "Student Live Classes:",
-                response.data
-            );
+            console.log("Student Live Classes:", response.data);
 
-            const data =
-                Array.isArray(response.data)
-                    ? response.data
-                    : Array.isArray(
-                          response.data?.data
-                      )
-                    ? response.data.data
-                    : [];
+            const data = Array.isArray(response.data)
+                ? response.data
+                : Array.isArray(response.data?.data)
+                ? response.data.data
+                : [];
 
             setLiveClasses(data);
         } catch (error) {
-            console.error(
-                "Live classes error:",
-                error
-            );
+            console.error("Live classes error:", error);
 
             setLiveClassError(
                 error.response?.data?.message ||
@@ -189,21 +158,17 @@ const StudentDashboard = () => {
     // USER NAME
     // =====================================================
 
-    const userName =
-        user?.name || "Student";
+    const userName = user?.name || "Student";
 
     // =====================================================
     // STATS
     // =====================================================
 
-    const enrolledCount =
-        myCourses.length;
+    const enrolledCount = myCourses.length;
 
-    const completedCount =
-        myCourses.filter(
-            (item) =>
-                item.completed === true
-        ).length;
+    const completedCount = myCourses.filter(
+        (item) => item.completed === true
+    ).length;
 
     const certificateCount = 0;
 
@@ -216,18 +181,14 @@ const StudentDashboard = () => {
             ? Math.round(
                   myCourses.reduce(
                       (total, item) =>
-                          total +
-                          Number(
-                              item.progress || 0
-                          ),
+                          total + Number(item.progress || 0),
                       0
-                  ) /
-                      myCourses.length
+                  ) / myCourses.length
               )
             : 0;
 
     // =====================================================
-    // STATS DATA (admin-style stat cards)
+    // STATS DATA
     // =====================================================
 
     const stats = [
@@ -236,46 +197,43 @@ const StudentDashboard = () => {
             title: "Enrolled Courses",
             value: enrolledCount,
             icon: <PlayCircle />,
-            color: "#1976d2",
-            bg: "linear-gradient(135deg, rgba(25,118,210,0.10), rgba(25,118,210,0.02))",
+            color: "primary.main",
+            bg: "action.hover",
         },
         {
             key: "completed",
             title: "Completed",
             value: completedCount,
             icon: <CheckCircle />,
-            color: "#2e7d32",
-            bg: "linear-gradient(135deg, rgba(46,125,50,0.10), rgba(46,125,50,0.02))",
+            color: "success.main",
+            bg: "action.hover",
         },
         {
             key: "certificates",
             title: "Certificates",
             value: certificateCount,
             icon: <EmojiEvents />,
-            color: "#ed6c02",
-            bg: "linear-gradient(135deg, rgba(237,108,2,0.10), rgba(237,108,2,0.02))",
+            color: "warning.main",
+            bg: "action.hover",
         },
     ];
 
     // =====================================================
-    // LIVE CLASSES TO ACTUALLY RENDER (6 by default)
+    // VISIBLE LIVE CLASSES
     // =====================================================
 
     const visibleLiveClasses = useMemo(() => {
         return showAllLiveClasses
             ? liveClasses
             : liveClasses.slice(
-                0,
-                LIVE_CLASSES_VISIBLE_LIMIT
-            );
+                  0,
+                  LIVE_CLASSES_VISIBLE_LIMIT
+              );
     }, [liveClasses, showAllLiveClasses]);
 
     const hasMoreLiveClasses =
-        liveClasses.length >
-        LIVE_CLASSES_VISIBLE_LIMIT;
+        liveClasses.length > LIVE_CLASSES_VISIBLE_LIMIT;
 
-    // Reset the "show all" toggle if the underlying list
-    // shrinks back below the limit (e.g. after a refetch)
     useEffect(() => {
         if (!hasMoreLiveClasses && showAllLiveClasses) {
             setShowAllLiveClasses(false);
@@ -310,11 +268,18 @@ const StudentDashboard = () => {
                     },
                     mb: 4,
                     borderRadius: 4,
-                   background:
-            "linear-gradient(135deg, #1565c0 0%, #4527a0 50%, #7b1fa2 100%)",
-                    color: "white",
+
+                    bgcolor: "background.paper",
+                    color: "text.primary",
+
+                    border: "1px solid",
+                    borderColor: "divider",
+
                     position: "relative",
                     overflow: "hidden",
+
+                    background:
+                        "linear-gradient(135deg, rgba(11,79,138,0.08), rgba(18,59,93,0.03))",
                 }}
             >
                 <Box
@@ -328,11 +293,8 @@ const StudentDashboard = () => {
                         variant="outlined"
                         sx={{
                             mb: 2,
-                            color: "white",
-                            borderColor:
-                                "rgba(255,255,255,0.5)",
-                            backgroundColor:
-                                "rgba(255,255,255,0.12)",
+                            color: "primary.main",
+                            borderColor: "primary.main",
                             fontWeight: 600,
                         }}
                     />
@@ -347,17 +309,17 @@ const StudentDashboard = () => {
                                 md: "3rem",
                             },
                             lineHeight: 1.2,
+                            color: "text.primary",
                         }}
                     >
-                        Welcome back,{" "}
-                        {userName} 👋
+                        Welcome back, {userName} 👋
                     </Typography>
 
                     <Typography
                         variant="h6"
                         sx={{
                             mt: 1.5,
-                            opacity: 0.9,
+                            color: "text.secondary",
                             maxWidth: 650,
                             fontWeight: 400,
                             fontSize: {
@@ -366,28 +328,19 @@ const StudentDashboard = () => {
                             },
                         }}
                     >
-                        Continue your learning
-                        journey and build your
-                        skills with LearnHub.
+                        Continue your learning journey and
+                        build your skills with LearnHub.
                     </Typography>
 
                     <Button
                         variant="contained"
-                        onClick={() =>
-                            navigate("/courses")
-                        }
-                        endIcon={
-                            <ArrowForward />
-                        }
+                        onClick={() => navigate("/courses")} 
+                        endIcon={<ArrowForward />}  
                         sx={{
                             mt: 3,
-                            backgroundColor:
-                                "white",
-                            color: "primary.main",
-                            "&:hover": {
-                                backgroundColor:
-                                    "#f5f5f5",
-                            },
+                            borderRadius: 2,
+                            textTransform: "none",
+                            fontWeight: 700,
                         }}
                     >
                         Explore Courses
@@ -396,13 +349,16 @@ const StudentDashboard = () => {
             </Paper>
 
             {/* =================================================
-                STATISTICS  (admin-style stat cards)
+                STATISTICS
             ================================================= */}
 
             <Typography
                 variant="h5"
                 fontWeight={700}
-                sx={{ mb: 2.5 }}
+                sx={{
+                    mb: 2.5,
+                    color: "text.primary",
+                }}
             >
                 Your Learning Overview
             </Typography>
@@ -410,7 +366,9 @@ const StudentDashboard = () => {
             <Grid
                 container
                 spacing={2.5}
-                sx={{ mb: 5 }}
+                sx={{
+                    mb: 5,
+                }}
             >
                 {stats.map((stat) => (
                     <Grid
@@ -424,70 +382,111 @@ const StudentDashboard = () => {
                         <Paper
                             elevation={0}
                             sx={{
+                                position: "relative",
                                 p: 3,
                                 height: "100%",
+                                minHeight: 145,
+
+                                bgcolor: "background.paper",
+
                                 border: "1px solid",
-                                borderColor:
-                                    "divider",
-                                borderLeft: `4px solid ${stat.color}`,
-                                borderLeftWidth: 4,
-                                borderLeftColor: stat.color,
+                                borderColor: "divider",
                                 borderRadius: 3,
-                                background: stat.bg,
+
+                                overflow: "hidden",
+
                                 transition:
-                                    "transform 0.2s ease, box-shadow 0.2s ease",
+                                    "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
+
+                                "&::before": {
+                                    content: '""',
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    width: "100%",
+                                    height: "3px",
+                                    bgcolor: stat.color,
+                                },
+
                                 "&:hover": {
                                     transform:
-                                        "translateY(-4px)",
+                                        "translateY(-3px)",
+                                    borderColor: stat.color,
                                     boxShadow:
-                                        "0 8px 25px rgba(0,0,0,0.08)",
+                                        "0 12px 30px rgba(0,0,0,0.10)",
                                 },
                             }}
                         >
                             <Box
                                 sx={{
                                     display: "flex",
+                                    alignItems: "center",
                                     justifyContent:
                                         "space-between",
-                                    alignItems:
-                                        "center",
+                                    height: "100%",
                                 }}
                             >
                                 <Box>
                                     <Typography
-                                        variant="body2"
-                                        color="text.secondary"
-                                        fontWeight={600}
+                                        sx={{
+                                            fontSize:
+                                                "0.875rem",
+                                            fontWeight: 600,
+                                            color: "text.secondary",
+                                            mb: 1,
+                                        }}
                                     >
-                                        {
-                                            stat.title
-                                        }
+                                        {stat.title}
                                     </Typography>
 
                                     <Typography
-                                        variant="h4"
-                                        fontWeight={700}
                                         sx={{
-                                            mt: 1,
+                                            fontSize: "2rem",
+                                            lineHeight: 1,
+                                            fontWeight: 750,
+                                            color: "text.primary",
+                                            letterSpacing:
+                                                "-0.03em",
                                         }}
                                     >
-                                        {
-                                            stat.value
-                                        }
+                                        {stat.value}
+                                    </Typography>
+
+                                    <Typography
+                                        sx={{
+                                            mt: 1.2,
+                                            fontSize:
+                                                "0.75rem",
+                                            fontWeight: 500,
+                                            color: "text.disabled",
+                                        }}
+                                    >
+                                        {stat.key === "enrolled"
+                                            ? "Currently enrolled"
+                                            : stat.key ===
+                                              "completed"
+                                            ? "Courses completed"
+                                            : "Certificates earned"}
                                     </Typography>
                                 </Box>
 
                                 <Avatar
+                                    variant="rounded"
                                     sx={{
-                                        width: 48,
-                                        height: 48,
-                                        bgcolor: stat.color,
-                                        color: "white",
+                                        width: 52,
+                                        height: 52,
+                                        borderRadius: 2,
+
+                                        bgcolor:
+                                            "action.hover",
+                                        color: stat.color,
+
+                                        "& svg": {
+                                            fontSize: 26,
+                                        },
                                     }}
                                 >
-                                    {
-                                        stat.icon
-                                    }
+                                    {stat.icon}
                                 </Avatar>
                             </Box>
                         </Paper>
@@ -496,14 +495,13 @@ const StudentDashboard = () => {
             </Grid>
 
             {/* =================================================
-                LIVE CLASSES  (max 6 cards, expandable)
+                LIVE CLASSES
             ================================================= */}
 
             <Box
                 sx={{
                     display: "flex",
-                    justifyContent:
-                        "space-between",
+                    justifyContent: "space-between",
                     alignItems: "center",
                     mb: 2.5,
                     gap: 2,
@@ -523,18 +521,14 @@ const StudentDashboard = () => {
                         color="text.secondary"
                         sx={{ mt: 0.5 }}
                     >
-                        Join your teacher's
-                        live classes
+                        Join your teacher's live classes
                     </Typography>
                 </Box>
 
                 {!loadingLiveClasses &&
-                    liveClasses.length >
-                        0 && (
+                    liveClasses.length > 0 && (
                         <Chip
-                            icon={
-                                <LiveTv />
-                            }
+                            icon={<LiveTv />}
                             label={`${liveClasses.length} Available`}
                             color="error"
                             variant="outlined"
@@ -552,13 +546,11 @@ const StudentDashboard = () => {
                         mb: 5,
                         borderRadius: 3,
                         border: "1px solid",
-                        borderColor:
-                            "divider",
+                        borderColor: "divider",
                         display: "flex",
-                        justifyContent:
-                            "center",
-                        alignItems:
-                            "center",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        bgcolor: "background.paper",
                     }}
                 >
                     <CircularProgress />
@@ -567,25 +559,23 @@ const StudentDashboard = () => {
 
             {/* LIVE CLASS ERROR */}
 
-            {!loadingLiveClasses &&
-                liveClassError && (
-                    <Alert
-                        severity="error"
-                        sx={{
-                            mb: 5,
-                            borderRadius: 2,
-                        }}
-                    >
-                        {liveClassError}
-                    </Alert>
-                )}
+            {!loadingLiveClasses && liveClassError && (
+                <Alert
+                    severity="error"
+                    sx={{
+                        mb: 5,
+                        borderRadius: 2,
+                    }}
+                >
+                    {liveClassError}
+                </Alert>
+            )}
 
             {/* NO LIVE CLASSES */}
 
             {!loadingLiveClasses &&
                 !liveClassError &&
-                liveClasses.length ===
-                    0 && (
+                liveClasses.length === 0 && (
                     <Paper
                         elevation={0}
                         sx={{
@@ -593,17 +583,15 @@ const StudentDashboard = () => {
                             mb: 5,
                             borderRadius: 3,
                             border: "1px solid",
-                            borderColor:
-                                "divider",
-                            textAlign:
-                                "center",
+                            borderColor: "divider",
+                            textAlign: "center",
+                            bgcolor: "background.paper",
                         }}
                     >
                         <VideoCameraFront
                             sx={{
                                 fontSize: 55,
-                                color:
-                                    "text.secondary",
+                                color: "text.secondary",
                                 mb: 1,
                             }}
                         />
@@ -612,17 +600,15 @@ const StudentDashboard = () => {
                             variant="h6"
                             fontWeight={600}
                         >
-                            No live classes
-                            available
+                            No live classes available
                         </Typography>
 
                         <Typography
                             color="text.secondary"
                             sx={{ mt: 1 }}
                         >
-                            Your teacher's
-                            live classes will
-                            appear here.
+                            Your teacher's live classes
+                            will appear here.
                         </Typography>
                     </Paper>
                 )}
@@ -631,29 +617,34 @@ const StudentDashboard = () => {
 
             {!loadingLiveClasses &&
                 !liveClassError &&
-                liveClasses.length >
-                    0 && (
+                liveClasses.length > 0 && (
                     <>
                         <Grid
                             container
                             spacing={3}
-                            sx={{ mb: hasMoreLiveClasses ? 2 : 5 }}
+                            sx={{
+                                mb: hasMoreLiveClasses
+                                    ? 2
+                                    : 5,
+                            }}
                         >
                             {visibleLiveClasses.map(
                                 (liveClass, index) => (
                                     <Grid
-                                        key={liveClass.id ?? `live-class-${index}`}
+                                        key={
+                                            liveClass.id ??
+                                            `live-class-${index}`
+                                        }
                                         size={{
                                             xs: 12,
                                             md: 6,
                                         }}
                                     >
                                         <Paper
-                                            elevation={
-                                                0
-                                            }
+                                            elevation={0} 
                                             sx={{
                                                 p: 3,
+                                                height: "100%",
                                                 borderRadius: 3,
                                                 border:
                                                     "1px solid",
@@ -661,17 +652,22 @@ const StudentDashboard = () => {
                                                     liveClass.isLive
                                                         ? "error.main"
                                                         : "divider",
+
+                                                bgcolor:
+                                                    "background.paper",
+
                                                 background:
-                                                    "linear-gradient(135deg, rgba(25,118,210,0.08), rgba(123,31,162,0.08))",
+                                                    "linear-gradient(135deg, rgba(25,118,210,0.06), rgba(123,31,162,0.05))",
+
                                                 transition:
                                                     "transform 0.2s ease, box-shadow 0.2s ease",
-                                                "&:hover":
-                                                    {
-                                                        transform:
-                                                            "translateY(-4px)",
-                                                        boxShadow:
-                                                            "0 10px 30px rgba(0,0,0,0.08)",
-                                                    },
+
+                                                "&:hover": {
+                                                    transform:
+                                                        "translateY(-4px)",
+                                                    boxShadow:
+                                                        "0 10px 30px rgba(0,0,0,0.08)",
+                                                },
                                             }}
                                         >
                                             {/* HEADER */}
@@ -805,8 +801,8 @@ const StudentDashboard = () => {
                                                     mt: 2,
                                                     p: 2,
                                                     borderRadius: 2,
-                                                    backgroundColor:
-                                                        "background.paper",
+                                                    bgcolor:
+                                                        "background.default",
                                                     border:
                                                         "1px solid",
                                                     borderColor:
@@ -854,6 +850,8 @@ const StudentDashboard = () => {
                                                     py: 1.25,
                                                     borderRadius: 2,
                                                     fontWeight: 700,
+                                                    textTransform:
+                                                        "none",
                                                 }}
                                             >
                                                 {liveClass.isLive
@@ -866,13 +864,14 @@ const StudentDashboard = () => {
                             )}
                         </Grid>
 
-                        {/* SHOW ALL / SHOW LESS TOGGLE */}
+                        {/* SHOW ALL */}
 
                         {hasMoreLiveClasses && (
                             <Box
                                 sx={{
                                     display: "flex",
-                                    justifyContent: "center",
+                                    justifyContent:
+                                        "center",
                                     mb: 5,
                                 }}
                             >
@@ -892,7 +891,8 @@ const StudentDashboard = () => {
                                     }
                                     sx={{
                                         borderRadius: 2,
-                                        textTransform: "none",
+                                        textTransform:
+                                            "none",
                                         fontWeight: 700,
                                         px: 3,
                                     }}
@@ -913,8 +913,7 @@ const StudentDashboard = () => {
             <Box
                 sx={{
                     display: "flex",
-                    justifyContent:
-                        "space-between",
+                    justifyContent: "space-between",
                     alignItems: "center",
                     mb: 2.5,
                     gap: 2,
@@ -928,14 +927,11 @@ const StudentDashboard = () => {
                 </Typography>
 
                 <Button
-                    endIcon={
-                        <ArrowForward />
-                    }
-                    onClick={() =>
-                        navigate(
-                            "/courses"
-                        )
-                    }
+                    endIcon={<ArrowForward />}
+                    onClick={() => navigate("/courses")}
+                    sx={{
+                        textTransform: "none",
+                    }}
                 >
                     View All
                 </Button>
@@ -965,13 +961,11 @@ const StudentDashboard = () => {
                         mb: 5,
                         borderRadius: 3,
                         border: "1px solid",
-                        borderColor:
-                            "divider",
+                        borderColor: "divider",
                         display: "flex",
-                        justifyContent:
-                            "center",
-                        alignItems:
-                            "center",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        bgcolor: "background.paper",
                     }}
                 >
                     <CircularProgress />
@@ -982,8 +976,7 @@ const StudentDashboard = () => {
 
             {!loadingCourses &&
                 !coursesError &&
-                myCourses.length ===
-                    0 && (
+                myCourses.length === 0 && (
                     <Paper
                         elevation={0}
                         sx={{
@@ -994,17 +987,15 @@ const StudentDashboard = () => {
                             mb: 5,
                             borderRadius: 3,
                             border: "1px solid",
-                            borderColor:
-                                "divider",
-                            textAlign:
-                                "center",
+                            borderColor: "divider",
+                            textAlign: "center",
+                            bgcolor: "background.paper",
                         }}
                     >
                         <School
                             sx={{
                                 fontSize: 55,
-                                color:
-                                    "text.secondary",
+                                color: "text.secondary",
                                 mb: 1,
                             }}
                         />
@@ -1024,24 +1015,19 @@ const StudentDashboard = () => {
                                 mx: "auto",
                             }}
                         >
-                            You haven't
-                            enrolled in any
-                            courses yet.
-                            Explore our
-                            courses and
-                            start learning
-                            today.
+                            You haven't enrolled in any
+                            courses yet. Explore our courses
+                            and start learning today.
                         </Typography>
 
                         <Button
                             variant="contained"
                             onClick={() =>
-                                navigate(
-                                    "/courses"
-                                )
+                                navigate("/courses")
                             }
                             sx={{
                                 mt: 2.5,
+                                textTransform: "none",
                             }}
                         >
                             Browse Courses
@@ -1049,31 +1035,54 @@ const StudentDashboard = () => {
                     </Paper>
                 )}
 
-            {/* COURSE CARDS */}
+            {/* =================================================
+                COURSE CARDS
+            ================================================= */}
 
             {!loadingCourses &&
                 !coursesError &&
-                myCourses.length >
-                    0 && (
+                myCourses.length > 0 && (
                     <Grid
                         container
-                        spacing={3}
-                        sx={{ mb: 5 }}
+                        columnSpacing={{
+                            xs: 0,
+                            sm: 2.5,
+                            md: 3,
+                        }}
+                        rowSpacing={{
+                            xs: 2.5,
+                            sm: 3,
+                            md: 3.5,
+                        }}
                     >
                         {myCourses.map(
                             (enrollment, index) => {
                                 const course =
                                     enrollment.course;
 
-                                const progress =
-                                    Number(
-                                        enrollment.progress ||
-                                            0
+                                const progress = Math.min(
+                                    100,
+                                    Math.max(
+                                        0,
+                                        Number(
+                                            enrollment.progress ||
+                                                0
+                                        )
+                                    )
+                                );
+
+                                const completed =
+                                    Boolean(
+                                        enrollment.completed
                                     );
 
                                 return (
                                     <Grid
-                                        key={enrollment.id ?? enrollment.course?.id ?? `enrollment-${index}`}
+                                        key={
+                                            enrollment.id ??
+                                            course?.id ??
+                                            `enrollment-${index}`
+                                        }
                                         size={{
                                             xs: 12,
                                             sm: 6,
@@ -1081,48 +1090,76 @@ const StudentDashboard = () => {
                                         }}
                                     >
                                         <Paper
-                                            elevation={
-                                                0
-                                            }
+                                            elevation={0}
                                             sx={{
                                                 height: "100%",
-                                                border: "1px solid",
+                                                display:
+                                                    "flex",
+                                                flexDirection:
+                                                    "column",
+
+                                                bgcolor:
+                                                    "background.paper",
+
+                                                border:
+                                                    "1px solid",
                                                 borderColor:
                                                     "divider",
-                                                borderRadius: 3,
+
+                                                borderRadius:
+                                                    4,
+
                                                 overflow:
                                                     "hidden",
+
                                                 transition:
-                                                    "transform 0.2s ease, box-shadow 0.2s ease",
-                                                "&:hover":
-                                                    {
-                                                        transform:
-                                                            "translateY(-4px)",
-                                                        boxShadow:
-                                                            "0 8px 25px rgba(0,0,0,0.08)",
-                                                    },
+                                                    "transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease",
+
+                                                "&:hover": {
+                                                    transform:
+                                                        "translateY(-3px)",
+
+                                                    borderColor:
+                                                        "action.disabled",
+
+                                                    boxShadow:
+                                                        "0 12px 30px rgba(0,0,0,0.09)",
+
+                                                    "& .course-image":
+                                                        {
+                                                            transform:
+                                                                "scale(1.035)",
+                                                        },
+
+                                                    "& .course-arrow":
+                                                        {
+                                                            transform:
+                                                                "translateX(3px)",
+                                                        },
+                                                },
                                             }}
                                         >
                                             {/* THUMBNAIL */}
 
                                             <Box
                                                 sx={{
-                                                    height: 180,
-                                                    background:
-                                                        "linear-gradient(135deg, #1976d2, #7b1fa2)",
-                                                    display:
-                                                        "flex",
-                                                    alignItems:
-                                                        "center",
-                                                    justifyContent:
-                                                        "center",
+                                                    position:
+                                                        "relative",
+                                                    height: {
+                                                        xs: 210,
+                                                        sm: 240,
+                                                        md: 260,
+                                                    },
                                                     overflow:
                                                         "hidden",
+                                                    bgcolor:
+                                                        "action.hover",
                                                 }}
                                             >
                                                 {course?.thumbnail ? (
                                                     <Box
                                                         component="img"
+                                                        className="course-image"
                                                         src={
                                                             course.thumbnail
                                                         }
@@ -1130,67 +1167,162 @@ const StudentDashboard = () => {
                                                             course.title ||
                                                             "Course"
                                                         }
-                                                        sx={{
-                                                            width: "100%",
-                                                            height: "100%",
-                                                            objectFit:
-                                                                "cover",
-                                                        }}
                                                         onError={(
                                                             event
                                                         ) => {
                                                             event.currentTarget.style.display =
                                                                 "none";
                                                         }}
-                                                    />
-                                                ) : (
-                                                    <PlayCircle
                                                         sx={{
-                                                            fontSize: 70,
-                                                            color: "white",
+                                                            width: "100%",
+                                                            height: "100%",
+                                                            display:
+                                                                "block",
+                                                            objectFit:
+                                                                "cover",
+
+                                                            transition:
+                                                                "transform 400ms ease",
                                                         }}
                                                     />
+                                                ) : (
+                                                    <Box
+                                                        sx={{
+                                                            width: "100%",
+                                                            height: "100%",
+                                                            display:
+                                                                "flex",
+                                                            alignItems:
+                                                                "center",
+                                                            justifyContent:
+                                                                "center",
+
+                                                            background:
+                                                                "linear-gradient(135deg, #0B4F8A 0%, #123B5D 100%)",
+                                                        }}
+                                                    >
+                                                        <SchoolOutlined
+                                                            sx={{
+                                                                fontSize: 58,
+                                                                color:
+                                                                    "white",
+                                                                opacity: 0.9,
+                                                            }}
+                                                        />
+                                                    </Box>
                                                 )}
-                                            </Box>
 
-                                            {/* COURSE CONTENT */}
+                                                {/* OVERLAY */}
 
-                                            <Box
-                                                sx={{
-                                                    p: 3,
-                                                }}
-                                            >
+                                                <Box
+                                                    sx={{
+                                                        position:
+                                                            "absolute",
+                                                        inset: 0,
+
+                                                        background:
+                                                            "linear-gradient(to bottom, rgba(15,23,42,0.02) 35%, rgba(15,23,42,0.62) 100%)",
+
+                                                        pointerEvents:
+                                                            "none",
+                                                    }}
+                                                />
+
+                                                {/* CATEGORY */}
+
                                                 {course?.category && (
                                                     <Chip
                                                         label={
                                                             course.category
                                                         }
                                                         size="small"
-                                                        color="primary"
-                                                        variant="outlined"
                                                         sx={{
-                                                            mb: 1.5,
+                                                            position:
+                                                                "absolute",
+                                                            top: 14,
+                                                            left: 14,
+
+                                                            height: 28,
+
+                                                            bgcolor:
+                                                                "background.paper",
+                                                            color:
+                                                                "text.primary",
+
+                                                            fontSize:
+                                                                "0.72rem",
+                                                            fontWeight:
+                                                                700,
+
+                                                            borderRadius:
+                                                                "7px",
+
+                                                            backdropFilter:
+                                                                "blur(8px)",
+
+                                                            "& .MuiChip-label":
+                                                                {
+                                                                    px: 1.2,
+                                                                },
                                                         }}
                                                     />
                                                 )}
 
-                                                <Typography
-                                                    variant="h6"
-                                                    fontWeight={
-                                                        700
-                                                    }
+                                                {/* PROGRESS STRIP */}
+
+                                                <Box
                                                     sx={{
-                                                        mb: 1,
+                                                        position:
+                                                            "absolute",
+                                                        left: 0,
+                                                        right: 0,
+                                                        bottom: 0,
+                                                        height: 4,
+
+                                                        bgcolor:
+                                                            "rgba(255,255,255,0.25)",
                                                     }}
                                                 >
-                                                    {course?.title ||
-                                                        "Course"}
-                                                </Typography>
+                                                    <Box
+                                                        sx={{
+                                                            width: `${progress}%`,
+                                                            height: "100%",
+                                                            bgcolor:
+                                                                completed
+                                                                    ? "success.main"
+                                                                    : "warning.main",
+
+                                                            transition:
+                                                                "width 500ms ease",
+                                                        }}
+                                                    />
+                                                </Box>
+                                            </Box>
+
+                                            {/* CONTENT */}
+
+                                            <Box
+                                                sx={{
+                                                    p: 2.75,
+                                                    display:
+                                                        "flex",
+                                                    flexDirection:
+                                                        "column",
+                                                    flexGrow: 1,
+                                                }}
+                                            >
+                                                {/* TITLE */}
 
                                                 <Typography
-                                                    color="text.secondary"
                                                     sx={{
-                                                        mb: 2,
+                                                        color: "text.primary",
+                                                        fontSize:
+                                                            "1.05rem",
+                                                        fontWeight:
+                                                            700,
+                                                        lineHeight:
+                                                            1.4,
+
                                                         display:
                                                             "-webkit-box",
                                                         WebkitLineClamp:
@@ -1199,6 +1331,36 @@ const StudentDashboard = () => {
                                                             "vertical",
                                                         overflow:
                                                             "hidden",
+
+                                                        minHeight: 47,
+                                                    }}
+                                                >
+                                                    {course?.title ||
+                                                        "Untitled Course"}
+                                                </Typography>
+
+                                                {/* DESCRIPTION */}
+
+                                                <Typography
+                                                    sx={{
+                                                        mt: 1,
+
+                                                        color: "text.secondary",
+                                                        fontSize:
+                                                            "0.82rem",
+                                                        lineHeight:
+                                                            1.55,
+
+                                                        display:
+                                                            "-webkit-box",
+                                                        WebkitLineClamp:
+                                                            2,
+                                                        WebkitBoxOrient:
+                                                            "vertical",
+                                                        overflow:
+                                                            "hidden",
+
+                                                        minHeight: 41,
                                                     }}
                                                 >
                                                     {course?.description ||
@@ -1209,31 +1371,45 @@ const StudentDashboard = () => {
 
                                                 <Box
                                                     sx={{
-                                                        mb: 1,
+                                                        mt: 2.5,
                                                     }}
                                                 >
                                                     <Box
                                                         sx={{
                                                             display:
                                                                 "flex",
+                                                            alignItems:
+                                                                "center",
                                                             justifyContent:
                                                                 "space-between",
-                                                            mb: 0.7,
+                                                            mb: 0.9,
                                                         }}
                                                     >
                                                         <Typography
-                                                            variant="body2"
-                                                            color="text.secondary"
+                                                            sx={{
+                                                                fontSize:
+                                                                    "0.75rem",
+                                                                fontWeight:
+                                                                    600,
+                                                                color:
+                                                                    "text.secondary",
+                                                            }}
                                                         >
-                                                            Progress
+                                                            Course
+                                                            progress
                                                         </Typography>
 
                                                         <Typography
-                                                            variant="body2"
-                                                            fontWeight={
-                                                                700
-                                                            }
-                                                            color="primary"
+                                                            sx={{
+                                                                fontSize:
+                                                                    "0.78rem",
+                                                                fontWeight:
+                                                                    700,
+                                                                color:
+                                                                    completed
+                                                                        ? "success.main"
+                                                                        : "primary.main",
+                                                            }}
                                                         >
                                                             {
                                                                 progress
@@ -1248,48 +1424,89 @@ const StudentDashboard = () => {
                                                             progress
                                                         }
                                                         sx={{
-                                                            height: 7,
-                                                            borderRadius: 5,
+                                                            height: 6,
+                                                            borderRadius: 10,
+
+                                                            bgcolor:
+                                                                "action.hover",
+
+                                                            "& .MuiLinearProgress-bar":
+                                                                {
+                                                                    borderRadius:
+                                                                        10,
+
+                                                                    bgcolor:
+                                                                        completed
+                                                                            ? "success.main"
+                                                                            : "primary.main",
+                                                                },
                                                         }}
                                                     />
                                                 </Box>
 
                                                 {/* STATUS */}
 
-                                                {enrollment.completed ? (
-                                                    <Chip
-                                                        icon={
-                                                            <CheckCircle />
-                                                        }
-                                                        label="Completed"
-                                                        color="success"
-                                                        size="small"
-                                                        sx={{
-                                                            mt: 1.5,
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <Chip
-                                                        icon={
-                                                            <AccessTime />
-                                                        }
-                                                        label="In Progress"
-                                                        color="primary"
-                                                        variant="outlined"
-                                                        size="small"
-                                                        sx={{
-                                                            mt: 1.5,
-                                                        }}
-                                                    />
-                                                )}
+                                                <Box
+                                                    sx={{
+                                                        display:
+                                                            "flex",
+                                                        alignItems:
+                                                            "center",
+                                                        gap: 1,
 
-                                                {/* CONTINUE */}
+                                                        mt: 2,
+                                                    }}
+                                                >
+                                                    <Box
+                                                        sx={{
+                                                            width: 7,
+                                                            height: 7,
+                                                            borderRadius:
+                                                                "50%",
+
+                                                            bgcolor:
+                                                                completed
+                                                                    ? "success.main"
+                                                                    : "warning.main",
+                                                        }}
+                                                    />
+
+                                                    <Typography
+                                                        sx={{
+                                                            fontSize:
+                                                                "0.75rem",
+                                                            fontWeight:
+                                                                600,
+                                                            color:
+                                                                completed
+                                                                    ? "success.main"
+                                                                    : "text.secondary",
+                                                        }}
+                                                    >
+                                                        {completed
+                                                            ? "Course completed"
+                                                            : progress >
+                                                              0
+                                                            ? "In progress"
+                                                            : "Not started"}
+                                                    </Typography>
+                                                </Box>
+
+                                                {/* CTA */}
 
                                                 <Button
                                                     fullWidth
                                                     variant="contained"
+                                                    disableElevation
                                                     endIcon={
-                                                        <ArrowForward />
+                                                        <ArrowForward
+                                                            className="course-arrow"
+                                                            sx={{
+                                                                fontSize: 18,
+                                                                transition:
+                                                                    "transform 180ms ease",
+                                                            }}
+                                                        />
                                                     }
                                                     onClick={() =>
                                                         navigate(
@@ -1298,11 +1515,26 @@ const StudentDashboard = () => {
                                                     }
                                                     sx={{
                                                         mt: 2.5,
-                                                        borderRadius: 2,
+
+                                                        minHeight: 44,
+
+                                                        borderRadius:
+                                                            2,
+
+                                                        textTransform:
+                                                            "none",
+
+                                                        fontSize:
+                                                            "0.84rem",
+
+                                                        fontWeight:
+                                                            700,
                                                     }}
                                                 >
-                                                    {progress >
-                                                    0
+                                                    {completed
+                                                        ? "Review Course"
+                                                        : progress >
+                                                          0
                                                         ? "Continue Learning"
                                                         : "Start Learning"}
                                                 </Button>
@@ -1322,7 +1554,18 @@ const StudentDashboard = () => {
             <Typography
                 variant="h5"
                 fontWeight={700}
-                sx={{ mb: 2.5 }}
+                sx={{
+                    mb: 2.5,
+
+                    // COURSE CARDS KE BAAD SPACE
+                    mt: {
+                        xs: 4,
+                        sm: 5,
+                        md: 6,
+                    },
+
+                    color: "text.primary",
+                }}
             >
                 Learning Progress
             </Typography>
@@ -1330,71 +1573,266 @@ const StudentDashboard = () => {
             <Paper
                 elevation={0}
                 sx={{
+                    position: "relative",
+
                     p: {
-                        xs: 3,
-                        md: 4,
+                        xs: 2.5,
+                        sm: 3,
+                        md: 3.5,
                     },
-                    borderRadius: 3,
+
+                    bgcolor: "background.paper",
+
                     border: "1px solid",
-                    borderColor:
-                        "divider",
+                    borderColor: "divider",
+
+                    borderRadius: 4,
+
+                    overflow: "hidden",
+
+                    transition:
+                        "box-shadow 180ms ease, border-color 180ms ease",
+
+                    "&:hover": {
+                        borderColor:
+                            "action.disabled",
+
+                        boxShadow:
+                            "0 8px 24px rgba(0,0,0,0.06)",
+                    },
                 }}
             >
+                {/* HEADER */}
+
                 <Box
                     sx={{
                         display: "flex",
+                        alignItems: {
+                            xs: "flex-start",
+                            sm: "center",
+                        },
                         justifyContent:
                             "space-between",
-                        alignItems: "center",
-                        mb: 1,
+                        gap: 2,
                     }}
                 >
                     <Box
                         sx={{
                             display: "flex",
-                            alignItems:
-                                "center",
-                            gap: 1,
+                            alignItems: "center",
+                            gap: 1.5,
                         }}
                     >
-                        <AccessTime />
+                        {/* ICON */}
+
+                        <Box
+                            sx={{
+                                width: 42,
+                                height: 42,
+                                flexShrink: 0,
+
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent:
+                                    "center",
+
+                                bgcolor:
+                                    "action.hover",
+                                color:
+                                    "primary.main",
+
+                                borderRadius: 2,
+
+                                "& svg": {
+                                    fontSize: 21,
+                                },
+                            }}
+                        >
+                            <AccessTime />
+                        </Box>
+
+                        <Box>
+                            <Typography
+                                sx={{
+                                    fontSize:
+                                        "0.95rem",
+                                    fontWeight: 700,
+                                    color:
+                                        "text.primary",
+                                    lineHeight: 1.3,
+                                }}
+                            >
+                                Overall Progress
+                            </Typography>
+
+                            <Typography
+                                sx={{
+                                    mt: 0.35,
+                                    fontSize:
+                                        "0.75rem",
+                                    color:
+                                        "text.disabled",
+                                    fontWeight: 500,
+                                }}
+                            >
+                                Your learning journey
+                            </Typography>
+                        </Box>
+                    </Box>
+
+                    {/* PERCENTAGE */}
+
+                    <Box
+                        sx={{
+                            display: "flex",
+                            alignItems:
+                                "center",
+                            justifyContent:
+                                "center",
+
+                            minWidth: 62,
+                            height: 34,
+                            px: 1.5,
+
+                            bgcolor:
+                                "action.hover",
+                            color:
+                                "primary.main",
+
+                            borderRadius: 2,
+                        }}
+                    >
+                        <Typography
+                            sx={{
+                                fontSize:
+                                    "0.9rem",
+                                fontWeight: 800,
+                            }}
+                        >
+                            {overallProgress}%
+                        </Typography>
+                    </Box>
+                </Box>
+
+                {/* PROGRESS */}
+
+                <Box sx={{ mt: 3 }}>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            alignItems:
+                                "center",
+                            justifyContent:
+                                "space-between",
+                            mb: 1,
+                        }}
+                    >
+                        <Typography
+                            sx={{
+                                fontSize:
+                                    "0.75rem",
+                                fontWeight: 600,
+                                color:
+                                    "text.secondary",
+                            }}
+                        >
+                            Course completion
+                        </Typography>
 
                         <Typography
-                            fontWeight={600}
+                            sx={{
+                                fontSize:
+                                    "0.72rem",
+                                fontWeight: 600,
+                                color:
+                                    "text.disabled",
+                            }}
                         >
-                            Overall Progress
+                            {myCourses.length === 0
+                                ? "No courses"
+                                : `${myCourses.length} ${
+                                      myCourses.length ===
+                                      1
+                                          ? "course"
+                                          : "courses"
+                                  }`}
                         </Typography>
                     </Box>
 
-                    <Typography
-                        fontWeight={700}
-                        color="primary"
-                    >
-                        {overallProgress}%
-                    </Typography>
+                    <LinearProgress
+                        variant="determinate"
+                        value={overallProgress}
+                        sx={{
+                            height: 8,
+                            borderRadius: 10,
+
+                            bgcolor:
+                                "action.hover",
+
+                            "& .MuiLinearProgress-bar":
+                                {
+                                    borderRadius: 10,
+
+                                    bgcolor:
+                                        overallProgress >=
+                                        100
+                                            ? "success.main"
+                                            : "primary.main",
+
+                                    transition:
+                                        "transform 500ms ease",
+                                },
+                        }}
+                    />
                 </Box>
 
-                <LinearProgress
-                    variant="determinate"
-                    value={
-                        overallProgress
-                    }
-                    sx={{
-                        height: 8,
-                        borderRadius: 5,
-                    }}
-                />
+                {/* BOTTOM MESSAGE */}
 
-                <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: 1.5 }}
+                <Box
+                    sx={{
+                        mt: 2,
+
+                        display: "flex",
+                        alignItems:
+                            "center",
+                        gap: 1,
+                    }}
                 >
-                    {myCourses.length ===
-                    0
-                        ? "Start a course to track your learning progress."
-                        : `You are currently ${overallProgress}% through your enrolled courses.`}
-                </Typography>
+                    <Box
+                        sx={{
+                            width: 6,
+                            height: 6,
+                            flexShrink: 0,
+
+                            borderRadius:
+                                "50%",
+
+                            bgcolor:
+                                overallProgress >=
+                                100
+                                    ? "success.main"
+                                    : "warning.main",
+                        }}
+                    />
+
+                    <Typography
+                        sx={{
+                            fontSize:
+                                "0.76rem",
+                            lineHeight: 1.5,
+                            color:
+                                "text.secondary",
+                            fontWeight: 500,
+                        }}
+                    >
+                        {myCourses.length === 0
+                            ? "Start a course to begin tracking your learning progress."
+                            : overallProgress >=
+                              100
+                            ? "Excellent work! You have completed all your enrolled courses."
+                            : `You have completed ${overallProgress}% of your enrolled learning.`}
+                    </Typography>
+                </Box>
             </Paper>
         </Container>
     );

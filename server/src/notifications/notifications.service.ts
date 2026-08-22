@@ -107,4 +107,47 @@ export class NotificationsService {
       message: 'All notifications marked as read',
     };
   }
+
+  async deleteNotification(
+  id: number,
+  userId: number,
+) {
+  const notification =
+    await this.notificationRepository.findOne({
+      where: {
+        id,
+        user: {
+          id: userId,
+        },
+      },
+    });
+
+  if (!notification) {
+    throw new NotFoundException(
+      'Notification not found',
+    );
+  }
+
+  await this.notificationRepository.remove(
+    notification,
+  );
+
+  return {
+    message: 'Notification deleted successfully',
+    deletedId: id,
+  };
+}
+
+  async clearAllNotifications(userId: number) {
+  const result = await this.notificationRepository.delete({
+    user: {
+      id: userId,
+    },
+  });
+
+  return {
+    message: 'All notifications cleared successfully',
+    deletedCount: result.affected ?? 0,
+  };
+}
 }

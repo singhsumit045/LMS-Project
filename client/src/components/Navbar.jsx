@@ -1,4 +1,3 @@
-
 import {
   AppBar,
   Toolbar,
@@ -14,20 +13,13 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Typography,
   useMediaQuery,
   Badge,
   Menu,
-  MenuItem,
 } from "@mui/material";
 
 import NotificationsIcon from "@mui/icons-material/Notifications";
-
-import {
-  getNotifications,
-  getUnreadCount,
-  markAsRead,
-  markAllAsRead,
-} from "../services/notificationService";
 
 import {
   DarkMode,
@@ -40,32 +32,462 @@ import {
   Person,
   Logout as LogoutIcon,
   SmartToy,
+  Delete as DeleteIcon,
+  ExpandMore,
+  ExpandLess,
 } from "@mui/icons-material";
 
-import { useEffect, useState } from "react";
+import { useSwipeable } from "react-swipeable";
+
+import { useEffect, useState, useRef } from "react";
+
+import {
+  getNotifications,
+  getUnreadCount,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
+  clearAllNotifications,
+} from "../services/notificationService";
 
 import { getProfile } from "../services/authService";
 
 import {
   Link,
+  NavLink,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 
 import { useTheme } from "@mui/material/styles";
 
-import logo from "../assets/LearnHub.png";
+import logo from "../assets/LearnHub-removebg-preview.png";
+
+// ============================================================
+// NOTIFICATION ITEM
+// ============================================================
+
+const NotificationItem = ({
+  item,
+  darkMode,
+  theme,
+  textPrimary,
+  textSecondary,
+  borderColor,
+  hoverBg,
+  expandedNotification,
+  setExpandedNotification,
+  handleRead,
+  handleDeleteNotification,
+}) => {
+  const [swipeX, setSwipeX] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const isExpanded =
+    expandedNotification === item.id;
+
+  // ==========================================================
+  // SWIPE CONFIG
+  // ==========================================================
+
+  const SWIPE_THRESHOLD = 110;
+  const MAX_SWIPE = 140;
+
+  const swipeHandlers = useSwipeable({
+    onSwiping: (data) => {
+      if (data.deltaX < 0) {
+        const distance = Math.max(
+          data.deltaX,
+          -MAX_SWIPE
+        );
+
+        setSwipeX(distance);
+        setIsSwiping(true);
+      }
+    },
+
+    onSwipedLeft: async (data) => {
+      setIsSwiping(false);
+
+      if (
+        Math.abs(data.deltaX) >=
+        SWIPE_THRESHOLD
+      ) {
+        setIsDeleting(true);
+
+        setSwipeX(-window.innerWidth);
+
+        setTimeout(() => {
+          handleDeleteNotification(item.id);
+        }, 180);
+      } else {
+        setSwipeX(0);
+      }
+    },
+
+    onSwipedRight: () => {
+      setIsSwiping(false);
+      setSwipeX(0);
+    },
+
+    onTouchEndOrOnMouseUp: () => {
+      setIsSwiping(false);
+    },
+
+    preventScrollOnSwipe: false,
+    trackMouse: false,
+    delta: 10,
+    swipeDuration: 500,
+
+    touchEventOptions: {
+      passive: true,
+    },
+  });
+
+  const deleteProgress = Math.min(
+    Math.abs(swipeX) /
+    SWIPE_THRESHOLD,
+    1
+  );
+
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        overflow: "hidden",
+        borderBottom: `1px solid ${borderColor}`,
+
+        backgroundColor: item.isRead
+          ? "transparent"
+          : darkMode
+            ? "rgba(25,118,210,0.08)"
+            : "rgba(25,118,210,0.05)",
+      }}
+    >
+      {/* DELETE BACKGROUND */}
+
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          pr: 2,
+
+          backgroundColor:
+            theme.palette.error.main,
+
+          opacity: deleteProgress,
+
+          transition: isSwiping
+            ? "none"
+            : "opacity 0.2s ease",
+        }}
+      >
+        <DeleteIcon
+          sx={{
+            color: "#fff",
+            fontSize: 23,
+
+            transform: `scale(${0.8 +
+              deleteProgress * 0.3
+              })`,
+
+            transition: isSwiping
+              ? "none"
+              : "transform 0.2s ease",
+          }}
+        />
+      </Box>
+
+      {/* SWIPEABLE CONTENT */}
+
+      <Box
+        {...swipeHandlers}
+        sx={{
+          position: "relative",
+
+          transform: `translateX(${swipeX}px)`,
+
+          transition: isSwiping
+            ? "none"
+            : "transform 0.22s ease",
+
+          backgroundColor:
+            theme.palette.background.paper,
+
+          touchAction: "pan-y",
+
+          opacity: isDeleting ? 0 : 1,
+
+          "&:hover": {
+            backgroundColor: item.isRead
+              ? hoverBg
+              : darkMode
+                ? "rgba(25,118,210,0.12)"
+                : "rgba(25,118,210,0.08)",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "stretch",
+            width: "100%",
+          }}
+        >
+          {/* NOTIFICATION CONTENT */}
+
+          <Box
+            onClick={async () => {
+              if (
+                isSwiping ||
+                isDeleting
+              ) {
+                return;
+              }
+
+              if (!item.isRead) {
+                await handleRead(item.id);
+              }
+
+              setExpandedNotification(
+                isExpanded
+                  ? null
+                  : item.id
+              );
+            }}
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              cursor: "pointer",
+              px: 1.5,
+              py: 1.25,
+              position: "relative",
+            }}
+          >
+            {/* TITLE */}
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent:
+                  "space-between",
+                gap: 1,
+                pl: 0.5,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "0.85rem",
+
+                  fontWeight: item.isRead
+                    ? 500
+                    : 700,
+
+                  color: textPrimary,
+
+                  overflow: "hidden",
+                  textOverflow:
+                    "ellipsis",
+
+                  whiteSpace: "nowrap",
+
+                  flex: 1,
+                  minWidth: 0,
+                }}
+              >
+                {item.title}
+              </Typography>
+
+              {isExpanded ? (
+                <ExpandLess
+                  sx={{
+                    fontSize: 20,
+                    color:
+                      textSecondary,
+                    flexShrink: 0,
+                  }}
+                />
+              ) : (
+                <ExpandMore
+                  sx={{
+                    fontSize: 20,
+                    color:
+                      textSecondary,
+                    flexShrink: 0,
+                  }}
+                />
+              )}
+            </Box>
+
+            {/* MESSAGE */}
+
+            <Typography
+              sx={{
+                mt: 0.4,
+                ml: 0.5,
+
+                fontSize: "0.75rem",
+
+                color: textSecondary,
+
+                display:
+                  "-webkit-box",
+
+                WebkitLineClamp:
+                  isExpanded ? "unset" : 2,
+
+                WebkitBoxOrient:
+                  "vertical",
+
+                overflow: "hidden",
+
+                lineHeight: 1.5,
+              }}
+            >
+              {item.message}
+            </Typography>
+
+            {/* EXPANDED MESSAGE */}
+
+            {isExpanded && (
+              <Box
+                sx={{
+                  mt: 1,
+                  p: 1.2,
+                  borderRadius: "9px",
+
+                  backgroundColor:
+                    hoverBg,
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "0.78rem",
+                    lineHeight: 1.6,
+                    color:
+                      textSecondary,
+                  }}
+                >
+                  {item.message}
+                </Typography>
+
+                {item.createdAt && (
+                  <Typography
+                    sx={{
+                      mt: 0.8,
+                      fontSize: "0.68rem",
+                      color:
+                        textSecondary,
+                    }}
+                  >
+                    {new Date(
+                      item.createdAt
+                    ).toLocaleString()}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {/* UNREAD DOT */}
+
+            {!item.isRead && (
+              <Box
+                sx={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: "50%",
+
+                  backgroundColor:
+                    theme.palette.primary.main,
+
+                  position: "absolute",
+
+                  left: 5,
+                  top: 17,
+                }}
+              />
+            )}
+          </Box>
+
+          {/* DELETE BUTTON */}
+
+          <Tooltip title="Delete notification">
+            <IconButton
+              size="small"
+              onClick={(event) => {
+                event.stopPropagation();
+
+                handleDeleteNotification(
+                  item.id
+                );
+              }}
+              sx={{
+                width: 38,
+                minWidth: 38,
+
+                borderRadius: 0,
+
+                color:
+                  theme.palette.error.main,
+
+                opacity: {
+                  xs: 1,
+                  md: 0.45,
+                },
+
+                transition:
+                  "all 0.2s ease",
+
+                "&:hover": {
+                  opacity: 1,
+
+                  backgroundColor:
+                    theme.palette.error
+                      .main + "14",
+                },
+              }}
+            >
+              <DeleteIcon
+                sx={{
+                  fontSize: 19,
+                }}
+              />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
+// ============================================================
+// NAVBAR
+// ============================================================
 
 const Navbar = ({
   darkMode,
   toggleTheme,
 }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] =
+    useState(null);
 
-  const [notifications, setNotifications] =
-    useState([]);
+  const [
+    notifications,
+    setNotifications,
+  ] = useState([]);
 
-  const [unreadCount, setUnreadCount] =
-    useState(0);
+  const notificationButtonRef =
+    useRef(null);
+
+  const [
+    unreadCount,
+    setUnreadCount,
+  ] = useState(0);
 
   const [
     notificationAnchor,
@@ -77,48 +499,80 @@ const Navbar = ({
     setMobileMenuOpen,
   ] = useState(false);
 
+  const [
+    expandedNotification,
+    setExpandedNotification,
+  ] = useState(null);
+
   const navigate = useNavigate();
+
+  const location = useLocation();
 
   const theme = useTheme();
 
-  const isMobile = useMediaQuery(
-    theme.breakpoints.down("md")
-  );
+  const isMobile =
+    useMediaQuery(
+      theme.breakpoints.down("md")
+    );
 
-  // =====================================================
+  // ==========================================================
+  // COLORS
+  // ==========================================================
+
+  const navbarBg =
+    theme.palette.background.paper;
+
+  const textPrimary =
+    theme.palette.text.primary;
+
+  const textSecondary =
+    theme.palette.text.secondary;
+
+  const borderColor =
+    theme.palette.divider;
+
+  const hoverBg =
+    theme.palette.action.hover;
+
+  // ==========================================================
   // LOAD NOTIFICATIONS
-  // =====================================================
+  // ==========================================================
 
-  const loadNotifications = async () => {
-    try {
-      const [
-        listRes,
-        countRes,
-      ] = await Promise.all([
-        getNotifications(),
-        getUnreadCount(),
-      ]);
+  const loadNotifications =
+    async () => {
+      try {
+        const [
+          listRes,
+          countRes,
+        ] = await Promise.all([
+          getNotifications(),
+          getUnreadCount(),
+        ]);
 
-      setNotifications(
-        listRes?.data || []
-      );
+        setNotifications(
+          listRes?.data || []
+        );
 
-      setUnreadCount(
-        Number(countRes?.data || 0)
-      );
-    } catch (error) {
-      console.log(
-        "Notification loading error:",
-        error
-      );
-    }
-  };
+        setUnreadCount(
+          Number(
+            countRes?.data || 0
+          )
+        );
+      } catch (error) {
+        console.log(
+          "Notification loading error:",
+          error
+        );
+      }
+    };
 
-  // =====================================================
+  // ==========================================================
   // OPEN NOTIFICATIONS
-  // =====================================================
+  // ==========================================================
 
-  const openNotification = (event) => {
+  const openNotification = (
+    event
+  ) => {
     setNotificationAnchor(
       event.currentTarget
     );
@@ -126,51 +580,195 @@ const Navbar = ({
     loadNotifications();
   };
 
-  // =====================================================
+  // ==========================================================
+  // OPEN MOBILE NOTIFICATIONS
+  // ==========================================================
+
+  const openMobileNotifications =
+    () => {
+      setMobileMenuOpen(false);
+
+      setTimeout(() => {
+        const anchor =
+          notificationButtonRef.current;
+
+        if (anchor) {
+          setNotificationAnchor(
+            anchor
+          );
+        }
+
+        loadNotifications();
+      }, 200);
+    };
+
+  // ==========================================================
   // CLOSE NOTIFICATIONS
-  // =====================================================
+  // ==========================================================
 
-  const closeNotification = () => {
-    setNotificationAnchor(null);
-  };
-
-  // =====================================================
-  // MARK NOTIFICATION AS READ
-  // =====================================================
-
-  const handleRead = async (id) => {
-    try {
-      await markAsRead(id);
-
-      await loadNotifications();
-    } catch (error) {
-      console.log(
-        "Mark notification read error:",
-        error
+  const closeNotification =
+    () => {
+      setNotificationAnchor(
+        null
       );
-    }
-  };
+    };
 
-  // =====================================================
-  // MARK ALL NOTIFICATIONS AS READ
-  // =====================================================
+  // ==========================================================
+  // MARK AS READ
+  // ==========================================================
 
-  const handleReadAll = async () => {
-    try {
-      await markAllAsRead();
+  const handleRead =
+    async (id) => {
+      try {
+        const currentNotification =
+          notifications.find(
+            (item) =>
+              item.id === id
+          );
 
-      await loadNotifications();
-    } catch (error) {
-      console.log(
-        "Mark all notifications read error:",
-        error
-      );
-    }
-  };
+        if (
+          !currentNotification ||
+          currentNotification.isRead
+        ) {
+          return;
+        }
 
-  // =====================================================
-  // LOAD USER FROM LOCAL STORAGE
-  // =====================================================
+        await markAsRead(id);
+
+        setNotifications(
+          (prev) =>
+            prev.map((item) =>
+              item.id === id
+                ? {
+                  ...item,
+                  isRead: true,
+                }
+                : item
+            )
+        );
+
+        setUnreadCount(
+          (prev) =>
+            Math.max(
+              prev - 1,
+              0
+            )
+        );
+      } catch (error) {
+        console.log(
+          "Mark notification read error:",
+          error
+        );
+      }
+    };
+
+  // ==========================================================
+  // MARK ALL AS READ
+  // ==========================================================
+
+  const handleReadAll =
+    async () => {
+      try {
+        await markAllAsRead();
+
+        setNotifications(
+          (prev) =>
+            prev.map((item) => ({
+              ...item,
+              isRead: true,
+            }))
+        );
+
+        setUnreadCount(0);
+      } catch (error) {
+        console.log(
+          "Mark all notifications read error:",
+          error
+        );
+      }
+    };
+
+  // ==========================================================
+  // DELETE SINGLE NOTIFICATION
+  // ==========================================================
+
+  const handleDeleteNotification =
+    async (id) => {
+      try {
+        const deletedNotification =
+          notifications.find(
+            (item) =>
+              item.id === id
+          );
+
+        await deleteNotification(id);
+
+        setNotifications(
+          (prev) =>
+            prev.filter(
+              (item) =>
+                item.id !== id
+            )
+        );
+
+        if (
+          deletedNotification &&
+          !deletedNotification.isRead
+        ) {
+          setUnreadCount(
+            (prev) =>
+              Math.max(
+                prev - 1,
+                0
+              )
+          );
+        }
+
+        setExpandedNotification(
+          (prev) =>
+            prev === id
+              ? null
+              : prev
+        );
+      } catch (error) {
+        console.log(
+          "Delete notification error:",
+          error?.response?.data ||
+          error?.message
+        );
+      }
+    };
+
+  // ==========================================================
+  // CLEAR ALL
+  // ==========================================================
+
+  const handleClearAll =
+    async () => {
+      try {
+        await clearAllNotifications();
+
+        setNotifications([]);
+
+        setUnreadCount(0);
+
+        setExpandedNotification(
+          null
+        );
+
+        closeNotification();
+      } catch (error) {
+        console.log(
+          "Clear notifications error:",
+          error?.response?.data ||
+          error?.message
+        );
+      }
+    };
+
+  // ==========================================================
+  // LOAD STORED USER
+  // ==========================================================
 
   useEffect(() => {
     const storedUser =
@@ -190,35 +788,36 @@ const Navbar = ({
     }
   }, []);
 
-  // =====================================================
-  // FETCH LATEST PROFILE
-  // =====================================================
+  // ==========================================================
+  // FETCH PROFILE
+  // ==========================================================
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response =
-          await getProfile();
+    const fetchProfile =
+      async () => {
+        try {
+          const response =
+            await getProfile();
 
-        const profileUser =
-          response?.data;
+          const profileUser =
+            response?.data;
 
-        setUser(profileUser);
+          setUser(profileUser);
 
-        localStorage.setItem(
-          "user",
-          JSON.stringify(
-            profileUser
-          )
-        );
-      } catch (error) {
-        console.log(
-          "Profile fetch error:",
-          error?.response?.data ||
+          localStorage.setItem(
+            "user",
+            JSON.stringify(
+              profileUser
+            )
+          );
+        } catch (error) {
+          console.log(
+            "Profile fetch error:",
+            error?.response?.data ||
             error?.message
-        );
-      }
-    };
+          );
+        }
+      };
 
     const accessToken =
       localStorage.getItem(
@@ -230,9 +829,9 @@ const Navbar = ({
     }
   }, []);
 
-  // =====================================================
-  // LOAD NOTIFICATIONS ON LOGIN
-  // =====================================================
+  // ==========================================================
+  // INITIAL NOTIFICATIONS
+  // ==========================================================
 
   useEffect(() => {
     const accessToken =
@@ -245,28 +844,27 @@ const Navbar = ({
     }
   }, []);
 
-  // =====================================================
-  // SYNC PROFILE CHANGES
-  // =====================================================
+  // ==========================================================
+  // PROFILE UPDATE
+  // ==========================================================
 
   useEffect(() => {
-    const handleProfileUpdated = (
-      event
-    ) => {
-      const updatedUser =
-        event.detail;
+    const handleProfileUpdated =
+      (event) => {
+        const updatedUser =
+          event.detail;
 
-      if (updatedUser) {
-        setUser(updatedUser);
+        if (updatedUser) {
+          setUser(updatedUser);
 
-        localStorage.setItem(
-          "user",
-          JSON.stringify(
-            updatedUser
-          )
-        );
-      }
-    };
+          localStorage.setItem(
+            "user",
+            JSON.stringify(
+              updatedUser
+            )
+          );
+        }
+      };
 
     window.addEventListener(
       "profileUpdated",
@@ -281,92 +879,226 @@ const Navbar = ({
     };
   }, []);
 
-  // =====================================================
+  // ==========================================================
   // LOGOUT
-  // =====================================================
+  // ==========================================================
 
-  const handleLogout = () => {
-    setMobileMenuOpen(false);
+  const handleLogout =
+    () => {
+      setMobileMenuOpen(false);
 
-    localStorage.removeItem(
-      "access_token"
-    );
+      localStorage.removeItem(
+        "access_token"
+      );
 
-    localStorage.removeItem(
-      "refresh_token"
-    );
+      localStorage.removeItem(
+        "refresh_token"
+      );
 
-    localStorage.removeItem("user");
+      localStorage.removeItem(
+        "user"
+      );
 
-    setUser(null);
+      setUser(null);
 
-    navigate("/login");
-  };
+      navigate("/login");
+    };
 
-  // =====================================================
+  // ==========================================================
   // USER INITIAL
-  // =====================================================
+  // ==========================================================
 
-  const getUserInitial = () => {
-    if (!user?.name) {
-      return "U";
-    }
+  const getUserInitial =
+    () => {
+      if (!user?.name) {
+        return "U";
+      }
 
-    return user.name
-      .charAt(0)
-      .toUpperCase();
+      return user.name
+        .charAt(0)
+        .toUpperCase();
+    };
+
+  // ==========================================================
+  // MOBILE MENU
+  // ==========================================================
+
+  const closeMobileMenu =
+    () => {
+      setMobileMenuOpen(false);
+    };
+
+  // ==========================================================
+  // PROFILE
+  // ==========================================================
+
+  const handleOpenProfile =
+    () => {
+      closeMobileMenu();
+
+      navigate("/profile");
+    };
+
+  // ==========================================================
+  // DESKTOP NAV BUTTON
+  // ==========================================================
+
+  const navButtonSx = (path) => ({
+    color: isActiveRoute(path)
+      ? theme.palette.primary.main
+      : textPrimary,
+
+    backgroundColor: isActiveRoute(path)
+      ? darkMode
+        ? "rgba(25, 118, 210, 0.18)"
+        : "rgba(25, 118, 210, 0.10)"
+      : "transparent",
+
+    borderRadius: "10px",
+
+    px: 1.5,
+
+    minHeight: 40,
+
+    textTransform: "none",
+
+    fontWeight: isActiveRoute(path)
+      ? 700
+      : 600,
+
+    transition:
+      "background-color 0.2s ease, color 0.2s ease, transform 0.2s ease",
+
+    "&:hover": {
+      backgroundColor: darkMode
+        ? "rgba(25, 118, 210, 0.16)"
+        : "rgba(25, 118, 210, 0.08)",
+
+      color: theme.palette.primary.main,
+    },
+
+    "& .MuiButton-startIcon": {
+      marginRight: 0.7,
+    },
+
+    "& svg": {
+      fontSize: 20,
+    },
+
+    // IMPORTANT: remove underline
+    "&::after": {
+      display: "none",
+    },
+  });
+
+  // ==========================================================
+  // MOBILE NAV BUTTON
+  // ==========================================================
+
+ const mobileNavButtonSx = (path) => ({
+  borderRadius: "10px",
+  mb: 0.4,
+
+  color: isActiveRoute(path)
+    ? theme.palette.primary.main
+    : textPrimary,
+
+  backgroundColor: isActiveRoute(path)
+    ? darkMode
+      ? "rgba(25, 118, 210, 0.18)"
+      : "rgba(25, 118, 210, 0.10)"
+    : "transparent",
+
+  fontWeight: isActiveRoute(path)
+    ? 700
+    : 500,
+
+  transition:
+    "background-color 0.2s ease, color 0.2s ease",
+
+  "&:hover": {
+    backgroundColor: darkMode
+      ? "rgba(25, 118, 210, 0.16)"
+      : "rgba(25, 118, 210, 0.08)",
+
+    color: theme.palette.primary.main,
+  },
+
+  "& .MuiListItemIcon-root": {
+    color: isActiveRoute(path)
+      ? theme.palette.primary.main
+      : "inherit",
+  },
+});
+
+  const isActiveRoute = (path) => {
+    return location.pathname === path;
   };
 
-  // =====================================================
-  // CLOSE MOBILE MENU
-  // =====================================================
+  // ==========================================================
+  // ICON BUTTON
+  // ==========================================================
 
-  const closeMobileMenu = () => {
-    setMobileMenuOpen(false);
+  const iconButtonSx = {
+    width: 42,
+
+    height: 42,
+
+    borderRadius: "11px",
+
+    color: textPrimary,
+
+    transition:
+      "all 0.2s ease",
+
+    "&:hover": {
+      backgroundColor: hoverBg,
+
+      color:
+        theme.palette.primary.main,
+
+      transform:
+        "translateY(-1px)",
+    },
+
+    "& svg": {
+      fontSize: 22,
+    },
   };
 
-  // =====================================================
-  // OPEN PROFILE
-  // =====================================================
-
-  const handleOpenProfile = () => {
-    closeMobileMenu();
-
-    navigate("/profile");
-  };
-
-  // =====================================================
-  // OPEN AI ASSISTANT
-  // =====================================================
-
-  const handleOpenAIAssistant = () => {
-    closeMobileMenu();
-
-    navigate("/ai-assistant");
-  };
-
-  // =====================================================
+  // ==========================================================
   // UI
-  // =====================================================
+  // ==========================================================
 
   return (
- <AppBar
-  position="sticky"
-  elevation={0}
-  sx={{
-    background:
-      "linear-gradient(90deg, #1565c0 0%, #3949ab 50%, #7b1fa2 100%)",
+    <AppBar
+      position="sticky"
+      elevation={0}
+      sx={{
+        backgroundColor: navbarBg,
 
-    color: "white",
+        color: textPrimary,
 
-    boxShadow:
-      "0 4px 18px rgba(63, 81, 181, 0.25)",
+        borderBottom:
+          `1px solid ${borderColor}`,
 
-    borderRadius: "0 0 18px 18px",
+        boxShadow: darkMode
+          ? "0 4px 18px rgba(0,0,0,0.25)"
+          : "0 4px 18px rgba(15,23,42,0.08)",
 
-    overflow: "hidden",
-  }}
->
+        borderRadius:
+          "0 0 18px 18px",
+
+        overflow: "hidden",
+
+        transition:
+          "background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease",
+      }}
+    >
+      {/* ======================================================
+          TOOLBAR
+      ====================================================== */}
+
       <Toolbar
         sx={{
           minHeight: {
@@ -381,9 +1113,7 @@ const Navbar = ({
           },
         }}
       >
-        {/* =================================================
-            LOGO
-        ================================================= */}
+        {/* LOGO */}
 
         <Box
           component={Link}
@@ -393,11 +1123,13 @@ const Navbar = ({
             flexGrow: 1,
 
             display: "flex",
+
             alignItems: "center",
 
             textDecoration: "none",
 
             width: "fit-content",
+
             minWidth: 0,
           }}
         >
@@ -413,9 +1145,9 @@ const Navbar = ({
               },
 
               height: {
-                xs: 42,
-                sm: 46,
-                md: 50,
+                xs: 72,
+                sm: 76,
+                md: 80,
               },
 
               objectFit: "contain",
@@ -424,8 +1156,6 @@ const Navbar = ({
                 "left center",
 
               display: "block",
-
-              borderRadius: 1,
 
               transition:
                 "transform 0.2s ease",
@@ -438,9 +1168,9 @@ const Navbar = ({
           />
         </Box>
 
-        {/* =================================================
+        {/* ====================================================
             DESKTOP NAVIGATION
-        ================================================= */}
+        ==================================================== */}
 
         {!isMobile && (
           <Box
@@ -450,95 +1180,83 @@ const Navbar = ({
               gap: 0.5,
             }}
           >
-            {/* =========================
-                DASHBOARD
-            ========================= */}
+            {/* DASHBOARD */}
 
             <Button
               color="inherit"
               component={Link}
               to="/dashboard"
-              startIcon={
-                <DashboardIcon />
-              }
+              startIcon={<DashboardIcon />}
+              sx={navButtonSx("/dashboard")}
             >
               Dashboard
             </Button>
 
-            {/* =========================
-                COURSES
-            ========================= */}
+            {/* COURSES */}
 
             <Button
               color="inherit"
-              component={Link}
+              component={NavLink}
               to="/courses"
               startIcon={
                 <SchoolIcon />
               }
+              sx={navButtonSx("/courses")}
             >
               Courses
             </Button>
 
-            {/* =========================
-                AI ASSISTANT
-                ALL AUTHENTICATED USERS
-            ========================= */}
+            {/* AI ASSISTANT */}
 
             <Button
-
               color="inherit"
-              component={Link}
+              component={NavLink}
               to="/ai-assistant"
               startIcon={
                 <SmartToy />
               }
+              sx={navButtonSx("/ai-assistant")}
             >
               AI Assistant
             </Button>
 
-            {/* =========================
-                MY COURSES
-                STUDENT ONLY
-            ========================= */}
+            {/* MY COURSES */}
 
             {user?.role ===
               "student" && (
-              <Button
-                color="inherit"
-                component={Link}
-                to="/my-courses"
-                startIcon={
-                  <LibraryBooks />
-                }
-              >
-                My Courses
-              </Button>
-            )}
+                <Button
+                  color="inherit"
+                  component={NavLink}
+                  to="/my-courses"
+                  startIcon={
+                    <LibraryBooks />
+                  }
+                  sx={navButtonSx("/my-course")}
+                >
+                  My Courses
+                </Button>
+              )}
 
-            {/* =========================
-                CREATE COURSE
-                TEACHER + ADMIN
-            ========================= */}
+            {/* CREATE COURSE */}
 
             {(user?.role ===
               "teacher" ||
-              user?.role === "admin") && (
-              <Button
-                color="inherit"
-                component={Link}
-                to="/courses/create"
-                startIcon={
-                  <AddIcon />
-                }
-              >
-                Create Course
-              </Button>
-            )}
+              user?.role ===
+              "admin") && (
+                <Button
+                  color="inherit"
+                  component={NavLink}
+                  to="/courses/create"
+                  startIcon={
+                    <AddIcon />
+                  }
+                  sx={navButtonSx("/course/create")}
+                >
+                  Create Course
+                </Button>
+              )}
 
-            {/* =========================
-                THEME TOGGLE
-            ========================= */}
+            {/* THEME */}
 
             <Tooltip
               title={
@@ -547,81 +1265,45 @@ const Navbar = ({
                   : "Dark Mode"
               }
             >
-            <IconButton
-  onClick={toggleTheme}
-  aria-label={
-    darkMode
-      ? "Switch to light mode"
-      : "Switch to dark mode"
-  }
-  sx={{
-    color: "#fff",
-    width: 42,
-    height: 42,
-    borderRadius: "12px",
-    transition: "all 0.25s ease",
-
-    "&:hover": {
-      backgroundColor: "rgba(255,255,255,0.24)",
-      transform: "translateY(-1px)",
-    },
-
-    "& svg": {
-      fontSize: 23,
-    },
-  }}
->
-  {darkMode ? <LightMode /> : <DarkMode />}
-</IconButton>
-              
+              <IconButton
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+                sx={iconButtonSx}
+              >
+                {darkMode ? (
+                  <LightMode />
+                ) : (
+                  <DarkMode />
+                )}
+              </IconButton>
             </Tooltip>
 
-            {/* =========================
-                NOTIFICATIONS
-            ========================= */}
+            {/* NOTIFICATIONS */}
 
-          <IconButton
-  onClick={openNotification}
-  aria-label="Notifications"
-  sx={{
-    color: "#fff",
-    width: 42,
-    height: 42,
-    borderRadius: "12px",
-    // backgroundColor: "rgba(255,255,255,0.14)",
-    // border: "1px solid rgba(255,255,255,0.18)",
-    transition: "all 0.25s ease",
+            <Tooltip title="Notifications">
+              <IconButton
+                ref={
+                  notificationButtonRef
+                }
+                onClick={
+                  openNotification
+                }
+                aria-label="Notifications"
+                sx={iconButtonSx}
+              >
+                <Badge
+                  badgeContent={
+                    unreadCount
+                  }
+                  color="error"
+                  max={99}
+                >
+                  <NotificationsIcon />
+                </Badge>
+              </IconButton>
+            </Tooltip>
 
-    "&:hover": {
-      backgroundColor: "rgba(255,255,255,0.24)",
-      transform: "translateY(-1px)",
-    },
-
-    "& svg": {
-      fontSize: 23,
-    },
-  }}
->
-  <Badge
-    badgeContent={unreadCount}
-    color="error"
-    max={99}
-    sx={{
-      "& .MuiBadge-badge": {
-        fontWeight: 700,
-        minWidth: 19,
-        height: 19,
-        fontSize: "0.7rem",
-      },
-    }}
-  >
-    <NotificationsIcon />
-  </Badge>
-</IconButton>
-
-            {/* =========================
-                PROFILE AVATAR
-            ========================= */}
+            {/* PROFILE */}
 
             <Tooltip
               title={
@@ -634,11 +1316,9 @@ const Navbar = ({
                 onClick={
                   handleOpenProfile
                 }
-                color="inherit"
-                aria-label="Open profile"
                 sx={{
                   ml: 0.5,
-                  p: 0.5,
+                  p: 0.4,
                   borderRadius: "50%",
                 }}
               >
@@ -652,26 +1332,19 @@ const Navbar = ({
                     "Profile"
                   }
                   sx={{
-                    width: 36,
-                    height: 36,
+                    width: 37,
+                    height: 37,
 
                     bgcolor:
-                      "secondary.main",
+                      theme.palette
+                        .primary.main,
 
-                    fontWeight: 600,
+                    color:
+                      theme.palette
+                        .primary
+                        .contrastText,
 
-                    border: "2px solid",
-
-                    borderColor:
-                      "rgba(255,255,255,0.7)",
-
-                    transition:
-                      "transform 0.2s ease",
-
-                    "&:hover": {
-                      transform:
-                        "scale(1.06)",
-                    },
+                    fontWeight: 700,
                   }}
                 >
                   {!user?.profileImageUrl &&
@@ -682,28 +1355,63 @@ const Navbar = ({
           </Box>
         )}
 
-        {/* =================================================
-            MOBILE MENU BUTTON
-        ================================================= */}
+        {/* ====================================================
+            MOBILE
+        ==================================================== */}
 
         {isMobile && (
-          <IconButton
-            color="inherit"
-            onClick={() =>
-              setMobileMenuOpen(
-                true
-              )
-            }
-            aria-label="Open navigation menu"
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+            }}
           >
-            <MenuIcon />
-          </IconButton>
+            {/* MOBILE NOTIFICATION */}
+
+            <Tooltip title="Notifications">
+              <IconButton
+                ref={
+                  notificationButtonRef
+                }
+                onClick={
+                  openNotification
+                }
+                aria-label="Notifications"
+                sx={iconButtonSx}
+              >
+                <Badge
+                  badgeContent={
+                    unreadCount
+                  }
+                  color="error"
+                  max={99}
+                >
+                  <NotificationsIcon />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+
+            {/* MOBILE MENU */}
+
+            <IconButton
+              onClick={() =>
+                setMobileMenuOpen(
+                  true
+                )
+              }
+              aria-label="Open navigation menu"
+              sx={iconButtonSx}
+            >
+              <MenuIcon />
+            </IconButton>
+          </Box>
         )}
       </Toolbar>
 
-      {/* =================================================
+      {/* ======================================================
           NOTIFICATION MENU
-      ================================================= */}
+      ====================================================== */}
 
       <Menu
         anchorEl={
@@ -715,64 +1423,303 @@ const Navbar = ({
         onClose={
           closeNotification
         }
-        PaperProps={{
-          sx: {
-            width: {
-              xs: 300,
-              sm: 360,
-            },
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              width: {
+                xs: 300,
+                sm: 350,
+              },
 
-            maxHeight: 450,
+              maxWidth:
+                "calc(100vw - 24px)",
+
+              maxHeight: 500,
+
+              mt: 1,
+
+              borderRadius: "14px",
+
+              bgcolor:
+                theme.palette
+                  .background.paper,
+
+              color:
+                theme.palette
+                  .text.primary,
+
+              border:
+                `1px solid ${borderColor}`,
+
+              boxShadow: darkMode
+                ? "0 14px 35px rgba(0,0,0,0.35)"
+                : "0 14px 35px rgba(15,23,42,0.12)",
+
+              overflow: "hidden",
+            },
           },
         }}
       >
-        <MenuItem disabled>
-          <b>Notifications</b>
-        </MenuItem>
+        {/* HEADER */}
 
-        <MenuItem
-          onClick={
-            handleReadAll
-          }
+        <Box
+          sx={{
+            px: 1.8,
+            py: 1.4,
+
+            display: "flex",
+
+            alignItems: "center",
+
+            justifyContent:
+              "space-between",
+
+            borderBottom:
+              `1px solid ${borderColor}`,
+          }}
         >
-          Mark All Read
-        </MenuItem>
+          <Typography
+            sx={{
+              fontSize: "0.95rem",
+              fontWeight: 700,
+              color: textPrimary,
+            }}
+          >
+            Notifications
+          </Typography>
 
-        <Divider />
+          {notifications.length >
+            0 && (
+              <Typography
+                sx={{
+                  fontSize: "0.72rem",
+                  color:
+                    textSecondary,
+                }}
+              >
+                {notifications.length}{" "}
+                {notifications.length ===
+                  1
+                  ? "notification"
+                  : "notifications"}
+              </Typography>
+            )}
+        </Box>
+
+        {/* ACTIONS */}
+
+        {notifications.length >
+          0 && (
+            <Box
+              sx={{
+                px: 1.5,
+                py: 0.8,
+
+                display: "flex",
+
+                justifyContent:
+                  "space-between",
+
+                alignItems: "center",
+
+                gap: 1,
+
+                borderBottom:
+                  `1px solid ${borderColor}`,
+              }}
+            >
+              <Button
+                size="small"
+                onClick={
+                  handleReadAll
+                }
+                disabled={
+                  unreadCount === 0
+                }
+                sx={{
+                  textTransform:
+                    "none",
+
+                  fontSize:
+                    "0.78rem",
+
+                  fontWeight: 600,
+
+                  minWidth: "auto",
+
+                  px: 1,
+                }}
+              >
+                Mark All Read
+              </Button>
+
+              <Button
+                size="small"
+                color="error"
+                startIcon={
+                  <DeleteIcon />
+                }
+                onClick={
+                  handleClearAll
+                }
+                sx={{
+                  textTransform:
+                    "none",
+
+                  fontSize:
+                    "0.78rem",
+
+                  fontWeight: 600,
+
+                  minWidth: "auto",
+
+                  px: 1,
+                }}
+              >
+                Clear All
+              </Button>
+            </Box>
+          )}
+
+        {/* EMPTY */}
 
         {notifications.length ===
-        0 ? (
-          <MenuItem>
-            No Notifications
-          </MenuItem>
+          0 ? (
+          <Box
+            sx={{
+              py: 4,
+              px: 2,
+              textAlign: "center",
+            }}
+          >
+            <NotificationsIcon
+              sx={{
+                fontSize: 36,
+
+                color:
+                  textSecondary,
+
+                opacity: 0.5,
+
+                mb: 1,
+              }}
+            />
+
+            <Typography
+              sx={{
+                fontSize:
+                  "0.85rem",
+
+                color:
+                  textSecondary,
+              }}
+            >
+              No Notifications
+            </Typography>
+          </Box>
         ) : (
-          notifications.map(
-            (item) => (
-              <MenuItem
-                key={item.id}
-                onClick={() =>
-                  handleRead(
-                    item.id
-                  )
-                }
-              >
-                <ListItemText
-                  primary={
-                    item.title
+          <Box
+            sx={{
+              maxHeight: 390,
+              overflowY: "auto",
+
+              "&::-webkit-scrollbar": {
+                width: "5px",
+              },
+
+              "&::-webkit-scrollbar-thumb":
+              {
+                backgroundColor:
+                  theme.palette
+                    .action
+                    .disabled,
+
+                borderRadius:
+                  "10px",
+              },
+            }}
+          >
+            {notifications.map(
+              (item) => (
+                <NotificationItem
+                  key={item.id}
+                  item={item}
+                  darkMode={
+                    darkMode
                   }
-                  secondary={
-                    item.message
+                  theme={theme}
+                  textPrimary={
+                    textPrimary
+                  }
+                  textSecondary={
+                    textSecondary
+                  }
+                  borderColor={
+                    borderColor
+                  }
+                  hoverBg={hoverBg}
+                  expandedNotification={
+                    expandedNotification
+                  }
+                  setExpandedNotification={
+                    setExpandedNotification
+                  }
+                  handleRead={
+                    handleRead
+                  }
+                  handleDeleteNotification={
+                    handleDeleteNotification
                   }
                 />
-              </MenuItem>
-            )
-          )
+              )
+            )}
+          </Box>
         )}
+
+        {/* SWIPE HINT */}
+
+        {notifications.length >
+          0 &&
+          isMobile && (
+            <Box
+              sx={{
+                px: 1.5,
+                py: 0.8,
+
+                textAlign: "center",
+
+                borderTop:
+                  `1px solid ${borderColor}`,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize:
+                    "0.65rem",
+
+                  color:
+                    textSecondary,
+
+                  opacity: 0.75,
+                }}
+              >
+                Swipe left to delete
+              </Typography>
+            </Box>
+          )}
       </Menu>
 
-      {/* =================================================
+      {/* ======================================================
           MOBILE DRAWER
-      ================================================= */}
+      ====================================================== */}
 
       <Drawer
         anchor="right"
@@ -780,31 +1727,50 @@ const Navbar = ({
         onClose={
           closeMobileMenu
         }
+        slotProps={{
+          paper: {
+            sx: {
+              width: {
+                xs: 290,
+                sm: 320,
+              },
+
+              bgcolor:
+                theme.palette
+                  .background.paper,
+
+              color:
+                theme.palette
+                  .text.primary,
+
+              borderLeft:
+                `1px solid ${borderColor}`,
+            },
+          },
+        }}
       >
-        <Box
-          sx={{
-            width: 280,
-          }}
-          role="presentation"
-        >
-          {/* =========================
-              USER INFO
-          ========================= */}
+        <Box>
+          {/* USER INFO */}
 
           <Box
             sx={{
               p: 2.5,
 
               display: "flex",
+
               alignItems: "center",
 
               gap: 1.5,
 
-              backgroundColor:
-                "primary.main",
+              background:
+                darkMode
+                  ? `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`
+                  : `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
 
               color:
-                "primary.contrastText",
+                theme.palette
+                  .primary
+                  .contrastText,
             }}
           >
             <Avatar
@@ -818,9 +1784,15 @@ const Navbar = ({
               }
               sx={{
                 bgcolor:
-                  "secondary.main",
+                  theme.palette
+                    .background
+                    .paper,
 
-                fontWeight: 600,
+                color:
+                  theme.palette
+                    .primary.main,
+
+                fontWeight: 700,
               }}
             >
               {!user?.profileImageUrl &&
@@ -832,11 +1804,12 @@ const Navbar = ({
                 minWidth: 0,
               }}
             >
-              <Box
+              <Typography
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 700,
 
-                  fontSize: "1rem",
+                  fontSize:
+                    "1rem",
 
                   whiteSpace:
                     "nowrap",
@@ -846,20 +1819,18 @@ const Navbar = ({
 
                   textOverflow:
                     "ellipsis",
-
-                  maxWidth: 190,
                 }}
               >
                 {user?.name ||
                   "User"}
-              </Box>
+              </Typography>
 
-              <Box
+              <Typography
                 sx={{
                   fontSize:
                     "0.75rem",
 
-                  opacity: 0.8,
+                  opacity: 0.85,
 
                   textTransform:
                     "capitalize",
@@ -867,25 +1838,24 @@ const Navbar = ({
               >
                 {user?.role ||
                   "Student"}
-              </Box>
+              </Typography>
             </Box>
           </Box>
 
-          {/* =========================
-              MOBILE NAVIGATION
-          ========================= */}
+          {/* NAVIGATION */}
 
-          <List>
-            {/* =========================
-                DASHBOARD
-            ========================= */}
+          <List sx={{ p: 1 }}>
+            {/* DASHBOARD */}
 
             <ListItem disablePadding>
               <ListItemButton
-                component={Link}
+                component={NavLink}
                 to="/dashboard"
                 onClick={
                   closeMobileMenu
+                }
+                sx={
+                  mobileNavButtonSx("/dashboard")
                 }
               >
                 <ListItemIcon>
@@ -898,16 +1868,17 @@ const Navbar = ({
               </ListItemButton>
             </ListItem>
 
-            {/* =========================
-                COURSES
-            ========================= */}
+            {/* COURSES */}
 
             <ListItem disablePadding>
               <ListItemButton
-                component={Link}
+                component={NavLink}
                 to="/courses"
                 onClick={
                   closeMobileMenu
+                }
+                sx={
+                  mobileNavButtonSx("/courses")
                 }
               >
                 <ListItemIcon>
@@ -920,17 +1891,17 @@ const Navbar = ({
               </ListItemButton>
             </ListItem>
 
-            {/* =========================
-                AI ASSISTANT
-                ALL AUTHENTICATED USERS
-            ========================= */}
+            {/* AI */}
 
             <ListItem disablePadding>
               <ListItemButton
-                component={Link}
+                component={NavLink}
                 to="/ai-assistant"
                 onClick={
                   closeMobileMenu
+                }
+                sx={
+                  mobileNavButtonSx("/ai-assistant")
                 }
               >
                 <ListItemIcon>
@@ -943,67 +1914,71 @@ const Navbar = ({
               </ListItemButton>
             </ListItem>
 
-            {/* =========================
-                MY COURSES
-                STUDENT ONLY
-            ========================= */}
+            {/* MY COURSES */}
 
             {user?.role ===
               "student" && (
-              <ListItem disablePadding>
-                <ListItemButton
-                  component={Link}
-                  to="/my-courses"
-                  onClick={
-                    closeMobileMenu
-                  }
-                >
-                  <ListItemIcon>
-                    <LibraryBooks />
-                  </ListItemIcon>
+                <ListItem disablePadding>
+                  <ListItemButton
+                    component={NavLink}
+                    to="/my-courses"
+                    onClick={
+                      closeMobileMenu
+                    }
+                    sx={
+                      mobileNavButtonSx
+                    }
+                  >
+                    <ListItemIcon>
+                      <LibraryBooks />
+                    </ListItemIcon>
 
-                  <ListItemText>
-                    My Courses
-                  </ListItemText>
-                </ListItemButton>
-              </ListItem>
-            )}
+                    <ListItemText>
+                      My Courses
+                    </ListItemText>
+                  </ListItemButton>
+                </ListItem>
+              )}
 
-            {/* =========================
-                CREATE COURSE
-                TEACHER + ADMIN
-            ========================= */}
+            {/* CREATE COURSE */}
 
             {(user?.role ===
               "teacher" ||
-              user?.role === "admin") && (
-              <ListItem disablePadding>
-                <ListItemButton
-                  component={Link}
-                  to="/courses/create"
-                  onClick={
-                    closeMobileMenu
-                  }
-                >
-                  <ListItemIcon>
-                    <AddIcon />
-                  </ListItemIcon>
+              user?.role ===
+              "admin") && (
+                <ListItem disablePadding>
+                  <ListItemButton
+                    component={NavLink}
+                    to="/courses/create"
+                    onClick={
+                      closeMobileMenu
+                    }
+                    sx={
+                      mobileNavButtonSx("/courses/create")
+                    }
+                  >
+                    <ListItemIcon>
+                      <AddIcon />
+                    </ListItemIcon>
 
-                  <ListItemText>
-                    Create Course
-                  </ListItemText>
-                </ListItemButton>
-              </ListItem>
-            )}
+                    <ListItemText>
+                      Create Course
+                    </ListItemText>
+                  </ListItemButton>
+                </ListItem>
+              )}
 
-            {/* =========================
-                PROFILE
-            ========================= */}
+            {/* PROFILE */}
 
             <ListItem disablePadding>
               <ListItemButton
+                component={NavLink}
+                to="/profile"
                 onClick={
-                  handleOpenProfile
+                  closeMobileMenu
+                }
+                sx={
+                  mobileNavButtonSx("/profile")
                 }
               >
                 <ListItemIcon>
@@ -1016,23 +1991,82 @@ const Navbar = ({
               </ListItemButton>
             </ListItem>
 
-            <Divider
-              sx={{
-                my: 1,
-              }}
-            />
+            <Divider sx={{ my: 1.5 }} />
 
-            {/* =========================
-                THEME
-            ========================= */}
+            {/* NOTIFICATIONS */}
 
             <ListItem disablePadding>
               <ListItemButton
                 onClick={
-                  toggleTheme
+                  openMobileNotifications
                 }
+                sx={{
+                  borderRadius:
+                    "10px",
+                  mb: 0.4,
+                  color: textPrimary,
+
+                  "&:hover": {
+                    backgroundColor:
+                      hoverBg,
+
+                    color:
+                      theme.palette
+                        .primary
+                        .main,
+                  },
+                }}
               >
-                <ListItemIcon>
+                <ListItemIcon
+                  sx={{
+                    minWidth: 42,
+                    color: "inherit",
+                  }}
+                >
+                  <Badge
+                    badgeContent={
+                      unreadCount
+                    }
+                    color="error"
+                  >
+                    <NotificationsIcon />
+                  </Badge>
+                </ListItemIcon>
+
+                <ListItemText>
+                  Notifications
+                </ListItemText>
+              </ListItemButton>
+            </ListItem>
+
+            {/* THEME */}
+
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={toggleTheme}
+                sx={{
+                  borderRadius:
+                    "10px",
+                  mb: 0.4,
+                  color: textPrimary,
+
+                  "&:hover": {
+                    backgroundColor:
+                      hoverBg,
+
+                    color:
+                      theme.palette
+                        .primary
+                        .main,
+                  },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 42,
+                    color: "inherit",
+                  }}
+                >
                   {darkMode ? (
                     <LightMode />
                   ) : (
@@ -1048,17 +2082,36 @@ const Navbar = ({
               </ListItemButton>
             </ListItem>
 
-            {/* =========================
-                LOGOUT
-            ========================= */}
+            {/* LOGOUT */}
 
             <ListItem disablePadding>
               <ListItemButton
                 onClick={
                   handleLogout
                 }
+                sx={{
+                  borderRadius:
+                    "10px",
+
+                  color:
+                    theme.palette
+                      .error.main,
+
+                  "&:hover": {
+                    backgroundColor:
+                      theme.palette
+                        .error.main +
+                      "12",
+                  },
+                }}
               >
-                <ListItemIcon>
+                <ListItemIcon
+                  sx={{
+                    minWidth: 42,
+
+                    color: "inherit",
+                  }}
+                >
                   <LogoutIcon />
                 </ListItemIcon>
 
@@ -1075,4 +2128,3 @@ const Navbar = ({
 };
 
 export default Navbar;
-

@@ -642,7 +642,7 @@ export class LiveClassGateway
   }
 
   // ====================================================
-  // LIVE CLASS ENDED
+  // LIVE CLASS ENDED 
   // ====================================================
 
   @SubscribeMessage('live-class-ended')
