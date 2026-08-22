@@ -33,9 +33,9 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import Hero3DBackground from "./Hero3DBackground";
-import Tilt3DCard from "./Tilt3DCard";
+import Tilt3DCard from "./Tilt3Dcard";
 import Reveal from "./Reveal";
-import CountUp from "./CountUp";
+import CountUp from "./Countup";
 
 const Home = () => {
   const navigate = useNavigate();
