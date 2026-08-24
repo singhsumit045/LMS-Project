@@ -626,140 +626,140 @@ const TeacherDashboard = () => {
                         }}
                     >
                         <Box
-    sx={{
-        width: "100%",
-        position: "relative",
-    }}
->
-    {/* HEADER */}
-    <Box
-        sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 2,
-            pr: { xs: 1, sm: 2, md: 3 },
-        }}
-    >
-        {/* TEXT */}
-        <Box sx={{ minWidth: 0 }}>
-            <Typography
-                variant="overline"
-                fontWeight={800}
-                sx={{
-                    color: theme.palette.primary.main,
-                    letterSpacing: 1.2,
-                    fontSize: {
-                        xs: "0.65rem",
-                        sm: "0.75rem",
-                    },
-                    lineHeight: 1.2,
-                }}
-            >
-                TEACHER PORTAL
-            </Typography>
+                            sx={{
+                                width: "100%",
+                                position: "relative",
+                            }}
+                        >
+                            {/* HEADER */}
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: 2,
+                                    pr: { xs: 1, sm: 2, md: 3 },
+                                }}
+                            >
+                                {/* TEXT */}
+                                <Box sx={{ minWidth: 0 }}>
+                                    <Typography
+                                        variant="overline"
+                                        fontWeight={800}
+                                        sx={{
+                                            color: theme.palette.primary.main,
+                                            letterSpacing: 1.2,
+                                            fontSize: {
+                                                xs: "0.65rem",
+                                                sm: "0.75rem",
+                                            },
+                                            lineHeight: 1.2,
+                                        }}
+                                    >
+                                        TEACHER PORTAL
+                                    </Typography>
 
-          <Typography
-    variant="h4"
-    fontWeight={800}
-    sx={{
-        mt: 0.4,
-        color: theme.palette.text.primary,
+                                    <Typography
+                                        variant="h4"
+                                        fontWeight={800}
+                                        sx={{
+                                            mt: 0.4,
+                                            color: theme.palette.text.primary,
 
-        fontSize: {
-            xs: "1.35rem",
-            sm: "2rem",
-            md: "2.45rem",
-        },
+                                            fontSize: {
+                                                xs: "1.35rem",
+                                                sm: "2rem",
+                                                md: "2.45rem",
+                                            },
 
-        lineHeight: 1.2,
+                                            lineHeight: 1.2,
 
-        // Mobile par ek hi line
-        whiteSpace: "nowrap",
+                                            // Mobile par ek hi line
+                                            whiteSpace: "nowrap",
 
-        // Agar screen bahut chhoti ho
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-    }}
->
-    Teacher Dashboard
-</Typography>
-        </Box>
+                                            // Agar screen bahut chhoti ho
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                        }}
+                                    >
+                                        Teacher Dashboard
+                                    </Typography>
+                                </Box>
 
-        {/* ICON - RIGHT SIDE */}
-        <Box
-            sx={{
-                width: {
-                    xs: 48,
-                    sm: 56,
-                    md: 64,
-                },
-                height: {
-                    xs: 48,
-                    sm: 56,
-                    md: 64,
-                },
-                minWidth: {
-                    xs: 48,
-                    sm: 56,
-                    md: 64,
-                },
+                                {/* ICON - RIGHT SIDE */}
+                                <Box
+                                    sx={{
+                                        width: {
+                                            xs: 48,
+                                            sm: 56,
+                                            md: 64,
+                                        },
+                                        height: {
+                                            xs: 48,
+                                            sm: 56,
+                                            md: 64,
+                                        },
+                                        minWidth: {
+                                            xs: 48,
+                                            sm: 56,
+                                            md: 64,
+                                        },
 
-                borderRadius: {
-                    xs: "14px",
-                    sm: "16px",
-                },
+                                        borderRadius: {
+                                            xs: "14px",
+                                            sm: "16px",
+                                        },
 
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
 
-                backgroundColor:
-                    `${theme.palette.primary.main}14`,
+                                        backgroundColor:
+                                            `${theme.palette.primary.main}14`,
 
-                color:
-                    theme.palette.primary.main,
+                                        color:
+                                            theme.palette.primary.main,
 
-                border:
-                    `1px solid ${theme.palette.primary.main}25`,
-            }}
-        >
-            <School
-                sx={{
-                    fontSize: {
-                        xs: 25,
-                        sm: 30,
-                        md: 34,
-                    },
-                }}
-            />
-        </Box>
-    </Box>
+                                        border:
+                                            `1px solid ${theme.palette.primary.main}25`,
+                                    }}
+                                >
+                                    <School
+                                        sx={{
+                                            fontSize: {
+                                                xs: 25,
+                                                sm: 30,
+                                                md: 34,
+                                            },
+                                        }}
+                                    />
+                                </Box>
+                            </Box>
 
-    {/* DESCRIPTION */}
-    <Typography
-        sx={{
-            mt: 1,
+                            {/* DESCRIPTION */}
+                            <Typography
+                                sx={{
+                                    mt: 1,
 
-            maxWidth: 650,
+                                    maxWidth: 650,
 
-            lineHeight: 1.7,
+                                    lineHeight: 1.7,
 
-            color:
-                theme.palette.text.secondary,
+                                    color:
+                                        theme.palette.text.secondary,
 
-            fontSize: {
-                xs: "0.82rem",
-                sm: "0.95rem",
-            },
-        }}
-    >
-        Manage your courses, students, exams and
-        live classes from one place.
-    </Typography>
-</Box>
+                                    fontSize: {
+                                        xs: "0.82rem",
+                                        sm: "0.95rem",
+                                    },
+                                }}
+                            >
+                                Manage your courses, students, exams and
+                                live classes from one place.
+                            </Typography>
+                        </Box>
 
-                       
+
                     </Box>
                 </Paper>
 
@@ -823,43 +823,43 @@ const TeacherDashboard = () => {
                                             bgcolor:
                                                 "background.paper",
                                             border: "1px solid",
-                                                
-                                            borderColor:  "divider",
-                                               
+
+                                            borderColor: "divider",
+
                                             borderRadius: 3,
-                                            cursor:  "pointer",
-                                                    
+                                            cursor: "pointer",
+
                                             transition:
                                                 "transform .2s ease, box-shadow .2s ease, border-color .2s ease",
 
                                             "&::before":
-                                                {
-                                                    content:
-                                                        '""',
-                                                    position:
-                                                        "absolute",
-                                                    top: 0,
-                                                    left: 0,
-                                                    right: 0,
-                                                    height: 3,
-                                                    bgcolor:
-                                                        card.color,
-                                                },
+                                            {
+                                                content:
+                                                    '""',
+                                                position:
+                                                    "absolute",
+                                                top: 0,
+                                                left: 0,
+                                                right: 0,
+                                                height: 3,
+                                                bgcolor:
+                                                    card.color,
+                                            },
 
                                             "&:hover":
-                                               
-                                                     {
-                                                        transform:
-                                                            "translateY(-4px)",
-                                                        boxShadow:
-                                                            cardHoverShadow,
-                                                        borderColor:
-                                                            alpha(
-                                                                card.color,
-                                                                0.45
-                                                            ),
-                                                    }
-                                                    
+
+                                            {
+                                                transform:
+                                                    "translateY(-4px)",
+                                                boxShadow:
+                                                    cardHoverShadow,
+                                                borderColor:
+                                                    alpha(
+                                                        card.color,
+                                                        0.45
+                                                    ),
+                                            }
+
                                         }}
                                     >
                                         <Box
@@ -891,7 +891,7 @@ const TeacherDashboard = () => {
                                                 </Typography>
 
                                                 {card.value !==
-                                                null ? (
+                                                    null ? (
                                                     <Typography
                                                         variant="h4"
                                                         fontWeight={
@@ -923,15 +923,15 @@ const TeacherDashboard = () => {
 
                                                 {card.value !==
                                                     null && (
-                                                    <Typography
-                                                        variant="caption"
-                                                        color="text.secondary"
-                                                    >
-                                                        {
-                                                            card.subtitle
-                                                        }
-                                                    </Typography>
-                                                )}
+                                                        <Typography
+                                                            variant="caption"
+                                                            color="text.secondary"
+                                                        >
+                                                            {
+                                                                card.subtitle
+                                                            }
+                                                        </Typography>
+                                                    )}
                                             </Box>
 
                                             <Avatar
@@ -969,10 +969,10 @@ const TeacherDashboard = () => {
                                                     color:
                                                         card.color,
                                                     "&:hover":
-                                                        {
-                                                            bgcolor:  "transparent",
-                                                               
-                                                        },  
+                                                    {
+                                                        bgcolor: "transparent",
+
+                                                    },
                                                 }}
                                             >
                                                 View Results
@@ -1174,18 +1174,18 @@ const TeacherDashboard = () => {
 
                                 {sortedLiveClasses.length >
                                     0 && (
-                                    <Chip
-                                        size="small"
-                                        label={
-                                            sortedLiveClasses.length
-                                        }
-                                        color="primary"
-                                        variant="outlined"
-                                        sx={{
-                                            fontWeight: 700,
-                                        }}
-                                    />
-                                )}
+                                        <Chip
+                                            size="small"
+                                            label={
+                                                sortedLiveClasses.length
+                                            }
+                                            color="primary"
+                                            variant="outlined"
+                                            sx={{
+                                                fontWeight: 700,
+                                            }}
+                                        />
+                                    )}
                             </Box>
 
                             <Typography
@@ -1251,7 +1251,7 @@ const TeacherDashboard = () => {
                             <CircularProgress />
                         </Paper>
                     ) : sortedLiveClasses.length ===
-                      0 ? (
+                        0 ? (
                         <Paper
                             elevation={0}
                             sx={{
@@ -1276,7 +1276,7 @@ const TeacherDashboard = () => {
                                         ),
                                     color: primary,
                                 }}
-                            >
+                            >     
                                 <VideoCall
                                     sx={{
                                         fontSize: 32,
@@ -1865,7 +1865,7 @@ const TeacherDashboard = () => {
                     </Box>
 
                     {dashboard.courses.length ===
-                    0 ? (
+                        0 ? (
                         <Paper
                             elevation={0}
                             sx={{
@@ -1990,10 +1990,10 @@ const TeacherDashboard = () => {
                                                                 transition:
                                                                     "transform .3s ease",
                                                                 "&:hover":
-                                                                    {
-                                                                        transform:
-                                                                            "scale(1.04)",
-                                                                    },
+                                                                {
+                                                                    transform:
+                                                                        "scale(1.04)",
+                                                                },
                                                             }}
                                                             onError={(
                                                                 event
@@ -2157,7 +2157,7 @@ const TeacherDashboard = () => {
                                                                 }{" "}
                                                                 Student
                                                                 {studentCount !==
-                                                                1
+                                                                    1
                                                                     ? "s"
                                                                     : ""}
                                                             </Typography>
@@ -2183,10 +2183,10 @@ const TeacherDashboard = () => {
                                                             display:
                                                                 "grid",
                                                             gridTemplateColumns:
-                                                                {
-                                                                    xs: "1fr",
-                                                                    sm: "1fr 1fr",
-                                                                },
+                                                            {
+                                                                xs: "1fr",
+                                                                sm: "1fr 1fr",
+                                                            },
                                                             gap: 1,
                                                             mt: "auto",
                                                         }}
@@ -2252,10 +2252,10 @@ const TeacherDashboard = () => {
                                                                     "none",
                                                                 fontWeight: 700,
                                                                 gridColumn:
-                                                                    {
-                                                                        xs: "auto",
-                                                                        sm: "1 / -1",
-                                                                    },
+                                                                {
+                                                                    xs: "auto",
+                                                                    sm: "1 / -1",
+                                                                },
                                                             }}
                                                         >
                                                             Edit
@@ -2297,7 +2297,7 @@ const TeacherDashboard = () => {
                     </Box>
 
                     {dashboard.students.length ===
-                    0 ? (
+                        0 ? (
                         <Paper
                             elevation={0}
                             sx={{
@@ -2438,7 +2438,7 @@ const TeacherDashboard = () => {
                                                             }{" "}
                                                             Course
                                                             {courses.length !==
-                                                            1
+                                                                1
                                                                 ? "s"
                                                                 : ""}
                                                         </Typography>
@@ -2452,7 +2452,7 @@ const TeacherDashboard = () => {
                                                 />
 
                                                 {courses.length ===
-                                                0 ? (
+                                                    0 ? (
                                                     <Typography
                                                         variant="body2"
                                                         color="text.secondary"

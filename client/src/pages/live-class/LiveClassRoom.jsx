@@ -3324,7 +3324,7 @@ const LiveClassRoom = () => {
                         borderColor:
                           "divider",
                       }}
-                    >
+                    >     
                       <Stack
                         direction="row"
                         spacing={1}

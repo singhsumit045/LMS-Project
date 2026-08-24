@@ -995,41 +995,41 @@ const Navbar = ({
   // MOBILE NAV BUTTON
   // ==========================================================
 
- const mobileNavButtonSx = (path) => ({
-  borderRadius: "10px",
-  mb: 0.4,
+  const mobileNavButtonSx = (path) => ({
+    borderRadius: "10px",
+    mb: 0.4,
 
-  color: isActiveRoute(path)
-    ? theme.palette.primary.main
-    : textPrimary,
-
-  backgroundColor: isActiveRoute(path)
-    ? darkMode
-      ? "rgba(25, 118, 210, 0.18)"
-      : "rgba(25, 118, 210, 0.10)"
-    : "transparent",
-
-  fontWeight: isActiveRoute(path)
-    ? 700
-    : 500,
-
-  transition:
-    "background-color 0.2s ease, color 0.2s ease",
-
-  "&:hover": {
-    backgroundColor: darkMode
-      ? "rgba(25, 118, 210, 0.16)"
-      : "rgba(25, 118, 210, 0.08)",
-
-    color: theme.palette.primary.main,
-  },
-
-  "& .MuiListItemIcon-root": {
     color: isActiveRoute(path)
       ? theme.palette.primary.main
-      : "inherit",
-  },
-});
+      : textPrimary,
+
+    backgroundColor: isActiveRoute(path)
+      ? darkMode
+        ? "rgba(25, 118, 210, 0.18)"
+        : "rgba(25, 118, 210, 0.10)"
+      : "transparent",
+
+    fontWeight: isActiveRoute(path)
+      ? 700
+      : 500,
+
+    transition:
+      "background-color 0.2s ease, color 0.2s ease",
+
+    "&:hover": {
+      backgroundColor: darkMode
+        ? "rgba(25, 118, 210, 0.16)"
+        : "rgba(25, 118, 210, 0.08)",
+
+      color: theme.palette.primary.main,
+    },
+
+    "& .MuiListItemIcon-root": {
+      color: isActiveRoute(path)
+        ? theme.palette.primary.main
+        : "inherit",
+    },
+  });
 
   const isActiveRoute = (path) => {
     return location.pathname === path;
@@ -1367,6 +1367,14 @@ const Navbar = ({
               gap: 0.5,
             }}
           >
+
+            <IconButton
+              onClick={() => navigate("/ai-assistant")}
+              aria-label="AI Assistant"
+              sx={iconButtonSx}
+            >
+              <SmartToy />
+            </IconButton>
             {/* MOBILE NOTIFICATION */}
 
             <Tooltip title="Notifications">
