@@ -12,8 +12,6 @@ function App({ darkMode, toggleTheme }) {
     const accessToken =
       localStorage.getItem("access_token");
 
-    
-
     // ==========================================
     // NO TOKEN
     // ==========================================

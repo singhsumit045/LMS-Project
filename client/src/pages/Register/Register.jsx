@@ -25,7 +25,7 @@ import MailOutlineOutlinedIcon from "@mui/icons-material/MailOutlineOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import WorkspacePremiumOutlinedIcon from "@mui/icons-material/WorkspacePremiumOutlined";
 
-import logo from "../../assets/LearnHub.png";
+import logo from "../../assets/LearnHub-removebg-preview.png";
 
 import { validateRegister } from "../../utils/validation";
 import { registerUser } from "../../services/authService";
@@ -100,10 +100,9 @@ const fieldSx = {
 
         "&.Mui-focused": {
             boxShadow: (theme) =>
-                `0 0 0 4px ${
-                    theme.palette.mode === "dark"
-                        ? "rgba(25,118,210,0.25)"
-                        : "rgba(25,118,210,0.12)"
+                `0 0 0 4px ${theme.palette.mode === "dark"
+                    ? "rgba(25,118,210,0.25)"
+                    : "rgba(25,118,210,0.12)"
                 }`,
         },
 
@@ -212,7 +211,7 @@ function Register() {
 
             alert(
                 error.response?.data?.message ||
-                    "Registration failed"
+                "Registration failed"
             );
         } finally {
             setIsSubmitting(false);
@@ -222,50 +221,25 @@ function Register() {
     return (
         <Box
             sx={{
-                /*
-                 * IMPORTANT:
-                 * 100dvh works better on mobile browsers
-                 * than 100vh.
-                 */
-                minHeight: "100dvh",
+    height: "100dvh",
+    width: "100%",
+    position: "relative",
+    overflow: "hidden",
 
-                width: "100%",
-                position: "relative",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
 
-                /*
-                 * Mobile can scroll if content is taller
-                 * than the available viewport.
-                 */
-                overflowY: { xs: "auto", md: "hidden" },
-                overflowX: "hidden",
+    p: 0,
+    m:0,
 
-                display: "flex",
+    boxSizing: "border-box",
 
-                /*
-                 * On mobile start from top so the complete
-                 * form can naturally scroll.
-                 *
-                 * On desktop keep it vertically centered.
-                 */
-                alignItems: {
-                    xs: "flex-start",
-                    md: "center",
-                },
-
-                justifyContent: "center",
-
-                p: {
-                    xs: 1,
-                    sm: 2,
-                },
-
-                boxSizing: "border-box",
-
-                background: (theme) =>
-                    theme.palette.mode === "dark"
-                        ? "radial-gradient(circle at 20% 20%, #14213d 0%, #0a0e1a 60%)"
-                        : "radial-gradient(circle at 20% 20%, #eaf2fd 0%, #f5f7fb 60%)",
-            }}
+    background: (theme) =>
+        theme.palette.mode === "dark"
+            ? "radial-gradient(circle at 20% 20%, #14213d 0%, #0a0e1a 60%)"
+            : "radial-gradient(circle at 20% 20%, #eaf2fd 0%, #f5f7fb 60%)",
+}}
         >
             {/* =========================
                 AMBIENT FLOATING BLOBS
@@ -338,63 +312,44 @@ function Register() {
             ========================= */}
 
             <Fade in timeout={500}>
-                <Paper
-                    elevation={0}
-                    sx={{
-                        width: "100%",
-                        maxWidth: 1050,
+    <Paper
+    elevation={0}
+    sx={{
+        width: "100%",
+        maxWidth: "none", 
+        height: "100dvh",
+        minHeight: "100dvh",
+        maxHeight: "100dvh",
 
-                        /*
-                         * Desktop:
-                         * Keep the original card height.
-                         *
-                         * Mobile:
-                         * Let the card grow naturally with content.
-                         */
-                        height: {
-                            xs: "auto",
-                            md: "100%",
-                        },
+        borderRadius: {
+            xs: 0,
+            sm: 2,
+            md: 0,
+        },
 
-                        minHeight: {
-                            xs: "auto",
-                            md: 600,
-                        },
+        overflow: "hidden",
 
-                        maxHeight: {
-                            xs: "none",
-                            md: 660,
-                        },
+        display: "flex",
 
-                        borderRadius: {
-                            xs: 3,
-                            sm: 4,
-                            md: 5,
-                        },
+        position: "relative",
+        zIndex: 1,
 
-                        overflow: "hidden",
+        border: "1px solid",
+        borderColor: "divider",
 
-                        display: "flex",
+        backdropFilter: "blur(20px)",
 
-                        position: "relative",
-                        zIndex: 1,
+        bgcolor: (theme) =>
+            theme.palette.mode === "dark"
+                ? "rgba(30,34,44,0.75)"
+                : "rgba(255,255,255,0.75)",
 
-                        border: "1px solid",
-                        borderColor: "divider",
-
-                        backdropFilter: "blur(20px)",
-
-                        bgcolor: (theme) =>
-                            theme.palette.mode === "dark"
-                                ? "rgba(30,34,44,0.75)"
-                                : "rgba(255,255,255,0.75)",
-
-                        boxShadow: (theme) =>
-                            theme.palette.mode === "dark"
-                                ? "0 25px 70px rgba(0,0,0,0.55)"
-                                : "0 25px 70px rgba(15,23,42,0.14)",
-                    }}
-                >
+        boxShadow: (theme) =>
+            theme.palette.mode === "dark"
+                ? "0 25px 70px rgba(0,0,0,0.55)"
+                : "0 25px 70px rgba(15,23,42,0.14)",
+    }}
+>
                     {/* =========================
                         LEFT SIDE
                     ========================= */}
@@ -1106,15 +1061,15 @@ function Register() {
                                                         "action.hover",
 
                                                     "& .MuiLinearProgress-bar":
-                                                        {
-                                                            borderRadius: 5,
+                                                    {
+                                                        borderRadius: 5,
 
-                                                            backgroundColor:
-                                                                strength.color,
+                                                        backgroundColor:
+                                                            strength.color,
 
-                                                            transition:
-                                                                "all 0.3s ease",
-                                                        },
+                                                        transition:
+                                                            "all 0.3s ease",
+                                                    },
                                                 }}
                                             />
 

@@ -21,6 +21,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { MailModule } from './mail/mail.module';
 import { LiveClassModule } from './live-class/live-class.module';
 import { AiModule } from './ai/ai.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -39,6 +40,8 @@ import { AiModule } from './ai/ai.module';
       autoLoadEntities: true,
       synchronize: process.env.NODE_ENV !== 'production',
     }),
+
+     ScheduleModule.forRoot(),
 
     AuthModule,
     UsersModule,

@@ -21,6 +21,8 @@ import * as crypto from 'crypto';
 
 import { MailService } from '../mail/mail.service';
 
+import { Cron } from '@nestjs/schedule';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -35,49 +37,67 @@ export class AuthService {
   // =====================================================
 
   async register(registerDto: RegisterDto) {
-    const normalizedEmail = registerDto.email.trim().toLowerCase();
+  const normalizedEmail = registerDto.email.trim().toLowerCase();
 
-    const existingUser = await this.usersService.findByEmail(normalizedEmail);
+  // Check actual users table
+  const existingUser =
+    await this.usersService.findByEmail(normalizedEmail);
 
-    if (existingUser) {
-      throw new ConflictException('Email already registered');
-    }
+  if (existingUser) {
+    throw new ConflictException('Email already registered');
+  }
 
-    // Generate 6 digit OTP
-    const otp = crypto.randomInt(100000, 1000000).toString();
+  // Check pending registration
+  const existingPending =
+    await this.usersService.findPendingUserByEmail(normalizedEmail);
 
-    // OTP valid for 10 minutes
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+  // Generate 6 digit OTP
+  const otp = crypto.randomInt(100000, 1000000).toString();
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+  // OTP valid for 10 minutes
+  const otpExpiry = new Date(
+    Date.now() + 10 * 60 * 1000,
+  );
 
-    // Create user
-    const user = await this.usersService.save({
+  // Hash password
+  const hashedPassword = await bcrypt.hash(
+    registerDto.password,
+    10,
+  );
+
+  // If previous pending registration exists,
+  // update it instead of creating duplicate
+  if (existingPending) {
+    existingPending.name = registerDto.name;
+    existingPending.password = hashedPassword;
+    existingPending.role = registerDto.role || 'student';
+    existingPending.emailVerificationOtp = otp;
+    existingPending.emailVerificationOtpExpires = otpExpiry;
+
+    await this.usersService.savePendingUser(existingPending);
+  } else {
+    await this.usersService.savePendingUser({
       name: registerDto.name,
       email: normalizedEmail,
       password: hashedPassword,
       role: registerDto.role || 'student',
-
       emailVerificationOtp: otp,
       emailVerificationOtpExpires: otpExpiry,
-
-      isEmailVerified: false,
     });
-
-    // Fire-and-forget: response ko email bhejne pe block nahi karna
-    // (email slow/fail ho toh bhi registration turant respond kare)
-    this.mailService
-      .sendEmailVerificationOtp(user.email, otp)
-      .catch((err) => {
-        console.error('Failed to send verification OTP email:', err);
-      });
-
-    return {
-      message:
-        'Registration successful. Please check your email for the verification OTP.',
-    };
   }
+
+  // IMPORTANT:
+  // Don't fire-and-forget here.
+  await this.mailService.sendEmailVerificationOtp(
+    normalizedEmail,
+    otp,
+  );
+
+  return {
+    message:
+      'Registration initiated. Please check your email for the verification OTP.',
+  };
+}
 
   // =====================================================
   // LOGIN
@@ -148,51 +168,68 @@ export class AuthService {
   // VERIFY EMAIL OTP
   // =====================================================
 
-  async verifyEmail(email: string, otp: string): Promise<{ message: string }> {
-    const normalizedEmail = email.trim().toLowerCase();
+  async verifyEmail(
+  email: string,
+  otp: string,
+): Promise<{ message: string }> {
+  const normalizedEmail = email.trim().toLowerCase();
 
-    const user = await this.usersService.findByEmail(normalizedEmail);
+  const pendingUser =
+    await this.usersService.findPendingUserByEmail(
+      normalizedEmail,
+    );
 
-    if (!user) {
-      throw new BadRequestException('User not found.');
-    }
-
-    if (user.isEmailVerified) {
-      throw new BadRequestException('Email is already verified.');
-    }
-
-    if (!user.emailVerificationOtp || !user.emailVerificationOtpExpires) {
-      throw new BadRequestException(
-        'Verification OTP not found. Please request a new OTP.',
-      );
-    }
-
-    if (user.emailVerificationOtpExpires < new Date()) {
-      user.emailVerificationOtp = null;
-      user.emailVerificationOtpExpires = null;
-
-      await this.usersService.save(user);
-
-      throw new BadRequestException(
-        'OTP has expired. Please request a new OTP.',
-      );
-    }
-
-    if (user.emailVerificationOtp !== otp.trim()) {
-      throw new BadRequestException('Invalid verification OTP.');
-    }
-
-    user.isEmailVerified = true;
-
-    user.emailVerificationOtp = null;
-    user.emailVerificationOtpExpires = null;
-
-    await this.usersService.save(user);
-
-    return {
-      message: 'Email verified successfully. You can now login.',
-    };
+  if (!pendingUser) {
+    throw new BadRequestException(
+      'Registration not found. Please register again.',
+    );
   }
+
+  // Check OTP expiry
+  if (
+    pendingUser.emailVerificationOtpExpires < new Date()
+  ) {
+    await this.usersService.deletePendingUser(
+      pendingUser,
+    );
+
+    throw new BadRequestException(
+      'OTP has expired. Please register again.',
+    );
+  }
+
+  // Check OTP
+  if (
+    pendingUser.emailVerificationOtp !== otp.trim()
+  ) {
+    throw new BadRequestException(
+      'Invalid verification OTP.',
+    );
+  }
+
+  // Create actual user ONLY after successful verification
+  await this.usersService.save({
+    name: pendingUser.name,
+    email: pendingUser.email,
+    password: pendingUser.password,
+    role: pendingUser.role,
+
+    isEmailVerified: true,
+
+    emailVerificationOtp: null,
+    emailVerificationOtpExpires: null,
+  });
+
+  // Remove temporary registration
+  await this.usersService.deletePendingUser(
+    pendingUser,
+  );
+
+  return {
+    message:
+      'Email verified successfully. You can now login.',
+  };
+}
 
   // =====================================================
   // UPDATE PROFILE
@@ -510,4 +547,15 @@ export class AuthService {
       message: 'Password reset successfully.',
     };
   }
+
+
+@Cron('*/15 * * * *')
+async cleanExpiredPendingUsers() {
+  const result =
+    await this.usersService.deleteExpiredPendingUsers();
+
+  console.log(
+    `Expired pending users cleaned: ${result.affected ?? 0}`,
+  );
+}
 }

@@ -6,6 +6,7 @@ import { Repository, DeepPartial } from 'typeorm';
 
 import { User } from './entities/user.entity';
 import { RegisterDto } from '../auth/dto/register.dto';
+import { PendingUser } from './entities/pending-user.entity';
 
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
@@ -18,6 +19,9 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
 
     private readonly cloudinaryService: CloudinaryService,
+
+     @InjectRepository(PendingUser)
+  private readonly pendingUserRepository: Repository<PendingUser>,
   ) {}
 
   // =====================================================
@@ -37,6 +41,23 @@ export class UsersService {
 
     return await this.userRepository.save(user);
   }
+
+
+  async findPendingUserByEmail(email: string) {
+  return this.pendingUserRepository.findOne({
+    where: { email },
+  });
+}
+
+async savePendingUser(data: Partial<PendingUser>) {
+  const pendingUser = this.pendingUserRepository.create(data);
+
+  return this.pendingUserRepository.save(pendingUser);
+}
+
+async deletePendingUser(pendingUser: PendingUser) {
+  return this.pendingUserRepository.remove(pendingUser);
+}
 
   // =====================================================
   // SAVE USER
@@ -307,5 +328,16 @@ async updateRole(id: number, newRole: string) {
   await this.userRepository.update(id, { role: newRole });
 
   return await this.findOne(id);
+}
+
+
+async deleteExpiredPendingUsers() {
+  const expiry = new Date();
+
+  return this.pendingUserRepository
+    .createQueryBuilder()
+    .delete()
+    .where('emailVerificationOtpExpires < :expiry', { expiry })
+    .execute();
 }
 }
