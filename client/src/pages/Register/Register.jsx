@@ -10,7 +10,7 @@ import {
     IconButton,
     LinearProgress,
     Fade,
-} from "@mui/material";
+} from "@mui/material";  
 
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
@@ -31,7 +31,7 @@ import { validateRegister } from "../../utils/validation";
 import { registerUser } from "../../services/authService";
 
 // =========================
-// PASSWORD STRENGTH HELPER
+// PASSWORD STRENGTH HELPER    
 // =========================
 function getPasswordStrength(password) {
     if (!password) {
@@ -221,25 +221,25 @@ function Register() {
     return (
         <Box
             sx={{
-    height: "100dvh",
-    width: "100%",
-    position: "relative",
-    overflow: "hidden",
+                height: "100dvh",
+                width: "100%",
+                position: "relative",
+                overflow: "hidden",
 
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
 
-    p: 0,
-    m:0,
+                p: 0,
+                m: 0,
 
-    boxSizing: "border-box",
+                boxSizing: "border-box",
 
-    background: (theme) =>
-        theme.palette.mode === "dark"
-            ? "radial-gradient(circle at 20% 20%, #14213d 0%, #0a0e1a 60%)"
-            : "radial-gradient(circle at 20% 20%, #eaf2fd 0%, #f5f7fb 60%)",
-}}
+                background: (theme) =>
+                    theme.palette.mode === "dark"
+                        ? "radial-gradient(circle at 20% 20%, #14213d 0%, #0a0e1a 60%)"
+                        : "radial-gradient(circle at 20% 20%, #eaf2fd 0%, #f5f7fb 60%)",
+            }}
         >
             {/* =========================
                 AMBIENT FLOATING BLOBS
@@ -312,44 +312,44 @@ function Register() {
             ========================= */}
 
             <Fade in timeout={500}>
-    <Paper
-    elevation={0}
-    sx={{
-        width: "100%",
-        maxWidth: "none", 
-        height: "100dvh",
-        minHeight: "100dvh",
-        maxHeight: "100dvh",
+                <Paper
+                    elevation={0}
+                    sx={{
+                        width: "100%",
+                        maxWidth: "none",
+                        height: "100dvh",
+                        minHeight: "100dvh",
+                        maxHeight: "100dvh",
 
-        borderRadius: {
-            xs: 0,
-            sm: 2,
-            md: 0,
-        },
+                        borderRadius: {
+                            xs: 0,
+                            sm: 2,
+                            md: 0,
+                        },
 
-        overflow: "hidden",
+                        overflow: "hidden",
 
-        display: "flex",
+                        display: "flex",
 
-        position: "relative",
-        zIndex: 1,
+                        position: "relative",
+                        zIndex: 1,
 
-        border: "1px solid",
-        borderColor: "divider",
+                        border: "1px solid",
+                        borderColor: "divider",
 
-        backdropFilter: "blur(20px)",
+                        backdropFilter: "blur(20px)",
 
-        bgcolor: (theme) =>
-            theme.palette.mode === "dark"
-                ? "rgba(30,34,44,0.75)"
-                : "rgba(255,255,255,0.75)",
+                        bgcolor: (theme) =>
+                            theme.palette.mode === "dark"
+                                ? "rgba(30,34,44,0.75)"
+                                : "rgba(255,255,255,0.75)",
 
-        boxShadow: (theme) =>
-            theme.palette.mode === "dark"
-                ? "0 25px 70px rgba(0,0,0,0.55)"
-                : "0 25px 70px rgba(15,23,42,0.14)",
-    }}
->
+                        boxShadow: (theme) =>
+                            theme.palette.mode === "dark"
+                                ? "0 25px 70px rgba(0,0,0,0.55)"
+                                : "0 25px 70px rgba(15,23,42,0.14)",
+                    }}
+                >
                     {/* =========================
                         LEFT SIDE
                     ========================= */}

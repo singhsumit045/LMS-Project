@@ -18,6 +18,7 @@ import {
   Select,
   TextField,
   Typography,
+  Pagination,
 } from "@mui/material";
 
 import SearchIcon from "@mui/icons-material/Search";
@@ -41,9 +42,15 @@ const ManageEnrollments = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [deleting, setDeleting] = useState(false);
+
+
+
 
   // =====================================================
   // FETCH ALL ENROLLMENTS
@@ -64,7 +71,7 @@ const ManageEnrollments = () => {
 
       setError(
         error?.response?.data?.message ||
-          "Failed to load enrollments."
+        "Failed to load enrollments."
       );
     } finally {
       setLoading(false);
@@ -110,6 +117,35 @@ const ManageEnrollments = () => {
       return matchesSearch && matchesStatus;
     });
   }, [enrollments, search, statusFilter]);
+
+
+  // =====================================================
+  // PAGINATION
+  // =====================================================
+
+  const totalPages = Math.ceil(
+    filteredEnrollments.length / rowsPerPage
+  );
+
+  const paginatedEnrollments = useMemo(() => {
+    const startIndex = (page - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+
+    return filteredEnrollments.slice(startIndex, endIndex);
+  }, [filteredEnrollments, page, rowsPerPage]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, statusFilter]);
+  useEffect(() => {
+    const newTotalPages = Math.ceil(
+      filteredEnrollments.length / rowsPerPage
+    );
+
+    if (newTotalPages > 0 && page > newTotalPages) {
+      setPage(newTotalPages);
+    }
+  }, [filteredEnrollments.length, rowsPerPage, page]);
 
   // =====================================================
   // STATISTICS
@@ -195,7 +231,7 @@ const ManageEnrollments = () => {
 
       setError(
         error?.response?.data?.message ||
-          "Failed to remove enrollment."
+        "Failed to remove enrollment."
       );
     } finally {
       setDeleting(false);
@@ -542,7 +578,7 @@ const ManageEnrollments = () => {
             </Typography>
           </Box>
         ) : (
-          filteredEnrollments.map((enrollment) => (
+          paginatedEnrollments.map((enrollment) => (
             <Box
               key={enrollment.enrollmentId}
               sx={{
@@ -678,7 +714,7 @@ const ManageEnrollments = () => {
             </Typography>
           </Paper>
         ) : (
-          filteredEnrollments.map((enrollment) => (
+          paginatedEnrollments.map((enrollment) => (
             <Paper
               key={enrollment.enrollmentId}
               elevation={0}
@@ -822,6 +858,96 @@ const ManageEnrollments = () => {
           ))
         )}
       </Box>
+
+
+      {/* PAGINATION */}
+
+      {filteredEnrollments.length > 0 && (
+        <Paper
+          elevation={0}
+          sx={{
+            mt: 3,
+            p: 2,
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 3,
+
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 2,
+            flexWrap: "wrap",
+          }}
+        >
+          {/* ROWS PER PAGE */}
+
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <Typography
+              variant="body2"
+              color="text.secondary"
+            >
+              Rows per page:
+            </Typography>
+
+            <Select
+              size="small"
+              value={rowsPerPage}
+              onChange={(event) => {
+                setRowsPerPage(Number(event.target.value));
+                setPage(1);
+              }}
+              sx={{
+                minWidth: 80,
+              }}
+            >
+              <MenuItem value={5}>5</MenuItem>
+              <MenuItem value={10}>10</MenuItem>
+              <MenuItem value={20}>20</MenuItem>
+              <MenuItem value={50}>50</MenuItem>
+            </Select>
+          </Box>
+
+          {/* PAGE INFO */}
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+          >
+            {Math.min(
+              (page - 1) * rowsPerPage + 1,
+              filteredEnrollments.length
+            )}
+            -
+            {Math.min(
+              page * rowsPerPage,
+              filteredEnrollments.length
+            )}{" "}
+            of {filteredEnrollments.length}
+          </Typography>
+
+          {/* PAGINATION */}
+
+          {totalPages > 1 && (
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(_, value) => setPage(value)}
+              color="primary"
+              shape="rounded"
+              showFirstButton
+              showLastButton
+              siblingCount={1}
+              boundaryCount={1}
+            />
+          )}
+        </Paper>
+      )}
 
       {/* DELETE CONFIRMATION DIALOG */}
 

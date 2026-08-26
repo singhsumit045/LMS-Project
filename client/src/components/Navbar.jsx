@@ -957,9 +957,7 @@ const Navbar = ({
     borderRadius: "10px",
 
     px: 1.5,
-
     minHeight: 40,
-
     textTransform: "none",
 
     fontWeight: isActiveRoute(path)
@@ -1041,11 +1039,9 @@ const Navbar = ({
 
   const iconButtonSx = {
     width: 42,
-
     height: 42,
-
     borderRadius: "11px",
-
+    
     color: textPrimary,
 
     transition:
@@ -1443,16 +1439,15 @@ const Navbar = ({
           paper: {
             sx: {
               width: {
-                xs: 300,
-                sm: 350,
+                xs: 280,
+                sm: 280,
               },
 
               maxWidth:
                 "calc(100vw - 24px)",
 
-              maxHeight: 500,
-
               mt: 1,
+
 
               borderRadius: "14px",
 
@@ -1481,7 +1476,7 @@ const Navbar = ({
         <Box
           sx={{
             px: 1.8,
-            py: 1.4,
+            py: 1,
 
             display: "flex",
 
@@ -1529,7 +1524,7 @@ const Navbar = ({
             <Box
               sx={{
                 px: 1.5,
-                py: 0.8,
+                // py: 0.8, 
 
                 display: "flex",
 
@@ -1636,23 +1631,40 @@ const Navbar = ({
         ) : (
           <Box
             sx={{
-              maxHeight: 390,
+              height: {
+                xs: "230px",
+                sm: "240px",
+                md: "250px",
+              },
+
+              maxHeight: {
+                xs: "230px",
+                sm: "220px",
+                md: "250px",
+              },
+
               overflowY: "auto",
+              overflowX: "hidden",
+
+              // Important for proper scrolling
+              overscrollBehavior: "contain",
+              WebkitOverflowScrolling: "touch",
 
               "&::-webkit-scrollbar": {
                 width: "5px",
               },
 
-              "&::-webkit-scrollbar-thumb":
-              {
-                backgroundColor:
-                  theme.palette
-                    .action
-                    .disabled,
-
-                borderRadius:
-                  "10px",
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: theme.palette.action.disabled,
+                borderRadius: "10px",
               },
+
+              "&::-webkit-scrollbar-track": {
+                backgroundColor: "transparent",
+              },
+
+              scrollbarWidth: "thin",
+              scrollbarColor: `${theme.palette.action.disabled} transparent`,
             }}
           >
             {notifications.map(
@@ -1700,7 +1712,7 @@ const Navbar = ({
             <Box
               sx={{
                 px: 1.5,
-                py: 0.8,
+                py: 0.5,
 
                 textAlign: "center",
 

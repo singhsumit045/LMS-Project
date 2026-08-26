@@ -96,7 +96,7 @@ const ManageCourses = () => {
 
       setError(
         error?.response?.data?.message ||
-          "Failed to load courses."
+        "Failed to load courses."
       );
     } finally {
       setLoading(false);
@@ -226,11 +226,11 @@ const ManageCourses = () => {
         previousCourses.map((course) =>
           course.id === editCourse.id
             ? {
-                ...course,
-                ...response.data,
-                teacher: course.teacher,
-                studentCount: course.studentCount,
-              }
+              ...course,
+              ...response.data,
+              teacher: course.teacher,
+              studentCount: course.studentCount,
+            }
             : course
         )
       );
@@ -245,7 +245,7 @@ const ManageCourses = () => {
 
       setMessage(
         error?.response?.data?.message ||
-          "Failed to update course."
+        "Failed to update course."
       );
 
       setMessageType("error");
@@ -296,7 +296,7 @@ const ManageCourses = () => {
 
       setMessage(
         error?.response?.data?.message ||
-          "Failed to delete course."
+        "Failed to delete course."
       );
 
       setMessageType("error");
@@ -411,6 +411,13 @@ const ManageCourses = () => {
           sm: 3.5,
           md: 5,
         },
+        pb: {
+      xs: 1,
+      sm: 1.5,
+      md: 1,
+    },
+
+        overflowX: "auto",
       }}
     >
       {/* =================================================
@@ -492,23 +499,26 @@ const ManageCourses = () => {
       >
         {/* TOTAL COURSES */}
 
-        <Paper
-          elevation={0}
-          sx={{
-            p: 2.5,
-            borderRadius: 3,
-            border: "1px solid",
-            borderColor: "divider",
-            height: "100%",
-            transition: "all 0.25s ease",
+      <Paper
+  elevation={0}
+  sx={{
+    display: {
+      xs: "none",
+      md: "block",
+    },
+    p: 2.5,
+    border: "1px solid",
+    borderColor: "divider",
+    borderRadius: 3,
+    height: "100%",
+    transition: "all 0.25s ease",
 
-            "&:hover": {
-              transform: "translateY(-4px)",
-              boxShadow:
-                "0 12px 30px rgba(0,0,0,0.08)",
-            },
-          }}
-        >
+    "&:hover": {
+      transform: "translateY(-4px)",
+      boxShadow: "0 12px 30px rgba(0,0,0,0.08)",
+    },
+  }}
+>
           <Stack
             direction="row"
             spacing={2}
@@ -749,7 +759,7 @@ const ManageCourses = () => {
 
       <Box
         sx={{
-          mb: 2,
+          mb: 1,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -769,20 +779,38 @@ const ManageCourses = () => {
       {/* =================================================
           DESKTOP TABLE
       ================================================= */}
+<Paper
+  elevation={0}
+  sx={{
+    display: {
+      xs: "none",
+      md: "block",
+    },
+    border: "1px solid",
+    borderColor: "divider",
+    borderRadius: 3,
 
-      <Paper
-        elevation={0}
-        sx={{
-          display: {
-            xs: "none",
-            md: "block",
-          },
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 3,
-          overflow: "hidden",
-        }}
-      >
+    overflowX: "auto",
+    overflowY: "auto",
+
+    // maxHeight: "calc(100vh - 430px)",
+    maxHeight: "400px",
+
+    "&::-webkit-scrollbar": {
+      width: "8px",
+      height: "8px",
+    },
+
+    "&::-webkit-scrollbar-thumb": {
+      backgroundColor: "text.disabled",
+      borderRadius: "10px",
+    },
+
+    "&::-webkit-scrollbar-track": {
+      backgroundColor: "transparent",
+    },
+  }}
+>
         {/* TABLE HEADER */}
 
         <Box

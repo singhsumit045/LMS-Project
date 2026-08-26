@@ -94,7 +94,7 @@ const ManageUsers = () => {
 
             setError(
                 err?.response?.data?.message ||
-                    "Unable to load users."
+                "Unable to load users."
             );
         } finally {
             setLoading(false);
@@ -120,11 +120,11 @@ const ManageUsers = () => {
             setUsers((prevUsers) =>
                 prevUsers.map((user) =>
                     Number(user.id) ===
-                    Number(userId)
+                        Number(userId)
                         ? {
-                              ...user,
-                              isOnline: true,
-                          }
+                            ...user,
+                            isOnline: true,
+                        }
                         : user
                 )
             );
@@ -136,11 +136,11 @@ const ManageUsers = () => {
             setUsers((prevUsers) =>
                 prevUsers.map((user) =>
                     Number(user.id) ===
-                    Number(userId)
+                        Number(userId)
                         ? {
-                              ...user,
-                              isOnline: false,
-                          }
+                            ...user,
+                            isOnline: false,
+                        }
                         : user
                 )
             );
@@ -177,9 +177,8 @@ const ManageUsers = () => {
         async (userId, userName) => {
             const confirmed =
                 window.confirm(
-                    `Are you sure you want to delete ${
-                        userName ||
-                        "this user"
+                    `Are you sure you want to delete ${userName ||
+                    "this user"
                     }?`
                 );
 
@@ -210,7 +209,7 @@ const ManageUsers = () => {
                 setError(
                     err?.response?.data
                         ?.message ||
-                        "Unable to delete user."
+                    "Unable to delete user."
                 );
             }
         },
@@ -278,7 +277,7 @@ const ManageUsers = () => {
 
             setError(
                 err?.response?.data?.message ||
-                    "Unable to update role."
+                "Unable to update role."
             );
         } finally {
             setUpdatingRoleId(null);
@@ -354,7 +353,7 @@ const ManageUsers = () => {
         1,
         Math.ceil(
             filteredUsers.length /
-                USERS_PER_PAGE
+            USERS_PER_PAGE
         )
     );
 
@@ -382,7 +381,7 @@ const ManageUsers = () => {
         return filteredUsers.slice(
             startIndex,
             startIndex +
-                USERS_PER_PAGE
+            USERS_PER_PAGE
         );
     }, [
         filteredUsers,
@@ -844,32 +843,30 @@ const ManageUsers = () => {
                     fontSize="0.85rem"
                 >
                     {filteredUsers.length ===
-                    0
+                        0
                         ? "No users"
-                        : `Showing ${
-                              (page - 1) *
-                                  USERS_PER_PAGE +
-                              1
-                          } - ${Math.min(
-                              page *
-                                  USERS_PER_PAGE,
-                              filteredUsers.length
-                          )} of ${
-                              filteredUsers.length
-                          } users`}
+                        : `Showing ${(page - 1) *
+                        USERS_PER_PAGE +
+                        1
+                        } - ${Math.min(
+                            page *
+                            USERS_PER_PAGE,
+                            filteredUsers.length
+                        )} of ${filteredUsers.length
+                        } users`}
                 </Typography>
 
                 {filteredUsers.length >
                     0 && (
-                    <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        fontSize="0.8rem"
-                    >
-                        Page {page} of{" "}
-                        {totalPages}
-                    </Typography>
-                )}
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            fontSize="0.8rem"
+                        >
+                            Page {page} of{" "}
+                            {totalPages}
+                        </Typography>
+                    )}
             </Box>
 
             {/* =================================================
@@ -877,7 +874,7 @@ const ManageUsers = () => {
             ================================================= */}
 
             {filteredUsers.length ===
-            0 ? (
+                0 ? (
                 <Paper
                     elevation={0}
                     sx={{
@@ -927,18 +924,46 @@ const ManageUsers = () => {
 
                     <Box
                         sx={{
+                            height: {
+                                xs: "55vh",
+                                sm: "60vh",
+                                md: "65vh",
+                            },
+
+                            overflowY: "scroll",
+
                             display: "flex",
-                            flexDirection:
-                                "column",
+                            flexDirection: "column",
                             gap: 1.2,
+
+                            pr: 1,
+
+                            scrollbarWidth: "thin",
+
+                            "&::-webkit-scrollbar": {
+                                width: "8px",
+                            },
+
+                            "&::-webkit-scrollbar-thumb": {
+                                backgroundColor: "rgba(120,120,120,0.45)",
+                                borderRadius: "10px",
+                            },
+
+                            "&::-webkit-scrollbar-thumb:hover": {
+                                backgroundColor: "rgba(120,120,120,0.7)",
+                            },
+
+                            "&::-webkit-scrollbar-track": {
+                                backgroundColor: "transparent",
+                            },
                         }}
                     >
-                        {paginatedUsers.map(
+                        {filteredUsers.map(
                             (user) => {
                                 const role =
                                     String(
                                         user?.role ||
-                                            "student"
+                                        "student"
                                     ).toLowerCase();
 
                                 return (
@@ -961,12 +986,12 @@ const ManageUsers = () => {
                                             transition:
                                                 "transform 0.2s ease, box-shadow 0.2s ease",
                                             "&:hover":
-                                                {
-                                                    transform:
-                                                        "translateY(-2px)",
-                                                    boxShadow:
-                                                        "0 6px 18px rgba(0,0,0,0.06)",
-                                                },
+                                            {
+                                                transform:
+                                                    "translateY(-2px)",
+                                                boxShadow:
+                                                    "0 6px 18px rgba(0,0,0,0.06)",
+                                            },
                                         }}
                                     >
                                         {/* USER ROW */}
@@ -976,19 +1001,19 @@ const ManageUsers = () => {
                                                 display:
                                                     "flex",
                                                 flexDirection:
-                                                    {
-                                                        xs: "column",
-                                                        sm: "row",
-                                                    },
+                                                {
+                                                    xs: "column",
+                                                    sm: "row",
+                                                },
                                                 gap: {
                                                     xs: 1.2,
                                                     sm: 1.5,
                                                 },
                                                 alignItems:
-                                                    {
-                                                        xs: "flex-start",
-                                                        sm: "center",
-                                                    },
+                                                {
+                                                    xs: "flex-start",
+                                                    sm: "center",
+                                                },
                                             }}
                                         >
                                             {/* AVATAR */}
@@ -1094,9 +1119,9 @@ const ManageUsers = () => {
                                                         height: 28,
                                                         cursor: "pointer",
                                                         "& .MuiChip-icon":
-                                                            {
-                                                                fontSize: 16,
-                                                            },
+                                                        {
+                                                            fontSize: 16,
+                                                        },
                                                         "&:hover": {
                                                             opacity: 0.85,
                                                         },
@@ -1112,10 +1137,10 @@ const ManageUsers = () => {
                                                 fontSize="0.78rem"
                                                 sx={{
                                                     display:
-                                                        {
-                                                            xs: "none",
-                                                            md: "block",
-                                                        },
+                                                    {
+                                                        xs: "none",
+                                                        md: "block",
+                                                    },
                                                     minWidth: 55,
                                                 }}
                                             >
@@ -1131,10 +1156,9 @@ const ManageUsers = () => {
                                                 <IconButton
                                                     color="error"
                                                     size="small"
-                                                    aria-label={`Delete ${
-                                                        user?.name ||
+                                                    aria-label={`Delete ${user?.name ||
                                                         "user"
-                                                    }`}
+                                                        }`}
                                                     onClick={() =>
                                                         handleDeleteUser(
                                                             user.id,
