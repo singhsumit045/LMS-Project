@@ -11,11 +11,14 @@ import {
   LinearProgress,
   useTheme,
   alpha,
+  useMediaQuery,
 } from "@mui/material";
+
+import { lazy, Suspense } from "react";
 
 import {
   School,
-  PlayArrow,
+  // PlayArrow,
   Code,
   WorkspacePremiumOutlined,
   CheckCircle,
@@ -32,17 +35,19 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
-import Hero3DBackground from "./Hero3DBackground";
+// import Hero3DBackground from "./Hero3DBackground";
+const Hero3DBackground = lazy(() => import("./Hero3DBackground"));
 import Tilt3DCard from "./Tilt3dcard";
 import Reveal from "./Reveal";
 import CountUp from "./Countup";
 
+
 const Home = () => {
   const navigate = useNavigate();
   const theme = useTheme();
+   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const isDark = theme.palette.mode === "dark";
-
   const primary = theme.palette.primary.main;
   const secondary = theme.palette.secondary.main;
 
@@ -165,6 +170,13 @@ const Home = () => {
               )`,
         }}
       >
+        {!isMobile && (
+    <Suspense fallback={null}>
+      <Hero3DBackground primary={primary} secondary={secondary} isDark={isDark} />
+    </Suspense>
+  )}
+
+      
         {/* Background glow */}
 
         <Box
@@ -191,14 +203,6 @@ const Home = () => {
             bottom: -120,
             left: -100,
           }}
-        />
-
-        {/* Interactive 3D scene layer — above glow blobs, below hero content */}
-
-        <Hero3DBackground
-          primary={primary}
-          secondary={secondary}
-          isDark={isDark}
         />
 
         <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2 }}>
