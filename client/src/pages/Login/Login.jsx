@@ -21,7 +21,7 @@ import {
 import { useState } from "react";
 import { useTheme } from "@mui/material/styles";
 
-import logo from "../../assets/LearnHub-removebg-preview.png";
+import logo from "../../assets/LearnHub-removebg-preview.webp";
 
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";

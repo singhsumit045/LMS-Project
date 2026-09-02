@@ -61,7 +61,7 @@ import {
 
 import { useTheme } from "@mui/material/styles";
 
-import logo from "../assets/LearnHub-removebg-preview.png";
+import logo from "../assets/LearnHub-removebg-preview.webp";
 
 // ============================================================
 // NOTIFICATION ITEM

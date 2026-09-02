@@ -18,14 +18,14 @@ import { Link as RouterLink } from "react-router-dom";
 
 import { useTheme } from "@mui/material/styles";
 
-import logo from "../assets/LearnHub-removebg-preview.png";
+import logo from "../assets/LearnHub-removebg-preview.webp";
 
 const Footer = () => {
   const theme = useTheme();
 
   const linkStyles = {
     opacity: 0.82,
-    transition: "all 0.2s ease",
+    transition: "all 0.2s ease", 
     display: "inline-block",
 
     "&:hover": {

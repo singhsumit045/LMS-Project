@@ -23,7 +23,7 @@ import jsPDF from "jspdf";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import LearnHubLogo from "../../../assets/LearnHub.png";
+import LearnHubLogo from "../../../assets/LearnHub-removebg-preview.webp";
 
 import {
     getCertificateById,

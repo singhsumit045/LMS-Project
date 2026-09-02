@@ -25,7 +25,7 @@ import MailOutlineOutlinedIcon from "@mui/icons-material/MailOutlineOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import WorkspacePremiumOutlinedIcon from "@mui/icons-material/WorkspacePremiumOutlined";
 
-import logo from "../../assets/LearnHub-removebg-preview.png";
+import logo from "../../assets/LearnHub-removebg-preview.webp";
 
 import { validateRegister } from "../../utils/validation";
 import { registerUser } from "../../services/authService";
