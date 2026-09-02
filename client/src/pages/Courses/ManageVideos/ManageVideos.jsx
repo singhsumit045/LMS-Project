@@ -533,20 +533,22 @@ const ManageVideos = () => {
             <Box>
               <Typography
                 variant="h5"
-                fontWeight={800}
                 sx={{
+                  fontWeight: 800,
+
                   fontSize: {
                     xs: "1.25rem",
                     sm: "1.5rem",
-                  },
-                }}
-              >
+                  }
+                }}>
                 Manage Videos
               </Typography>
 
               <Typography
                 variant="body2"
-                color="text.secondary"
+                sx={{
+                  color: "text.secondary"
+                }}
               >
                 {course.title}
               </Typography>
@@ -590,20 +592,25 @@ const ManageVideos = () => {
           <Stack spacing={2}>
             <Stack
               direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-            >
+              sx={{
+                alignItems: "center",
+                justifyContent: "space-between"
+              }}>
               <Box>
                 <Typography
                   variant="h6"
-                  fontWeight={800}
+                  sx={{
+                    fontWeight: 800
+                  }}
                 >
                   Add New Video
                 </Typography>
 
                 <Typography
                   variant="body2"
-                  color="text.secondary"
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   Add a video to this course.
                 </Typography>
@@ -664,16 +671,20 @@ const ManageVideos = () => {
                   sm: "row",
                 }}
                 spacing={1.5}
-                alignItems={{
-                  xs: "flex-start",
-                  sm: "center",
-                }}
-                justifyContent="space-between"
-              >
+                sx={{
+                  alignItems: {
+                    xs: "flex-start",
+                    sm: "center",
+                  },
+
+                  justifyContent: "space-between"
+                }}>
                 <Box>
                   <Typography
                     variant="body2"
-                    fontWeight={700}
+                    sx={{
+                      fontWeight: 700
+                    }}
                   >
                     {videoFile
                       ? videoFile.name
@@ -682,7 +693,9 @@ const ManageVideos = () => {
 
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     MP4, WebM, MOV or other video
                     formats
@@ -801,14 +814,18 @@ const ManageVideos = () => {
           <Box>
             <Typography
               variant="h6"
-              fontWeight={800}
+              sx={{
+                fontWeight: 800
+              }}
             >
               Course Videos
             </Typography>
 
             <Typography
               variant="caption"
-              color="text.secondary"
+              sx={{
+                color: "text.secondary"
+              }}
             >
               {videos.length}{" "}
               {videos.length === 1
@@ -882,18 +899,19 @@ const ManageVideos = () => {
               />
 
               <Typography
-                fontWeight={700}
+                sx={{
+                  fontWeight: 700
+                }}
               >
                 No videos added yet
               </Typography>
 
               <Typography
                 variant="body2"
-                color="text.secondary"
                 sx={{
-                  mt: 0.5,
-                }}
-              >
+                  color: "text.secondary",
+                  mt: 0.5
+                }}>
                 Add your first course video.
               </Typography>
 
@@ -997,12 +1015,12 @@ const ManageVideos = () => {
                           }}
                         >
                           <Typography
-                            fontWeight={800}
                             sx={{
+                              fontWeight: 800,
+
                               wordBreak:
-                                "break-word",
-                            }}
-                          >
+                                "break-word"
+                            }}>
                             {index + 1}.{" "}
                             {video.title ||
                               "Untitled Video"}
@@ -1023,18 +1041,21 @@ const ManageVideos = () => {
 
                         <Typography
                           variant="body2"
-                          color="text.secondary"
                           sx={{
+                            color: "text.secondary",
                             mt: 0.4,
+
                             display:
                               "-webkit-box",
+
                             WebkitLineClamp: 2,
+
                             WebkitBoxOrient:
                               "vertical",
+
                             overflow: "hidden",
-                            lineHeight: 1.45,
-                          }}
-                        >
+                            lineHeight: 1.45
+                          }}>
                           {video.description ||
                             "No description available."}
                         </Typography>
@@ -1134,7 +1155,9 @@ const ManageVideos = () => {
         <DialogContent>
           <Typography
             variant="body2"
-            color="text.secondary"
+            sx={{
+              color: "text.secondary"
+            }}
           >
             Are you sure you want to delete{" "}
             <strong>

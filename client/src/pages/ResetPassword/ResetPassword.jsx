@@ -361,9 +361,10 @@ const ForgotPassword = () => {
 
           <Stack
             spacing={2}
-            alignItems="center"
-            sx={{ mb: 3 }}
-          >
+            sx={{
+              alignItems: "center",
+              mb: 3
+            }}>
             <Box
               sx={{
                 width: 68,
@@ -406,20 +407,20 @@ const ForgotPassword = () => {
             <Box sx={{ textAlign: "center" }}>
               <Typography
                 variant="h5"
-                fontWeight={700}
-                color="text.primary"
-              >
+                sx={{
+                  fontWeight: 700,
+                  color: "text.primary"
+                }}>
                 {getTitle()}
               </Typography>
 
               <Typography
                 variant="body2"
-                color="text.secondary"
                 sx={{
+                  color: "text.secondary",
                   mt: 1,
-                  lineHeight: 1.7,
-                }}
-              >
+                  lineHeight: 1.7
+                }}>
                 {getSubtitle()}
               </Typography>
             </Box>
@@ -431,9 +432,10 @@ const ForgotPassword = () => {
 
           <Stack
             direction="row"
-            alignItems="center"
-            sx={{ mb: 3 }}
-          >
+            sx={{
+              alignItems: "center",
+              mb: 3
+            }}>
             {[1, 2, 3].map((item, index) => (
               <Box
                 key={item}
@@ -591,7 +593,9 @@ const ForgotPassword = () => {
                   <Stack
                     direction="row"
                     spacing={1}
-                    alignItems="center"
+                    sx={{
+                      alignItems: "center"
+                    }}
                   >
                     <CircularProgress
                       size={21}
@@ -851,7 +855,9 @@ const ForgotPassword = () => {
                   <Stack
                     direction="row"
                     spacing={1}
-                    alignItems="center"
+                    sx={{
+                      alignItems: "center"
+                    }}
                   >
                     <CircularProgress
                       size={21}
@@ -900,7 +906,9 @@ const ForgotPassword = () => {
             <Stack
               direction="row"
               spacing={1.5}
-              alignItems="flex-start"
+              sx={{
+                alignItems: "flex-start"
+              }}
             >
               <SecurityOutlined
                 sx={{
@@ -912,20 +920,21 @@ const ForgotPassword = () => {
               <Box>
                 <Typography
                   variant="body2"
-                  fontWeight={600}
+                  sx={{
+                    fontWeight: 600
+                  }}
                 >
                   Secure Password Recovery
                 </Typography>
 
                 <Typography
                   variant="caption"
-                  color="text.secondary"
                   sx={{
+                    color: "text.secondary",
                     display: "block",
                     mt: 0.5,
-                    lineHeight: 1.6,
-                  }}
-                >
+                    lineHeight: 1.6
+                  }}>
                   Your OTP is time-limited and can
                   only be used to reset your password.
                 </Typography>
@@ -966,13 +975,12 @@ const ForgotPassword = () => {
 
           <Typography
             variant="caption"
-            color="text.secondary"
             align="center"
             sx={{
+              color: "text.secondary",
               display: "block",
-              mt: 3,
-            }}
-          >
+              mt: 3
+            }}>
             © {new Date().getFullYear()} LearnHub LMS
           </Typography>
         </Paper>

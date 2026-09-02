@@ -190,24 +190,23 @@ const CreateCourse = () => {
           <Box>
             <Typography
               variant="h4"
-              fontWeight={800}
               sx={{
+                fontWeight: 800,
+
                 fontSize: {
                   xs: "1.8rem",
                   sm: "2.2rem",
                   md: "2.5rem",
-                },
-              }}
-            >
+                }
+              }}>
               Create New Course
             </Typography>
 
             <Typography
-              color="text.secondary"
               sx={{
-                mt: 0.5,
-              }}
-            >
+                color: "text.secondary",
+                mt: 0.5
+              }}>
               Create an engaging learning experience for
               your students.
             </Typography>
@@ -262,18 +261,19 @@ const CreateCourse = () => {
             >
               <Typography
                 variant="h6"
-                fontWeight={700}
+                sx={{
+                  fontWeight: 700
+                }}
               >
                 Course Information
               </Typography>
 
               <Typography
                 variant="body2"
-                color="text.secondary"
                 sx={{
-                  mt: 0.5,
-                }}
-              >
+                  color: "text.secondary",
+                  mt: 0.5
+                }}>
                 Enter the basic information about your
                 course.
               </Typography>
@@ -580,13 +580,17 @@ const CreateCourse = () => {
               <Visibility color="primary" />
 
               <Box>
-                <Typography fontWeight={700}>
+                <Typography sx={{
+                  fontWeight: 700
+                }}>
                   Course Preview
                 </Typography>
 
                 <Typography
                   variant="caption"
-                  color="text.secondary"
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   Live preview
                 </Typography>
@@ -704,12 +708,11 @@ const CreateCourse = () => {
 
               <Typography
                 variant="h5"
-                fontWeight={700}
                 sx={{
+                  fontWeight: 700,
                   lineHeight: 1.25,
-                  wordBreak: "break-word",
-                }}
-              >
+                  wordBreak: "break-word"
+                }}>
                 {formData.title ||
                   "Your Course Title"}
               </Typography>
@@ -717,16 +720,15 @@ const CreateCourse = () => {
               {/* DESCRIPTION */}
 
               <Typography
-                color="text.secondary"
                 sx={{
+                  color: "text.secondary",
                   mt: 1.5,
                   lineHeight: 1.7,
                   display: "-webkit-box",
                   WebkitLineClamp: 3,
                   WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                }}
-              >
+                  overflow: "hidden"
+                }}>
                 {formData.description ||
                   "Your course description will appear here. Add a clear description to help students understand what they will learn."}
               </Typography>
@@ -748,16 +750,19 @@ const CreateCourse = () => {
               >
                 <Typography
                   variant="body2"
-                  color="text.secondary"
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   Course Price
                 </Typography>
 
                 <Typography
                   variant="h5"
-                  fontWeight={800}
-                  color="success.main"
-                >
+                  sx={{
+                    fontWeight: 800,
+                    color: "success.main"
+                  }}>
                   ₹
                   {formData.price !== ""
                     ? Number(

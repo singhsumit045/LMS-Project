@@ -159,24 +159,23 @@ const MyCourse = () => {
 
       <Typography
         variant="h4"
-        fontWeight={700}
         sx={{
+          fontWeight: 700,
+
           fontSize: {
             xs: "2rem",
             md: "2.5rem",
-          },
-        }}
-      >
+          }
+        }}>
         My Courses
       </Typography>
 
       <Typography
-        color="text.secondary"
         sx={{
+          color: "text.secondary",
           mt: 1,
-          mb: 4,
-        }}
-      >
+          mb: 4
+        }}>
         {isTeacher
           ? "Courses you have created"
           : "Courses you are currently enrolled in"}
@@ -224,7 +223,9 @@ const MyCourse = () => {
 
           <Typography
             variant="h6"
-            fontWeight={600}
+            sx={{
+              fontWeight: 600
+            }}
           >
             {isTeacher
               ? "You haven't created any course yet."
@@ -232,11 +233,10 @@ const MyCourse = () => {
           </Typography>
 
           <Typography
-            color="text.secondary"
             sx={{
-              mt: 1,
-            }}
-          >
+              color: "text.secondary",
+              mt: 1
+            }}>
             {isTeacher
               ? "Create your first course to start teaching."
               : "Explore our courses and start learning."}
@@ -371,7 +371,9 @@ const MyCourse = () => {
 
                     <Typography
                       variant="h6"
-                      fontWeight={700}
+                      sx={{
+                        fontWeight: 700
+                      }}
                     >
                       {course.title}
                     </Typography>
@@ -380,15 +382,14 @@ const MyCourse = () => {
 
                     <Typography
                       variant="body2"
-                      color="text.secondary"
                       sx={{
+                        color: "text.secondary",
                         mt: 1,
                         display: "-webkit-box",
                         WebkitLineClamp: 3,
                         WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}
-                    >
+                        overflow: "hidden"
+                      }}>
                       {course.description ||
                         "No description available."}
                     </Typography>
@@ -396,12 +397,11 @@ const MyCourse = () => {
                     {/* PRICE */}
 
                     <Typography
-                      fontWeight={700}
                       color="primary"
                       sx={{
-                        mt: 2,
-                      }}
-                    >
+                        fontWeight: 700,
+                        mt: 2
+                      }}>
                       ₹{course.price ?? 0}
                     </Typography>
 
@@ -414,11 +414,10 @@ const MyCourse = () => {
                         "number" && (
                         <Typography
                           variant="body2"
-                          color="text.secondary"
                           sx={{
-                            mt: 1,
-                          }}
-                        >
+                            color: "text.secondary",
+                            mt: 1
+                          }}>
                           Progress:{" "}
                           {enrollment.progress}%
                         </Typography>

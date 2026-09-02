@@ -587,13 +587,17 @@ const StudentExam = () => {
         }}
       >
         <Stack
-          alignItems="center"
           spacing={2}
+          sx={{
+            alignItems: "center"
+          }}
         >
           <CircularProgress />
 
           <Typography
-            color="text.secondary"
+            sx={{
+              color: "text.secondary"
+            }}
           >
             Loading exam...
           </Typography>
@@ -713,8 +717,10 @@ const StudentExam = () => {
         <CardContent>
           <Typography
             variant="h4"
-            fontWeight={700}
             gutterBottom
+            sx={{
+              fontWeight: 700
+            }}
           >
             {exam.title}
           </Typography>
@@ -722,11 +728,10 @@ const StudentExam = () => {
           {exam.description && (
             <Typography
               variant="body1"
-              color="text.secondary"
               sx={{
-                mb: 2,
-              }}
-            >
+                color: "text.secondary",
+                mb: 2
+              }}>
               {exam.description}
             </Typography>
           )}
@@ -956,14 +961,18 @@ const StudentExam = () => {
                 }}
               >
                 <Typography
-                  fontWeight={600}
+                  sx={{
+                    fontWeight: 600
+                  }}
                 >
                   Exam in progress
                 </Typography>
 
                 <Typography
                   variant="body2"
-                  color="text.secondary"
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   Answered:{" "}
                   {answeredCount}/
@@ -988,11 +997,10 @@ const StudentExam = () => {
                   <CardContent>
                     <Typography
                       variant="h6"
-                      fontWeight={600}
                       sx={{
-                        mb: 2,
-                      }}
-                    >
+                        fontWeight: 600,
+                        mb: 2
+                      }}>
                       {index + 1}.{" "}
                       {
                         question.questionText
@@ -1001,11 +1009,10 @@ const StudentExam = () => {
 
                     <Typography
                       variant="body2"
-                      color="text.secondary"
                       sx={{
-                        mb: 2,
-                      }}
-                    >
+                        color: "text.secondary",
+                        mb: 2
+                      }}>
                       Marks:{" "}
                       {question.marks ?? 1}
                     </Typography>
@@ -1132,7 +1139,9 @@ const StudentExam = () => {
                   <Stack
                     direction="row"
                     spacing={1}
-                    alignItems="center"
+                    sx={{
+                      alignItems: "center"
+                    }}
                   >
                     <CircularProgress
                       size={22}

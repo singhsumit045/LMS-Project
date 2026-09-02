@@ -376,17 +376,18 @@ const ManageExams = () => {
         <Box>
           <Typography
             variant="h4"
-            fontWeight={700}
+            sx={{
+              fontWeight: 700
+            }}
           >
             Manage Exams
           </Typography>
 
           <Typography
-            color="text.secondary"
             sx={{
-              mt: 0.5,
-            }}
-          >
+              color: "text.secondary",
+              mt: 0.5
+            }}>
             Create and manage exams for this
             course
           </Typography>
@@ -394,11 +395,10 @@ const ManageExams = () => {
           {courseId && (
             <Typography
               variant="body2"
-              color="text.secondary"
               sx={{
-                mt: 0.5,
-              }}
-            >
+                color: "text.secondary",
+                mt: 0.5
+              }}>
               Course ID: {courseId}
             </Typography>
           )}
@@ -425,7 +425,9 @@ const ManageExams = () => {
             py: 8,
           }}
         >
-          <Typography color="text.secondary">
+          <Typography sx={{
+            color: "text.secondary"
+          }}>
             Loading exams...
           </Typography>
         </Box>
@@ -439,17 +441,18 @@ const ManageExams = () => {
           >
             <Typography
               variant="h6"
-              fontWeight={600}
+              sx={{
+                fontWeight: 600
+              }}
             >
               No exams found
             </Typography>
 
             <Typography
-              color="text.secondary"
               sx={{
-                mt: 1,
-              }}
-            >
+                color: "text.secondary",
+                mt: 1
+              }}>
               Create your first exam for this
               course.
             </Typography>
@@ -517,7 +520,9 @@ const ManageExams = () => {
                     >
                       <Typography
                         variant="h6"
-                        fontWeight={700}
+                        sx={{
+                          fontWeight: 700
+                        }}
                       >
                         {exam.title}
                       </Typography>
@@ -553,18 +558,21 @@ const ManageExams = () => {
                     ================================================= */}
 
                     <Typography
-                      color="text.secondary"
                       sx={{
+                        color: "text.secondary",
                         mt: 1.5,
                         minHeight: 48,
+
                         display:
                           "-webkit-box",
+
                         WebkitLineClamp: 2,
+
                         WebkitBoxOrient:
                           "vertical",
-                        overflow: "hidden",
-                      }}
-                    >
+
+                        overflow: "hidden"
+                      }}>
                       {exam.description}
                     </Typography>
 

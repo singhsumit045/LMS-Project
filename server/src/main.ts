@@ -11,7 +11,7 @@ async function bootstrap() {
     new Set(
       [
         'http://localhost:5173',
-        // 'http://192.168.5.57:5173',
+        // 'http://192.168.5.47:5173',  
         'https://lms-project-fawn-omega.vercel.app', 
         process.env.FRONTEND_URL,
       ].filter(Boolean),
@@ -27,7 +27,7 @@ async function bootstrap() {
 
   await app.listen(port, '0.0.0.0');
 
-  console.log(`Backend running on port ${port}`);
+  console.log(`Backend running on port ${port}`);  
 }
 
 bootstrap();

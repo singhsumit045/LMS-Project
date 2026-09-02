@@ -240,7 +240,9 @@ const EditCourse = () => {
           <Stack
             direction="row"
             spacing={2}
-            alignItems="center"
+            sx={{
+              alignItems: "center"
+            }}
           >
             <Box
               sx={{
@@ -262,14 +264,14 @@ const EditCourse = () => {
             <Box>
               <Typography
                 variant="h4"
-                fontWeight={800}
                 sx={{
+                  fontWeight: 800,
+
                   fontSize: {
                     xs: "1.7rem",
                     sm: "2.2rem",
-                  },
-                }}
-              >
+                  }
+                }}>
                 Edit Course
               </Typography>
 
@@ -345,7 +347,9 @@ const EditCourse = () => {
       <Grid
         container
         spacing={4}
-        alignItems="flex-start"
+        sx={{
+          alignItems: "flex-start"
+        }}
       >
         {/* =========================
             LEFT - FORM
@@ -371,19 +375,20 @@ const EditCourse = () => {
           >
             <Typography
               variant="h6"
-              fontWeight={800}
+              sx={{
+                fontWeight: 800
+              }}
             >
               Course Information
             </Typography>
 
             <Typography
               variant="body2"
-              color="text.secondary"
               sx={{
+                color: "text.secondary",
                 mt: 0.5,
-                mb: 3,
-              }}
-            >
+                mb: 3
+              }}>
               Modify the details of your course
               below.
             </Typography>
@@ -598,14 +603,18 @@ const EditCourse = () => {
 
               <Box>
                 <Typography
-                  fontWeight={800}
+                  sx={{
+                    fontWeight: 800
+                  }}
                 >
                   Course Preview
                 </Typography>
 
                 <Typography
                   variant="body2"
-                  color="text.secondary"
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   How your course thumbnail
                   will appear
@@ -674,27 +683,25 @@ const EditCourse = () => {
 
               <Typography
                 variant="h6"
-                fontWeight={800}
                 sx={{
-                  lineHeight: 1.3,
-                }}
-              >
+                  fontWeight: 800,
+                  lineHeight: 1.3
+                }}>
                 {course.title ||
                   "Your Course Title"}
               </Typography>
 
               <Typography
-                color="text.secondary"
                 variant="body2"
                 sx={{
+                  color: "text.secondary",
                   mt: 1,
                   lineHeight: 1.6,
                   display: "-webkit-box",
                   WebkitLineClamp: 3,
                   WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                }}
-              >
+                  overflow: "hidden"
+                }}>
                 {course.description ||
                   "Your course description will appear here."}
               </Typography>
@@ -714,16 +721,19 @@ const EditCourse = () => {
               >
                 <Typography
                   variant="body2"
-                  color="text.secondary"
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   Course Price
                 </Typography>
 
                 <Typography
                   variant="h6"
-                  fontWeight={800}
-                  color="success.main"
-                >
+                  sx={{
+                    fontWeight: 800,
+                    color: "success.main"
+                  }}>
                   ₹{course.price || 0}
                 </Typography>
               </Box>

@@ -223,12 +223,11 @@ background:
           <Box>
             <Typography
               variant="h6"
-              fontWeight={700}
               sx={{
+                fontWeight: 700,
                 mb: 2,
-                fontSize: "1rem",
-              }}
-            >
+                fontSize: "1rem"
+              }}>
               Quick Links
             </Typography>
 
@@ -282,12 +281,11 @@ background:
           <Box>
             <Typography
               variant="h6"
-              fontWeight={700}
               sx={{
+                fontWeight: 700,
                 mb: 2,
-                fontSize: "1rem",
-              }}
-            >
+                fontSize: "1rem"
+              }}>
               Support
             </Typography>
 
@@ -331,12 +329,11 @@ background:
           <Box>
             <Typography
               variant="h6"
-              fontWeight={700}
               sx={{
+                fontWeight: 700,
                 mb: 2,
-                fontSize: "1rem",
-              }}
-            >
+                fontSize: "1rem"
+              }}>
               Follow Us
             </Typography>
 

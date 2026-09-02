@@ -561,17 +561,18 @@ const ManageQuestions = () => {
         <Box>
           <Typography
             variant="h4"
-            fontWeight={700}
+            sx={{
+              fontWeight: 700
+            }}
           >
             Manage Questions
           </Typography>
 
           <Typography
-            color="text.secondary"
             sx={{
-              mt: 0.5,
-            }}
-          >
+              color: "text.secondary",
+              mt: 0.5
+            }}>
             Add questions and options for
             this exam
           </Typography>
@@ -579,11 +580,10 @@ const ManageQuestions = () => {
           {examId && (
             <Typography
               variant="body2"
-              color="text.secondary"
               sx={{
-                mt: 0.5,
-              }}
-            >
+                color: "text.secondary",
+                mt: 0.5
+              }}>
               Exam ID: {examId}
             </Typography>
           )}
@@ -610,7 +610,9 @@ const ManageQuestions = () => {
             py: 8,
           }}
         >
-          <Typography color="text.secondary">
+          <Typography sx={{
+            color: "text.secondary"
+          }}>
             Loading questions...
           </Typography>
         </Box>
@@ -624,17 +626,18 @@ const ManageQuestions = () => {
           >
             <Typography
               variant="h6"
-              fontWeight={600}
+              sx={{
+                fontWeight: 600
+              }}
             >
               No questions found
             </Typography>
 
             <Typography
-              color="text.secondary"
               sx={{
-                mt: 1,
-              }}
-            >
+                color: "text.secondary",
+                mt: 1
+              }}>
               Add your first question to
               this exam.
             </Typography>
@@ -675,30 +678,31 @@ const ManageQuestions = () => {
                     <Typography
                       variant="body2"
                       color="primary"
-                      fontWeight={600}
+                      sx={{
+                        fontWeight: 600
+                      }}
                     >
                       Question {index + 1}
                     </Typography>
 
                     <Typography
                       variant="h6"
-                      fontWeight={600}
                       sx={{
+                        fontWeight: 600,
                         mt: 1,
+
                         wordBreak:
-                          "break-word",
-                      }}
-                    >
+                          "break-word"
+                      }}>
                       {question.questionText}
                     </Typography>
 
                     <Typography
                       variant="body2"
-                      color="text.secondary"
                       sx={{
-                        mt: 1,
-                      }}
-                    >
+                        color: "text.secondary",
+                        mt: 1
+                      }}>
                       Marks:{" "}
                       {question.marks ?? 0}
                     </Typography>
@@ -724,11 +728,11 @@ const ManageQuestions = () => {
                           >
                             <Typography
                               variant="body2"
-                              fontWeight={
-                                option.isCorrect
+                              sx={{
+                                fontWeight: option.isCorrect
                                   ? 700
                                   : 400
-                              }
+                              }}
                             >
                               {String.fromCharCode(
                                 65 +
@@ -871,12 +875,11 @@ const ManageQuestions = () => {
 
           <Typography
             variant="subtitle1"
-            fontWeight={700}
             sx={{
+              fontWeight: 700,
               mt: 3,
-              mb: 1,
-            }}
-          >
+              mb: 1
+            }}>
             Options
           </Typography>
 

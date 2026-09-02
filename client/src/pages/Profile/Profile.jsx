@@ -812,23 +812,24 @@ function Profile() {
         <Box sx={{ mb: 3 }}>
           <Typography
             variant="h4"
-            fontWeight={700}
-            color="text.primary"
             sx={{
+              fontWeight: 700,
+              color: "text.primary",
+
               fontSize: {
                 xs: "1.8rem",
                 sm: "2.125rem",
-              },
-            }}
-          >
+              }
+            }}>
             My Profile
           </Typography>
 
           <Typography
             variant="body1"
-            color="text.secondary"
-            sx={{ mt: 0.5 }}
-          >
+            sx={{
+              color: "text.secondary",
+              mt: 0.5
+            }}>
             Manage your LearnHub account and security settings
           </Typography>
         </Box>
@@ -1218,9 +1219,10 @@ function Profile() {
             ) : (
               <Typography
                 variant="h5"
-                fontWeight={700}
-                color="text.primary"
                 sx={{
+                  fontWeight: 700,
+                  color: "text.primary",
+
                   fontSize: {
                     xs: "1.3rem",
                     sm: "1.5rem",
@@ -1229,9 +1231,8 @@ function Profile() {
                   pr: {
                     xs: 5,
                     sm: 0,
-                  },
-                }}
-              >
+                  }
+                }}>
                 {user.name}
               </Typography>
             )}
@@ -1239,12 +1240,11 @@ function Profile() {
             {/* EMAIL */}
 
             <Typography
-              color="text.secondary"
               sx={{
+                color: "text.secondary",
                 mt: 0.8,
-                wordBreak: "break-word",
-              }}
-            >
+                wordBreak: "break-word"
+              }}>
               {user.email}
             </Typography>
 
@@ -1305,9 +1305,10 @@ function Profile() {
 
             <Typography
               variant="h6"
-              fontWeight={700}
-              color="text.primary"
-            >
+              sx={{
+                fontWeight: 700,
+                color: "text.primary"
+              }}>
               Account Information
             </Typography>
           </Box>
@@ -1331,16 +1332,19 @@ function Profile() {
                 <Box sx={{ minWidth: 0 }}>
                   <Typography
                     variant="body2"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Full Name
                   </Typography>
 
                   <Typography
-                    fontWeight={600}
-                    color="text.primary"
-                    sx={{ mt: 0.3 }}
-                  >
+                    sx={{
+                      fontWeight: 600,
+                      color: "text.primary",
+                      mt: 0.3
+                    }}>
                     {user.name}
                   </Typography>
                 </Box>
@@ -1362,20 +1366,22 @@ function Profile() {
                 <Box sx={{ minWidth: 0 }}>
                   <Typography
                     variant="body2"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Email Address
                   </Typography>
 
                   <Typography
-                    fontWeight={600}
-                    color="text.primary"
                     sx={{
+                      fontWeight: 600,
+                      color: "text.primary",
                       mt: 0.3,
+
                       wordBreak:
-                        "break-word",
-                    }}
-                  >
+                        "break-word"
+                    }}>
                     {user.email}
                   </Typography>
                 </Box>
@@ -1397,20 +1403,22 @@ function Profile() {
                 <Box>
                   <Typography
                     variant="body2"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Account Role
                   </Typography>
 
                   <Typography
-                    fontWeight={600}
-                    color="text.primary"
                     sx={{
+                      fontWeight: 600,
+                      color: "text.primary",
                       mt: 0.3,
+
                       textTransform:
-                        "capitalize",
-                    }}
-                  >
+                        "capitalize"
+                    }}>
                     {user.role}
                   </Typography>
                 </Box>
@@ -1444,7 +1452,9 @@ function Profile() {
 
             <Typography
               variant="h6"
-              fontWeight={700}
+              sx={{
+                fontWeight: 700
+              }}
             >
               Teacher Signature
             </Typography>
@@ -1452,17 +1462,18 @@ function Profile() {
 
             <Typography
               variant="body2"
-              color="text.secondary"
               sx={{
-                mt: 1,
-              }}
-            >
+                color: "text.secondary",
+                mt: 1
+              }}>
               Upload your signature for course certificates.
             </Typography>
 
 
 
-            <Box mt={3}>
+            <Box sx={{
+              mt: 3
+            }}>
 
               <input
 
@@ -1483,27 +1494,30 @@ function Profile() {
             {signaturePreview && (
 
               <Box
-                mt={3}
+                sx={{
+                  mt: 3
+                }}
               >
 
                 <Typography
                   variant="body2"
-                  color="text.secondary"
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   Preview
                 </Typography>
 
 
                 <Box
-                  mt={1}
                   sx={{
+                    mt: 1,
                     p: 2,
                     border: "1px dashed",
                     borderColor: "divider",
                     width: "fit-content",
-                    borderRadius: 2,
-                  }}
-                >
+                    borderRadius: 2
+                  }}>
 
                   <img
 
@@ -1598,18 +1612,20 @@ function Profile() {
 
             <Typography
               variant="h6"
-              fontWeight={700}
-              color="text.primary"
-            >
+              sx={{
+                fontWeight: 700,
+                color: "text.primary"
+              }}>
               Security
             </Typography>
           </Box>
 
           <Typography
             variant="body2"
-            color="text.secondary"
-            sx={{ mb: 3 }}
-          >
+            sx={{
+              color: "text.secondary",
+              mb: 3
+            }}>
             Keep your account secure by using a
             strong password.
           </Typography>
@@ -1644,15 +1660,18 @@ function Profile() {
               <Box>
                 <Typography
                   variant="subtitle1"
-                  fontWeight={700}
-                  color="text.primary"
-                >
+                  sx={{
+                    fontWeight: 700,
+                    color: "text.primary"
+                  }}>
                   Password
                 </Typography>
 
                 <Typography
                   variant="body2"
-                  color="text.secondary"
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   Update your password to keep
                   your account secure.
@@ -1689,18 +1708,20 @@ function Profile() {
             <Box>
               <Typography
                 variant="subtitle1"
-                fontWeight={700}
-                color="text.primary"
-                sx={{ mb: 0.5 }}
-              >
+                sx={{
+                  fontWeight: 700,
+                  color: "text.primary",
+                  mb: 0.5
+                }}>
                 Change Password
               </Typography>
 
               <Typography
                 variant="body2"
-                color="text.secondary"
-                sx={{ mb: 3 }}
-              >
+                sx={{
+                  color: "text.secondary",
+                  mb: 3
+                }}>
                 Enter your current password and
                 choose a new password.
               </Typography>
@@ -1993,18 +2014,20 @@ function Profile() {
 
             <Typography
               variant="h6"
-              fontWeight={700}
-              color="text.primary"
-            >
+              sx={{
+                fontWeight: 700,
+                color: "text.primary"
+              }}>
               Account Actions
             </Typography>
           </Box>
 
           <Typography
             variant="body2"
-            color="text.secondary"
-            sx={{ mb: 3 }}
-          >
+            sx={{
+              color: "text.secondary",
+              mb: 3
+            }}>
             Manage your account session.
           </Typography>
 
@@ -2035,15 +2058,18 @@ function Profile() {
             <Box>
               <Typography
                 variant="subtitle1"
-                fontWeight={700}
-                color="text.primary"
-              >
+                sx={{
+                  fontWeight: 700,
+                  color: "text.primary"
+                }}>
                 Logout
               </Typography>
 
               <Typography
                 variant="body2"
-                color="text.secondary"
+                sx={{
+                  color: "text.secondary"
+                }}
               >
                 Sign out of your LearnHub account
                 on this device.

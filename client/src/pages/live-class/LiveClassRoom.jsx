@@ -185,7 +185,9 @@ const VideoTile = ({
         <Stack
           direction="row"
           spacing={1}
-          alignItems="center"
+          sx={{
+            alignItems: "center"
+          }}
         >
           <Typography
             variant="body2"
@@ -2294,7 +2296,9 @@ const LiveClassRoom = () => {
       >
         <Stack
           spacing={2}
-          alignItems="center"
+          sx={{
+            alignItems: "center"
+          }}
         >
           <CircularProgress />
 
@@ -2332,7 +2336,9 @@ const LiveClassRoom = () => {
           <CardContent>
             <Stack
               spacing={3}
-              alignItems="center"
+              sx={{
+                alignItems: "center"
+              }}
             >
               <WarningAmberIcon
                 color="error"
@@ -2343,11 +2349,10 @@ const LiveClassRoom = () => {
 
               <Typography
                 variant="h6"
-                fontWeight={700}
                 sx={{
-                  textAlign: "center",
-                }}
-              >
+                  fontWeight: 700,
+                  textAlign: "center"
+                }}>
                 Unable to Open Live Class
               </Typography>
 
@@ -2565,7 +2570,9 @@ const LiveClassRoom = () => {
 
               <Typography
                 variant="body2"
-                color="text.secondary"
+                sx={{
+                  color: "text.secondary"
+                }}
               >
                 Socket:{" "}
                 {socketConnected
@@ -2575,11 +2582,10 @@ const LiveClassRoom = () => {
 
               <Typography
                 variant="body2"
-                color="text.secondary"
                 sx={{
-                  mt: 0.5,
-                }}
-              >
+                  color: "text.secondary",
+                  mt: 0.5
+                }}>
                 Joined:{" "}
                 {joined
                   ? "✅ Yes"
@@ -2588,11 +2594,10 @@ const LiveClassRoom = () => {
 
               <Typography
                 variant="body2"
-                color="text.secondary"
                 sx={{
-                  mt: 0.5,
-                }}
-              >
+                  color: "text.secondary",
+                  mt: 0.5
+                }}>
                 Participants:{" "}
                 {remoteParticipants.length +
                   1}
@@ -2639,16 +2644,20 @@ const LiveClassRoom = () => {
             sm: "row",
           }}
           spacing={2}
-          justifyContent="space-between"
-          alignItems={{
-            xs: "flex-start",
-            sm: "center",
-          }}
-        >
+          sx={{
+            justifyContent: "space-between",
+
+            alignItems: {
+              xs: "flex-start",
+              sm: "center",
+            }
+          }}>
           <Stack
             direction="row"
             spacing={2}
-            alignItems="center"
+            sx={{
+              alignItems: "center"
+            }}
           >
             <IconButton
               onClick={handleLeave}
@@ -2659,7 +2668,9 @@ const LiveClassRoom = () => {
             <Box>
               <Typography
                 variant="h6"
-                fontWeight={700}
+                sx={{
+                  fontWeight: 700
+                }}
               >
                 {liveClass?.title ||
                   "Live Class"}
@@ -2668,7 +2679,9 @@ const LiveClassRoom = () => {
               <Stack
                 direction="row"
                 spacing={1}
-                mt={0.5}
+                sx={{
+                  mt: 0.5
+                }}
               >
                 <Chip
                   size="small"
@@ -2704,7 +2717,9 @@ const LiveClassRoom = () => {
           <Stack
             direction="row"
             spacing={1}
-            alignItems="center"
+            sx={{
+              alignItems: "center"
+            }}
           >
             {role && (
               <Chip
@@ -2818,12 +2833,16 @@ const LiveClassRoom = () => {
                 md: "row",
               }}
               spacing={2}
-              justifyContent="space-between"
+              sx={{
+                justifyContent: "space-between"
+              }}
             >
               <Box>
                 <Typography
                   variant="h5"
-                  fontWeight={700}
+                  sx={{
+                    fontWeight: 700
+                  }}
                 >
                   {liveClass?.title}
                 </Typography>
@@ -2831,11 +2850,10 @@ const LiveClassRoom = () => {
                 {liveClass?.description && (
                   <Typography
                     variant="body2"
-                    color="text.secondary"
                     sx={{
-                      mt: 1,
-                    }}
-                  >
+                      color: "text.secondary",
+                      mt: 1
+                    }}>
                     {liveClass.description}
                   </Typography>
                 )}
@@ -2843,7 +2861,9 @@ const LiveClassRoom = () => {
 
               <Typography
                 variant="body2"
-                color="text.secondary"
+                sx={{
+                  color: "text.secondary"
+                }}
               >
                 Scheduled:{" "}
                 {liveClass?.scheduledAt
@@ -2927,10 +2947,11 @@ const LiveClassRoom = () => {
           >
             <CardContent>
               <Stack
-                alignItems="center"
                 spacing={1}
-                py={2}
-              >
+                sx={{
+                  alignItems: "center",
+                  py: 2
+                }}>
                 <PeopleIcon
                   color="disabled"
                   sx={{
@@ -2939,18 +2960,19 @@ const LiveClassRoom = () => {
                 />
 
                 <Typography
-                  fontWeight={600}
+                  sx={{
+                    fontWeight: 600
+                  }}
                 >
                   Waiting for participants
                 </Typography>
 
                 <Typography
                   variant="body2"
-                  color="text.secondary"
                   sx={{
-                    textAlign: "center",
-                  }}
-                >
+                    color: "text.secondary",
+                    textAlign: "center"
+                  }}>
                   Other participants will
                   appear here when they join
                   the live class.
@@ -2980,7 +3002,9 @@ const LiveClassRoom = () => {
             <Stack
               direction="row"
               spacing={1}
-              alignItems="center"
+              sx={{
+                alignItems: "center"
+              }}
             >
               {/* MIC */}
 
@@ -3153,19 +3177,20 @@ const LiveClassRoom = () => {
           <Stack
             direction="row"
             spacing={1}
-            justifyContent="center"
-            alignItems="center"
             sx={{
-              mt: 2,
-            }}
-          >
+              justifyContent: "center",
+              alignItems: "center",
+              mt: 2
+            }}>
             <CircularProgress
               size={18}
             />
 
             <Typography
               variant="body2"
-              color="text.secondary"
+              sx={{
+                color: "text.secondary"
+              }}
             >
               Connecting to live class...
             </Typography>
@@ -3182,7 +3207,9 @@ const LiveClassRoom = () => {
         >
           <Typography
             variant="caption"
-            color="text.secondary"
+            sx={{
+              color: "text.secondary"
+            }}
           >
             {joined
               ? "You are connected to the live class."
@@ -3206,12 +3233,15 @@ const LiveClassRoom = () => {
               <Stack spacing={2}>
                 <Stack
                   direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
+                  sx={{
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                  }}>
                   <Typography
                     variant="h6"
-                    fontWeight={700}
+                    sx={{
+                      fontWeight: 700
+                    }}
                   >
                     👥 Participants (
                     {remoteParticipants.length +
@@ -3244,7 +3274,9 @@ const LiveClassRoom = () => {
                   <Stack
                     direction="row"
                     spacing={1}
-                    alignItems="center"
+                    sx={{
+                      alignItems: "center"
+                    }}
                   >
                     <Avatar
                       sx={{
@@ -3262,10 +3294,14 @@ const LiveClassRoom = () => {
                       )}
                     </Avatar>
 
-                    <Box flex={1}>
+                    <Box sx={{
+                      flex: 1
+                    }}>
                       <Typography
                         variant="body2"
-                        fontWeight={600}
+                        sx={{
+                          fontWeight: 600
+                        }}
                       >
                         You{" "}
                         {role &&
@@ -3275,7 +3311,9 @@ const LiveClassRoom = () => {
                       <Stack
                         direction="row"
                         spacing={0.5}
-                        mt={0.3}
+                        sx={{
+                          mt: 0.3
+                        }}
                       >
                         <Chip
                           label={
@@ -3328,7 +3366,9 @@ const LiveClassRoom = () => {
                       <Stack
                         direction="row"
                         spacing={1}
-                        alignItems="center"
+                        sx={{
+                          alignItems: "center"
+                        }}
                       >
                         <Avatar
                           sx={{
@@ -3349,10 +3389,14 @@ const LiveClassRoom = () => {
                           )}
                         </Avatar>
 
-                        <Box flex={1}>
+                        <Box sx={{
+                          flex: 1
+                        }}>
                           <Typography
                             variant="body2"
-                            fontWeight={600}
+                            sx={{
+                              fontWeight: 600
+                            }}
                           >
                             User{" "}
                             {

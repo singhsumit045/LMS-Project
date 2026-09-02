@@ -159,7 +159,9 @@ function ChangePassword() {
 
         <Typography
           variant="h6"
-          fontWeight={700}
+          sx={{
+            fontWeight: 700
+          }}
         >
           Change Password
         </Typography>
@@ -167,9 +169,10 @@ function ChangePassword() {
 
       <Typography
         variant="body2"
-        color="text.secondary"
-        sx={{ mb: 3 }}
-      >
+        sx={{
+          color: "text.secondary",
+          mb: 3
+        }}>
         Update your password to keep your account secure.
       </Typography>
 

@@ -117,7 +117,11 @@ const AdminDashboard = () => {
                 }}
             >
                 <CircularProgress size={50} thickness={4} />
-                <Typography color="text.secondary" sx={{ fontWeight: 600 }}>
+                <Typography
+                    sx={{
+                        color: "text.secondary",
+                        fontWeight: 600
+                    }}>
                     Loading your dashboard…
                 </Typography>
             </Box>
@@ -316,7 +320,7 @@ const AdminDashboard = () => {
                 </Stack>
             </Paper>
 
-           {/* STAT CARDS */}
+            {/* STAT CARDS */}
             <Grid container spacing={{ xs: 2, sm: 3 }}>
                 {stats.map((item) => (
                     <Grid
@@ -384,12 +388,11 @@ const AdminDashboard = () => {
                                 >
                                     <Typography
                                         variant="body2"
-                                        color="text.secondary"
                                         sx={{
+                                            color: "text.secondary",
                                             fontWeight: 700,
-                                            lineHeight: 1.4,
-                                        }}
-                                    >
+                                            lineHeight: 1.4
+                                        }}>
                                         {item.title}
                                     </Typography>
 
@@ -596,8 +599,14 @@ const AdminDashboard = () => {
                 }}
             >
                 {topCourses.length === 0 ? (
-                    <Box p={5} textAlign="center">
-                        <Typography color="text.secondary">
+                    <Box
+                        sx={{
+                            p: 5,
+                            textAlign: "center"
+                        }}>
+                        <Typography sx={{
+                            color: "text.secondary"
+                        }}>
                             No course analytics available
                         </Typography>
                     </Box>
@@ -658,13 +667,17 @@ const AdminDashboard = () => {
                                             {course.course  || "Course"}
                                         </Typography>
 
-                                        <Typography variant="body2" color="text.secondary">
+                                        <Typography variant="body2" sx={{
+                                            color: "text.secondary"
+                                        }}>
                                             {course.students  || 0} students enrolled
                                         </Typography>
                                     </Box>
                                 </Stack>
 
-                                <Box width={{ xs: "100%", sm: 250 }}>
+                                <Box sx={{
+                                    width: { xs: "100%", sm: 250 }
+                                }}>
                                     <LinearProgress
                                         variant="determinate"
                                         value={Math.min((course.students  || 0) * 5, 100)}
@@ -744,7 +757,9 @@ const AdminDashboard = () => {
                                 <Box sx={{ flex: 1, minWidth: 0 }}>
                                     <Typography sx={{ fontWeight: 900 }} noWrap>{item.title}</Typography>
 
-                                    <Typography variant="body2" color="text.secondary" noWrap>
+                                    <Typography variant="body2" noWrap sx={{
+                                        color: "text.secondary"
+                                    }}>
                                         {item.desc}
                                     </Typography>
 
@@ -826,7 +841,11 @@ const AdminDashboard = () => {
                             System Status
                         </Typography>
 
-                        <Typography color="text.secondary" sx={{ fontSize: { xs: 13.5, sm: 14 } }}>
+                        <Typography
+                            sx={{
+                                color: "text.secondary",
+                                fontSize: { xs: 13.5, sm: 14 }
+                            }}>
                             All LMS services are running normally.
                             Admin panel is secure and active.
                         </Typography>

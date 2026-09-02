@@ -219,11 +219,11 @@ const ManageAnnouncements = () => {
           HEADER
       ================================================= */}
 
-      <Box sx={{ mb: 4 }}>
+      <Box sx={{ mb: 4, }}>
         <Stack
           direction="row"
           spacing={1.5}
-          alignItems="center"
+         
         >
           <Box
             sx={{
@@ -244,23 +244,22 @@ const ManageAnnouncements = () => {
           <Box>
             <Typography
               variant="h4"
-              fontWeight={800}
               sx={{
+                fontWeight: 800,
+
                 fontSize: {
                   xs: "1.8rem",
                   md: "2.2rem",
-                },
-              }}
-            >
+                }
+              }}>
               Manage Announcements
             </Typography>
 
             <Typography
-              color="text.secondary"
               sx={{
-                mt: 0.3,
-              }}
-            >
+                color: "text.secondary",
+                mt: 0.3
+              }}>
               Share important updates and notices with
               your students.
             </Typography>
@@ -321,16 +320,17 @@ const ManageAnnouncements = () => {
         <Stack
           direction="row"
           spacing={1}
-          alignItems="center"
           sx={{
-            mb: 3,
-          }}
-        >
+            alignItems: "center",
+            mb: 3
+          }}>
           <Add color="primary" />
 
           <Typography
             variant="h6"
-            fontWeight={800}
+            sx={{
+              fontWeight: 800
+            }}
           >
             Create Announcement
           </Typography>
@@ -423,17 +423,18 @@ const ManageAnnouncements = () => {
         {/* LIST HEADER */}
         <Typography
           variant="h6"
-          fontWeight={800}
           sx={{
-            mb: 1,
-          }}
-        >
+            fontWeight: 800,
+            mb: 1
+          }}>
           Published Announcements
         </Typography>
 
         <Typography
           variant="body2"
-          color="text.secondary"
+          sx={{
+            color: "text.secondary"
+          }}
         >
           All announcements published for this course.
         </Typography>
@@ -473,17 +474,18 @@ const ManageAnnouncements = () => {
 
             <Typography
               variant="h6"
-              fontWeight={700}
+              sx={{
+                fontWeight: 700
+              }}
             >
               No announcements yet
             </Typography>
 
             <Typography
-              color="text.secondary"
               sx={{
-                mt: 0.5,
-              }}
-            >
+                color: "text.secondary",
+                mt: 0.5
+              }}>
               Published announcements will appear here.
             </Typography>
           </Box>
@@ -551,35 +553,32 @@ const ManageAnnouncements = () => {
                   >
                     <Typography
                       variant="h6"
-                      fontWeight={800}
                       sx={{
-                        wordBreak: "break-word",
-                      }}
-                    >
+                        fontWeight: 800,
+                        wordBreak: "break-word"
+                      }}>
                       {announcement.title}
                     </Typography>
 
                     <Typography
-                      color="text.secondary"
                       sx={{
+                        color: "text.secondary",
                         mt: 0.7,
                         lineHeight: 1.7,
                         whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                      }}
-                    >
+                        wordBreak: "break-word"
+                      }}>
                       {announcement.message}
                     </Typography>
 
                     {/* DATE */}
                     <Typography
                       variant="caption"
-                      color="text.secondary"
                       sx={{
+                        color: "text.secondary",
                         display: "block",
-                        mt: 1,
-                      }}
-                    >
+                        mt: 1
+                      }}>
                       {announcement.createdAt
                         ? new Date(
                             announcement.createdAt

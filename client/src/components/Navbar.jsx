@@ -1041,7 +1041,7 @@ const Navbar = ({
     width: 42,
     height: 42,
     borderRadius: "11px",
-    
+
     color: textPrimary,
 
     transition:
@@ -1429,11 +1429,11 @@ const Navbar = ({
         }
         anchorOrigin={{
           vertical: "bottom",
-          horizontal: "right",
+          horizontal: isMobile ? "right" : "right",
         }}
         transformOrigin={{
           vertical: "top",
-          horizontal: "right",
+          horizontal: isMobile ? "right" : "right",
         }}
         slotProps={{
           paper: {
@@ -1443,24 +1443,22 @@ const Navbar = ({
                 sm: 280,
               },
 
-              maxWidth:
-                "calc(100vw - 24px)",
+              maxWidth: "calc(100vw - 12px)",
 
               mt: 1,
-
-
               borderRadius: "14px",
 
-              bgcolor:
-                theme.palette
-                  .background.paper,
+              // MOBILE: right side se 0/very close
+              ...(isMobile && {
+                mr: 2,
+                right: "0px !important",
+                left: "auto !important",
+              }),
 
-              color:
-                theme.palette
-                  .text.primary,
+              bgcolor: theme.palette.background.paper,
+              color: theme.palette.text.primary,
 
-              border:
-                `1px solid ${borderColor}`,
+              border: `1px solid ${borderColor}`,
 
               boxShadow: darkMode
                 ? "0 14px 35px rgba(0,0,0,0.35)"
@@ -1634,13 +1632,13 @@ const Navbar = ({
               height: {
                 xs: "230px",
                 sm: "240px",
-                md: "250px",
+                md: "200px",
               },
 
               maxHeight: {
-                xs: "230px",
-                sm: "220px",
-                md: "250px",
+                xs: "200px",
+                sm: "200px",
+                md: "200px",
               },
 
               overflowY: "auto",

@@ -118,14 +118,14 @@ const PrivacyPolicy = () => {
 
               <Typography
                 variant="h2"
-                fontWeight={900}
                 sx={{
+                  fontWeight: 900,
+
                   fontSize: {
                     xs: "2.2rem",
                     md: "3.2rem",
-                  },
-                }}
-              >
+                  }
+                }}>
                 Privacy Policy
               </Typography>
 
@@ -161,9 +161,10 @@ const PrivacyPolicy = () => {
           >
             <Stack spacing={4}>
               <Typography
-                color="text.secondary"
-                lineHeight={1.9}
-              >
+                sx={{
+                  color: "text.secondary",
+                  lineHeight: 1.9
+                }}>
                 LearnHub is committed to protecting user
                 information and providing a safe learning
                 environment. By using the platform, you
@@ -178,16 +179,18 @@ const PrivacyPolicy = () => {
                 <Box key={section.title}>
                   <Typography
                     variant="h5"
-                    fontWeight={800}
-                    sx={{ mb: 1.5 }}
-                  >
+                    sx={{
+                      fontWeight: 800,
+                      mb: 1.5
+                    }}>
                     {section.title}
                   </Typography>
 
                   <Typography
-                    color="text.secondary"
-                    lineHeight={1.9}
-                  >
+                    sx={{
+                      color: "text.secondary",
+                      lineHeight: 1.9
+                    }}>
                     {section.content}
                   </Typography>
 
@@ -207,16 +210,18 @@ const PrivacyPolicy = () => {
                 }}
               >
                 <Typography
-                  fontWeight={800}
-                  sx={{ mb: 1 }}
-                >
+                  sx={{
+                    fontWeight: 800,
+                    mb: 1
+                  }}>
                   Questions about privacy?
                 </Typography>
 
                 <Typography
-                  color="text.secondary"
-                  lineHeight={1.8}
-                >
+                  sx={{
+                    color: "text.secondary",
+                    lineHeight: 1.8
+                  }}>
                   Please visit the Contact Us page if you
                   have questions or concerns regarding this
                   Privacy Policy.

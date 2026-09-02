@@ -443,25 +443,24 @@ const ManageCourses = () => {
         <Box>
           <Typography
             variant="h4"
-            fontWeight={800}
             sx={{
+              fontWeight: 800,
+
               fontSize: {
                 xs: "1.7rem",
                 sm: "2rem",
                 md: "2.3rem",
-              },
-            }}
-          >
+              }
+            }}>
             Manage Courses
           </Typography>
 
           <Typography
             variant="body2"
-            color="text.secondary"
             sx={{
-              mt: 0.5,
-            }}
-          >
+              color: "text.secondary",
+              mt: 0.5
+            }}>
             View, monitor and manage all courses
             created by teachers.
           </Typography>
@@ -540,19 +539,19 @@ const ManageCourses = () => {
             <Box>
               <Typography
                 variant="body2"
-                color="text.secondary"
-                fontWeight={500}
-              >
+                sx={{
+                  color: "text.secondary",
+                  fontWeight: 500
+                }}>
                 Total Courses
               </Typography>
 
               <Typography
                 variant="h5"
-                fontWeight={800}
                 sx={{
-                  mt: 0.3,
-                }}
-              >
+                  fontWeight: 800,
+                  mt: 0.3
+                }}>
                 {courses.length}
               </Typography>
             </Box>
@@ -599,19 +598,19 @@ const ManageCourses = () => {
             <Box>
               <Typography
                 variant="body2"
-                color="text.secondary"
-                fontWeight={500}
-              >
+                sx={{
+                  color: "text.secondary",
+                  fontWeight: 500
+                }}>
                 Categories
               </Typography>
 
               <Typography
                 variant="h5"
-                fontWeight={800}
                 sx={{
-                  mt: 0.3,
-                }}
-              >
+                  fontWeight: 800,
+                  mt: 0.3
+                }}>
                 {categories.length}
               </Typography>
             </Box>
@@ -658,19 +657,19 @@ const ManageCourses = () => {
             <Box>
               <Typography
                 variant="body2"
-                color="text.secondary"
-                fontWeight={500}
-              >
+                sx={{
+                  color: "text.secondary",
+                  fontWeight: 500
+                }}>
                 Total Enrollments
               </Typography>
 
               <Typography
                 variant="h5"
-                fontWeight={800}
                 sx={{
-                  mt: 0.3,
-                }}
-              >
+                  fontWeight: 800,
+                  mt: 0.3
+                }}>
                 {courses.reduce(
                   (total, course) =>
                     total +
@@ -767,7 +766,9 @@ const ManageCourses = () => {
       >
         <Typography
           variant="body2"
-          color="text.secondary"
+          sx={{
+            color: "text.secondary"
+          }}
         >
           Showing{" "}
           <strong>{filteredCourses.length}</strong>{" "}
@@ -779,341 +780,361 @@ const ManageCourses = () => {
       {/* =================================================
           DESKTOP TABLE
       ================================================= */}
-<Paper
-  elevation={0}
-  sx={{
-    display: {
-      xs: "none",
-      md: "block",
-    },
-    border: "1px solid",
-    borderColor: "divider",
-    borderRadius: 3,
+      <Paper
+        elevation={0}
+        sx={{
+          display: {
+            xs: "none",
+            md: "block",
+          },
+          border: "1px solid",
+          borderColor: "divider",
+          borderRadius: 3,
 
-    overflowX: "auto",
-    overflowY: "auto",
+          overflowX: "auto",
+          overflowY: "auto",
 
-    // maxHeight: "calc(100vh - 430px)",
-    maxHeight: "400px",
+          // maxHeight: "calc(100vh - 430px)",
+          maxHeight: "400px",
 
-    "&::-webkit-scrollbar": {
-      width: "8px",
-      height: "8px",
-    },
+          "&::-webkit-scrollbar": {
+            width: "8px",
+            height: "8px",
+          },
 
-    "&::-webkit-scrollbar-thumb": {
-      backgroundColor: "text.disabled",
-      borderRadius: "10px",
-    },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "text.disabled",
+            borderRadius: "10px",
+          },
 
-    "&::-webkit-scrollbar-track": {
-      backgroundColor: "transparent",
-    },
-  }}
->
-        {/* TABLE HEADER */}
+          "&::-webkit-scrollbar-track": {
+            backgroundColor: "transparent",
+          },
+        }}
+      >
+              {/* TABLE HEADER */}
 
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns:
-              "1.5fr 1.2fr 0.9fr 0.7fr 0.7fr 1.1fr",
-            gap: 2,
-            px: 2,
-            py: 1.5,
-            backgroundColor: "action.hover",
-            alignItems: "center",
-          }}
-        >
-          <Typography
-            variant="body2"
-            fontWeight={800}
-          >
-            Course
-          </Typography>
-
-          <Typography
-            variant="body2"
-            fontWeight={800}
-          >
-            Teacher
-          </Typography>
-
-          <Typography
-            variant="body2"
-            fontWeight={800}
-          >
-            Category
-          </Typography>
-
-          <Typography
-            variant="body2"
-            fontWeight={800}
-          >
-            Price
-          </Typography>
-
-          <Typography
-            variant="body2"
-            fontWeight={800}
-          >
-            Students
-          </Typography>
-
-          <Typography
-            variant="body2"
-            fontWeight={800}
-          >
-            Actions
-          </Typography>
-        </Box>
-
-        {/* TABLE DATA */}
-
-        {filteredCourses.length === 0 ? (
-          <Box
-            sx={{
-              py: 7,
-              textAlign: "center",
-            }}
-          >
-            <LibraryBooksIcon
-              sx={{
-                fontSize: 50,
-                color: "text.disabled",
-                mb: 1,
-              }}
-            />
-
-            <Typography color="text.secondary">
-              No courses found.
-            </Typography>
-          </Box>
-        ) : (
-          filteredCourses.map((course) => (
-            <Box
-              key={course.id}
-              sx={{
-                display: "grid",
-                gridTemplateColumns:
-                  "1.5fr 1.2fr 0.9fr 0.7fr 0.7fr 1.1fr",
-                gap: 2,
-                px: 2,
-                py: 2,
-                alignItems: "center",
-                borderTop: "1px solid",
-                borderColor: "divider",
-                transition:
-                  "background-color 0.2s ease",
-
-                "&:hover": {
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "1.5fr 1.2fr 0.9fr 0.7fr 0.7fr 1.1fr",
+                  gap: 2,
+                  px: 2,
+                  py: 1.5,
                   backgroundColor: "action.hover",
-                },
-              }}
-            >
-              {/* COURSE */}
-
-              <Box
-                sx={{
-                  display: "flex",
                   alignItems: "center",
-                  gap: 1.5,
-                  minWidth: 0,
                 }}
               >
-                <Avatar
-                  variant="rounded"
-                  src={course.thumbnail || undefined}
+                <Typography
+                  variant="body2"
                   sx={{
-                    width: 58,
-                    height: 45,
-                    flexShrink: 0,
-                    bgcolor: "primary.main",
-                    color: "white",
+                    fontWeight: 800
                   }}
                 >
-                  <LibraryBooksIcon />
-                </Avatar>
-
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography
-                    fontWeight={700}
-                    noWrap
-                  >
-                    {course.title ||
-                      "Untitled Course"}
-                  </Typography>
-
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{
-                      display: "block",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {course.description ||
-                      "No description"}
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* TEACHER */}
-
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  minWidth: 0,
-                }}
-              >
-                <Avatar
-                  src={getTeacherImage(course)}
-                  sx={{
-                    width: 38,
-                    height: 38,
-                    flexShrink: 0,
-                    bgcolor: "info.main",
-                    color: "white",
-                    fontSize: "0.85rem",
-                  }}
-                >
-                  {getTeacherInitial(course)}
-                </Avatar>
-
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography
-                    variant="body2"
-                    fontWeight={600}
-                    noWrap
-                  >
-                    {getTeacherName(course)}
-                  </Typography>
-
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    noWrap
-                    sx={{
-                      display: "block",
-                    }}
-                  >
-                    {getTeacherEmail(course)}
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* CATEGORY */}
-
-              <Chip
-                size="small"
-                label={course.category || "General"}
-                icon={<CategoryIcon />}
-                sx={{
-                  maxWidth: "100%",
-                }}
-              />
-
-              {/* PRICE */}
-
-              <Typography
-                variant="body2"
-                fontWeight={700}
-              >
-                {getPrice(course.price)}
-              </Typography>
-
-              {/* STUDENTS */}
-
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0.6,
-                }}
-              >
-                <PeopleIcon
-                  sx={{
-                    fontSize: 19,
-                    color: "success.main",
-                  }}
-                />
+                  Course
+                </Typography>
 
                 <Typography
                   variant="body2"
-                  fontWeight={700}
+                  sx={{
+                    fontWeight: 800
+                  }}
                 >
-                  {course.studentCount ?? 0}
+                  Teacher
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 800
+                  }}
+                >
+                  Category
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 800
+                  }}
+                >
+                  Price
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 800
+                  }}
+                >
+                  Students
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 800
+                  }}
+                >
+                  Actions
                 </Typography>
               </Box>
 
-              {/* ACTIONS */}
+              {/* TABLE DATA */}
 
-              <Stack
-                direction="row"
-                spacing={0.5}
-              >
-                <IconButton
-                  size="small"
-                  title="View Course"
-                  onClick={() =>
-                    handleViewCourse(course)
-                  }
+              {filteredCourses.length === 0 ? (
+                <Box
                   sx={{
-                    color: "info.main",
-
-                    "&:hover": {
-                      backgroundColor:
-                        "rgba(2, 136, 209, 0.10)",
-                    },
+                    py: 7,
+                    textAlign: "center",
                   }}
                 >
-                  <VisibilityIcon fontSize="small" />
-                </IconButton>
+                  <LibraryBooksIcon
+                    sx={{
+                      fontSize: 50,
+                      color: "text.disabled",
+                      mb: 1,
+                    }}
+                  />
 
-                <IconButton
-                  size="small"
-                  title="Edit Course"
-                  onClick={() =>
-                    handleEditCourse(course)
-                  }
-                  sx={{
-                    color: "warning.main",
+                  <Typography sx={{
+                    color: "text.secondary"
+                  }}>
+                    No courses found.
+                  </Typography>
+                </Box>
+              ) : (
+                filteredCourses.map((course) => (
+                  <Box
+                    key={course.id}
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "1.5fr 1.2fr 0.9fr 0.7fr 0.7fr 1.1fr",
+                      gap: 2,
+                      px: 2,
+                      py: 2,
+                      alignItems: "center",
+                      borderTop: "1px solid",
+                      borderColor: "divider",
+                      transition:
+                        "background-color 0.2s ease",
 
-                    "&:hover": {
-                      backgroundColor:
-                        "rgba(237, 108, 2, 0.10)",
-                    },
-                  }}
-                >
-                  <EditIcon fontSize="small" />
-                </IconButton>
+                      "&:hover": {
+                        backgroundColor: "action.hover",
+                      },
+                    }}
+                  >
+                    {/* COURSE */}
 
-                <IconButton
-                  size="small"
-                  title="Delete Course"
-                  onClick={() =>
-                    handleDeleteClick(course)
-                  }
-                  sx={{
-                    color: "error.main",
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.5,
+                        minWidth: 0,
+                      }}
+                    >
+                      <Avatar
+                        variant="rounded"
+                        src={course.thumbnail || undefined}
+                        sx={{
+                          width: 58,
+                          height: 45,
+                          flexShrink: 0,
+                          bgcolor: "primary.main",
+                          color: "white",
+                        }}
+                      >
+                        <LibraryBooksIcon />
+                      </Avatar>
 
-                    "&:hover": {
-                      backgroundColor:
-                        "rgba(211, 47, 47, 0.10)",
-                    },
-                  }}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </Stack>
-            </Box>
-          ))
-        )}
-      </Paper>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          noWrap
+                          sx={{
+                            fontWeight: 700
+                          }}
+                        >
+                          {course.title ||
+                            "Untitled Course"}
+                        </Typography>
+
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: "text.secondary",
+                            display: "block",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap"
+                          }}>
+                          {course.description ||
+                            "No description"}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {/* TEACHER */}
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        minWidth: 0,
+                      }}
+                    >
+                      <Avatar
+                        src={getTeacherImage(course)}
+                        sx={{
+                          width: 38,
+                          height: 38,
+                          flexShrink: 0,
+                          bgcolor: "info.main",
+                          color: "white",
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        {getTeacherInitial(course)}
+                      </Avatar>
+
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          variant="body2"
+                          noWrap
+                          sx={{
+                            fontWeight: 600
+                          }}
+                        >
+                          {getTeacherName(course)}
+                        </Typography>
+
+                        <Typography
+                          variant="caption"
+                          noWrap
+                          sx={{
+                            color: "text.secondary",
+                            display: "block"
+                          }}>
+                          {getTeacherEmail(course)}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {/* CATEGORY */}
+
+                    <Chip
+                      size="small"
+                      label={course.category || "General"}
+                      icon={<CategoryIcon />}
+                      sx={{
+                        maxWidth: "100%",
+                      }}
+                    />
+
+                    {/* PRICE */}
+
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 700
+                      }}
+                    >
+                      {getPrice(course.price)}
+                    </Typography>
+
+                    {/* STUDENTS */}
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.6,
+                      }}
+                    >
+                      <PeopleIcon
+                        sx={{
+                          fontSize: 19,
+                          color: "success.main",
+                        }}
+                      />
+
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 700
+                        }}
+                      >
+                        {course.studentCount ?? 0}
+                      </Typography>
+                    </Box>
+
+                    {/* ACTIONS */}
+
+                    <Stack
+                      direction="row"
+                      spacing={0.5}
+                    >
+                      <IconButton
+                        size="small"
+                        title="View Course"
+                        onClick={() =>
+                          handleViewCourse(course)
+                        }
+                        sx={{
+                          color: "info.main",
+
+                          "&:hover": {
+                            backgroundColor:
+                              "rgba(2, 136, 209, 0.10)",
+                          },
+                        }}
+                      >
+                        <VisibilityIcon fontSize="small" />
+                      </IconButton>
+
+                      <IconButton
+                        size="small"
+                        title="Edit Course"
+                        onClick={() =>
+                          handleEditCourse(course)
+                        }
+                        sx={{
+                          color: "warning.main",
+
+                          "&:hover": {
+                            backgroundColor:
+                              "rgba(237, 108, 2, 0.10)",
+                          },
+                        }}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+
+                      <IconButton
+                        size="small"
+                        title="Delete Course"
+                        onClick={() =>
+                          handleDeleteClick(course)
+                        }
+                        sx={{
+                          color: "error.main",
+
+                          "&:hover": {
+                            backgroundColor:
+                              "rgba(211, 47, 47, 0.10)",
+                          },
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Stack>
+                  </Box>
+                ))
+              )}
+            </Paper>
 
       {/* =================================================
           MOBILE CARDS
@@ -1146,7 +1167,9 @@ const ManageCourses = () => {
               }}
             />
 
-            <Typography color="text.secondary">
+            <Typography sx={{
+              color: "text.secondary"
+            }}>
               No courses found.
             </Typography>
           </Paper>
@@ -1193,8 +1216,10 @@ const ManageCourses = () => {
                   }}
                 >
                   <Typography
-                    fontWeight={800}
                     noWrap
+                    sx={{
+                      fontWeight: 800
+                    }}
                   >
                     {course.title ||
                       "Untitled Course"}
@@ -1202,8 +1227,10 @@ const ManageCourses = () => {
 
                   <Typography
                     variant="caption"
-                    color="text.secondary"
                     noWrap
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     {course.category || "General"}
                   </Typography>
@@ -1238,16 +1265,20 @@ const ManageCourses = () => {
                 <Box sx={{ minWidth: 0 }}>
                   <Typography
                     variant="body2"
-                    fontWeight={700}
                     noWrap
+                    sx={{
+                      fontWeight: 700
+                    }}
                   >
                     {getTeacherName(course)}
                   </Typography>
 
                   <Typography
                     variant="caption"
-                    color="text.secondary"
                     noWrap
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     {getTeacherEmail(course)}
                   </Typography>
@@ -1267,14 +1298,18 @@ const ManageCourses = () => {
                 <Box>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Category
                   </Typography>
 
                   <Typography
                     variant="body2"
-                    fontWeight={600}
+                    sx={{
+                      fontWeight: 600
+                    }}
                   >
                     {course.category || "General"}
                   </Typography>
@@ -1283,14 +1318,18 @@ const ManageCourses = () => {
                 <Box>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Price
                   </Typography>
 
                   <Typography
                     variant="body2"
-                    fontWeight={700}
+                    sx={{
+                      fontWeight: 700
+                    }}
                   >
                     {getPrice(course.price)}
                   </Typography>
@@ -1299,14 +1338,18 @@ const ManageCourses = () => {
                 <Box>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Students
                   </Typography>
 
                   <Typography
                     variant="body2"
-                    fontWeight={700}
+                    sx={{
+                      fontWeight: 700
+                    }}
                   >
                     {course.studentCount ?? 0}
                   </Typography>
@@ -1315,14 +1358,18 @@ const ManageCourses = () => {
                 <Box>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Course ID
                   </Typography>
 
                   <Typography
                     variant="body2"
-                    fontWeight={600}
+                    sx={{
+                      fontWeight: 600
+                    }}
                   >
                     #{course.id}
                   </Typography>
@@ -1414,7 +1461,9 @@ const ManageCourses = () => {
         >
           <Typography
             component="span"
-            fontWeight={800}
+            sx={{
+              fontWeight: 800
+            }}
           >
             Course Details
           </Typography>
@@ -1449,19 +1498,20 @@ const ManageCourses = () => {
 
               <Typography
                 variant="h5"
-                fontWeight={800}
+                sx={{
+                  fontWeight: 800
+                }}
               >
                 {selectedCourse.title ||
                   "Untitled Course"}
               </Typography>
 
               <Typography
-                color="text.secondary"
                 sx={{
+                  color: "text.secondary",
                   mt: 1,
-                  lineHeight: 1.7,
-                }}
-              >
+                  lineHeight: 1.7
+                }}>
                 {selectedCourse.description ||
                   "No description available."}
               </Typography>
@@ -1494,18 +1544,24 @@ const ManageCourses = () => {
                 <Box sx={{ minWidth: 0 }}>
                   <Typography
                     variant="body2"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Teacher
                   </Typography>
 
-                  <Typography fontWeight={700}>
+                  <Typography sx={{
+                    fontWeight: 700
+                  }}>
                     {getTeacherName(selectedCourse)}
                   </Typography>
 
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     {getTeacherEmail(selectedCourse)}
                   </Typography>
@@ -1528,12 +1584,16 @@ const ManageCourses = () => {
                 <Box>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Category
                   </Typography>
 
-                  <Typography fontWeight={600}>
+                  <Typography sx={{
+                    fontWeight: 600
+                  }}>
                     {selectedCourse.category ||
                       "General"}
                   </Typography>
@@ -1542,12 +1602,16 @@ const ManageCourses = () => {
                 <Box>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Price
                   </Typography>
 
-                  <Typography fontWeight={700}>
+                  <Typography sx={{
+                    fontWeight: 700
+                  }}>
                     {getPrice(selectedCourse.price)}
                   </Typography>
                 </Box>
@@ -1555,12 +1619,16 @@ const ManageCourses = () => {
                 <Box>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Students
                   </Typography>
 
-                  <Typography fontWeight={700}>
+                  <Typography sx={{
+                    fontWeight: 700
+                  }}>
                     {selectedCourse.studentCount ?? 0}
                   </Typography>
                 </Box>
@@ -1568,12 +1636,16 @@ const ManageCourses = () => {
                 <Box>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Course ID
                   </Typography>
 
-                  <Typography fontWeight={600}>
+                  <Typography sx={{
+                    fontWeight: 600
+                  }}>
                     #{selectedCourse.id}
                   </Typography>
                 </Box>
@@ -1613,7 +1685,9 @@ const ManageCourses = () => {
         >
           <Typography
             component="span"
-            fontWeight={800}
+            sx={{
+              fontWeight: 800
+            }}
           >
             Edit Course
           </Typography>

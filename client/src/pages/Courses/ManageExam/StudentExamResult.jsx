@@ -439,14 +439,14 @@ const StudentExamResult = () => {
 
                     <Typography
                         variant="h4"
-                        fontWeight={800}
                         sx={{
+                            fontWeight: 800,
+
                             fontSize: {
                                 xs: "1.8rem",
                                 sm: "2.3rem",
-                            },
-                        }}
-                    >
+                            }
+                        }}>
                         Exam Result
                     </Typography>
 
@@ -534,9 +534,10 @@ const StudentExamResult = () => {
                             }}
                         >
                             <Typography
-                                color="text.secondary"
-                                fontWeight={600}
-                            >
+                                sx={{
+                                    color: "text.secondary",
+                                    fontWeight: 600
+                                }}>
                                 Your Score
                             </Typography>
 
@@ -555,13 +556,14 @@ const StudentExamResult = () => {
 
                                 <Typography
                                     component="span"
-                                    color="text.secondary"
                                     sx={{
+                                        color: "text.secondary",
+
                                         fontSize:
                                             "1.4rem",
-                                        fontWeight: 500,
-                                    }}
-                                >
+
+                                        fontWeight: 500
+                                    }}>
                                     {" "}
                                     / {totalMarks}
                                 </Typography>
@@ -569,9 +571,10 @@ const StudentExamResult = () => {
 
                             <Typography
                                 variant="h6"
-                                fontWeight={700}
-                                sx={{ mt: 2 }}
-                            >
+                                sx={{
+                                    fontWeight: 700,
+                                    mt: 2
+                                }}>
                                 {percentage}%
                             </Typography>
 
@@ -707,9 +710,10 @@ const StudentExamResult = () => {
             >
                 <Typography
                     variant="h6"
-                    fontWeight={700}
-                    sx={{ mb: 2 }}
-                >
+                    sx={{
+                        fontWeight: 700,
+                        mb: 2
+                    }}>
                     Result Summary
                 </Typography>
 
@@ -962,14 +966,18 @@ const StatCard = ({
                     <Box>
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
                             {title}
                         </Typography>
 
                         <Typography
                             variant="h5"
-                            fontWeight={800}
+                            sx={{
+                                fontWeight: 800
+                            }}
                         >
                             {value}
                         </Typography>
@@ -999,7 +1007,9 @@ const SummaryRow = ({
                 gap: 2,
             }}
         >
-            <Typography color="text.secondary">
+            <Typography sx={{
+                color: "text.secondary"
+            }}>
                 {label}
             </Typography>
 
@@ -1022,11 +1032,10 @@ const SummaryRow = ({
                 />
             ) : (
                 <Typography
-                    fontWeight={700}
                     sx={{
-                        textAlign: "right",
-                    }}
-                >
+                        fontWeight: 700,
+                        textAlign: "right"
+                    }}>
                     {value}
                 </Typography>
             )}

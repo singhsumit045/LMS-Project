@@ -694,14 +694,18 @@ const ManageNotes = () => {
             <Box>
               <Typography
                 variant="h5"
-                fontWeight={800}
+                sx={{
+                  fontWeight: 800
+                }}
               >
                 Manage Notes
               </Typography>
 
               <Typography
                 variant="body2"
-                color="text.secondary"
+                sx={{
+                  color: "text.secondary"
+                }}
               >
                 Manage course PDF
                 materials
@@ -776,7 +780,9 @@ const ManageNotes = () => {
 
           <Typography
             variant="h6"
-            fontWeight={800}
+            sx={{
+              fontWeight: 800
+            }}
           >
             Upload New Note
           </Typography>
@@ -883,20 +889,23 @@ const ManageNotes = () => {
                     >
                       <Typography
                         variant="body2"
-                        fontWeight={700}
                         sx={{
+                          fontWeight: 700,
+
                           overflow:
                             "hidden",
+
                           textOverflow:
                             "ellipsis",
+
                           whiteSpace:
                             "nowrap",
+
                           maxWidth: {
                             xs: 230,
                             sm: 400,
-                          },
-                        }}
-                      >
+                          }
+                        }}>
                         {
                           selectedFile.name
                         }
@@ -904,7 +913,9 @@ const ManageNotes = () => {
 
                       <Typography
                         variant="caption"
-                        color="text.secondary"
+                        sx={{
+                          color: "text.secondary"
+                        }}
                       >
                         {formatFileSize(
                           selectedFile.size
@@ -915,7 +926,9 @@ const ManageNotes = () => {
                 ) : (
                   <Typography
                     variant="body2"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Select a PDF
                     file
@@ -1010,14 +1023,18 @@ const ManageNotes = () => {
           <Box>
             <Typography
               variant="h6"
-              fontWeight={800}
+              sx={{
+                fontWeight: 800
+              }}
             >
               Course Notes
             </Typography>
 
             <Typography
               variant="caption"
-              color="text.secondary"
+              sx={{
+                color: "text.secondary"
+              }}
             >
               {filteredNotes.length}{" "}
               of {notes.length}{" "}
@@ -1096,7 +1113,9 @@ const ManageNotes = () => {
 
           <Typography
             variant="h6"
-            fontWeight={800}
+            sx={{
+              fontWeight: 800
+            }}
           >
             {search
               ? "No notes found"
@@ -1105,11 +1124,10 @@ const ManageNotes = () => {
 
           <Typography
             variant="body2"
-            color="text.secondary"
             sx={{
-              mt: 0.5,
-            }}
-          >
+              color: "text.secondary",
+              mt: 0.5
+            }}>
             {search
               ? "Try another search."
               : "Upload your first PDF note."}
@@ -1208,12 +1226,12 @@ const ManageNotes = () => {
                     >
                       <Typography
                         variant="subtitle1"
-                        fontWeight={800}
                         sx={{
+                          fontWeight: 800,
+
                           wordBreak:
-                            "break-word",
-                        }}
-                      >
+                            "break-word"
+                        }}>
                         {index + 1}.{" "}
                         {note.title ||
                           "Untitled Note"}
@@ -1235,19 +1253,22 @@ const ManageNotes = () => {
                     {note.content && (
                       <Typography
                         variant="body2"
-                        color="text.secondary"
                         sx={{
+                          color: "text.secondary",
                           mt: 0.3,
                           lineHeight: 1.4,
+
                           display:
                             "-webkit-box",
+
                           WebkitLineClamp: 1,
+
                           WebkitBoxOrient:
                             "vertical",
+
                           overflow:
-                            "hidden",
-                        }}
-                      >
+                            "hidden"
+                        }}>
                         {note.content}
                       </Typography>
                     )}
@@ -1278,7 +1299,9 @@ const ManageNotes = () => {
 
                         <Typography
                           variant="caption"
-                          color="text.secondary"
+                          sx={{
+                            color: "text.secondary"
+                          }}
                         >
                           {formatDate(
                             note.createdAt
@@ -1303,7 +1326,9 @@ const ManageNotes = () => {
 
                         <Typography
                           variant="caption"
-                          color="text.secondary"
+                          sx={{
+                            color: "text.secondary"
+                          }}
                         >
                           PDF Document
                         </Typography>

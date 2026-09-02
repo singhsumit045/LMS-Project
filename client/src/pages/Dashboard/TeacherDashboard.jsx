@@ -645,24 +645,25 @@ const TeacherDashboard = () => {
                                 <Box sx={{ minWidth: 0 }}>
                                     <Typography
                                         variant="overline"
-                                        fontWeight={800}
                                         sx={{
+                                            fontWeight: 800,
                                             color: theme.palette.primary.main,
                                             letterSpacing: 1.2,
+
                                             fontSize: {
                                                 xs: "0.65rem",
                                                 sm: "0.75rem",
                                             },
-                                            lineHeight: 1.2,
-                                        }}
-                                    >
+
+                                            lineHeight: 1.2
+                                        }}>
                                         TEACHER PORTAL
                                     </Typography>
 
                                     <Typography
                                         variant="h4"
-                                        fontWeight={800}
                                         sx={{
+                                            fontWeight: 800,
                                             mt: 0.4,
                                             color: theme.palette.text.primary,
 
@@ -679,9 +680,9 @@ const TeacherDashboard = () => {
 
                                             // Agar screen bahut chhoti ho
                                             overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                        }}
-                                    >
+
+                                            textOverflow: "ellipsis"
+                                        }}>
                                         Teacher Dashboard
                                     </Typography>
                                 </Box>
@@ -771,16 +772,19 @@ const TeacherDashboard = () => {
                     <Box sx={{ mb: 2.5 }}>
                         <Typography
                             variant="h5"
-                            fontWeight={800}
+                            sx={{
+                                fontWeight: 800
+                            }}
                         >
                             Overview
                         </Typography>
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
-                            sx={{ mt: 0.5 }}
-                        >
+                            sx={{
+                                color: "text.secondary",
+                                mt: 0.5
+                            }}>
                             A quick snapshot of your
                             teaching activity.
                         </Typography>
@@ -880,11 +884,10 @@ const TeacherDashboard = () => {
                                             >
                                                 <Typography
                                                     variant="body2"
-                                                    color="text.secondary"
-                                                    fontWeight={
-                                                        700
-                                                    }
-                                                >
+                                                    sx={{
+                                                        color: "text.secondary",
+                                                        fontWeight: 700
+                                                    }}>
                                                     {
                                                         card.label
                                                     }
@@ -894,13 +897,10 @@ const TeacherDashboard = () => {
                                                     null ? (
                                                     <Typography
                                                         variant="h4"
-                                                        fontWeight={
-                                                            800
-                                                        }
                                                         sx={{
-                                                            mt: 0.7,
-                                                        }}
-                                                    >
+                                                            fontWeight: 800,
+                                                            mt: 0.7
+                                                        }}>
                                                         {
                                                             card.value
                                                         }
@@ -908,13 +908,13 @@ const TeacherDashboard = () => {
                                                 ) : (
                                                     <Typography
                                                         variant="body2"
-                                                        color="text.secondary"
                                                         sx={{
+                                                            color: "text.secondary",
                                                             mt: 1,
+
                                                             lineHeight:
-                                                                1.5,
-                                                        }}
-                                                    >
+                                                                1.5
+                                                        }}>
                                                         {
                                                             card.subtitle
                                                         }
@@ -925,7 +925,9 @@ const TeacherDashboard = () => {
                                                     null && (
                                                         <Typography
                                                             variant="caption"
-                                                            color="text.secondary"
+                                                            sx={{
+                                                                color: "text.secondary"
+                                                            }}
                                                         >
                                                             {
                                                                 card.subtitle
@@ -1018,14 +1020,18 @@ const TeacherDashboard = () => {
                             <Box>
                                 <Typography
                                     variant="h5"
-                                    fontWeight={800}
+                                    sx={{
+                                        fontWeight: 800
+                                    }}
                                 >
                                     AI Teaching Tools
                                 </Typography>
 
                                 <Typography
                                     variant="body2"
-                                    color="text.secondary"
+                                    sx={{
+                                        color: "text.secondary"
+                                    }}
                                 >
                                     Create learning
                                     material faster
@@ -1069,20 +1075,21 @@ const TeacherDashboard = () => {
 
                                 <Typography
                                     variant="h6"
-                                    fontWeight={800}
+                                    sx={{
+                                        fontWeight: 800
+                                    }}
                                 >
                                     AI Quiz Generator
                                 </Typography>
 
                                 <Typography
                                     variant="body2"
-                                    color="text.secondary"
                                     sx={{
+                                        color: "text.secondary",
                                         mt: 1,
                                         mb: 2.5,
-                                        lineHeight: 1.7,
-                                    }}
-                                >
+                                        lineHeight: 1.7
+                                    }}>
                                     Generate
                                     multiple-choice
                                     quizzes
@@ -1167,7 +1174,9 @@ const TeacherDashboard = () => {
 
                                 <Typography
                                     variant="h5"
-                                    fontWeight={800}
+                                    sx={{
+                                        fontWeight: 800
+                                    }}
                                 >
                                     Live Classes
                                 </Typography>
@@ -1190,9 +1199,10 @@ const TeacherDashboard = () => {
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
-                                sx={{ mt: 0.8 }}
-                            >
+                                sx={{
+                                    color: "text.secondary",
+                                    mt: 0.8
+                                }}>
                                 Schedule, start and
                                 manage your online
                                 classes.
@@ -1286,18 +1296,19 @@ const TeacherDashboard = () => {
 
                             <Typography
                                 variant="h6"
-                                fontWeight={800}
+                                sx={{
+                                    fontWeight: 800
+                                }}
                             >
                                 No live classes yet
                             </Typography>
 
                             <Typography
-                                color="text.secondary"
                                 sx={{
+                                    color: "text.secondary",
                                     mt: 1,
-                                    mb: 2.5,
-                                }}
-                            >
+                                    mb: 2.5
+                                }}>
                                 Schedule your first
                                 live class and
                                 start teaching
@@ -1464,17 +1475,20 @@ const TeacherDashboard = () => {
                                                     >
                                                         <Typography
                                                             variant="h6"
-                                                            fontWeight={800}
                                                             sx={{
+                                                                fontWeight: 800,
+
                                                                 display:
                                                                     "-webkit-box",
+
                                                                 WebkitLineClamp: 2,
+
                                                                 WebkitBoxOrient:
                                                                     "vertical",
+
                                                                 overflow:
-                                                                    "hidden",
-                                                            }}
-                                                        >
+                                                                    "hidden"
+                                                            }}>
                                                             {
                                                                 liveClass.title
                                                             }
@@ -1483,20 +1497,24 @@ const TeacherDashboard = () => {
                                                         {liveClass.description && (
                                                             <Typography
                                                                 variant="body2"
-                                                                color="text.secondary"
                                                                 sx={{
+                                                                    color: "text.secondary",
                                                                     mt: 1,
+
                                                                     display:
                                                                         "-webkit-box",
+
                                                                     WebkitLineClamp: 2,
+
                                                                     WebkitBoxOrient:
                                                                         "vertical",
+
                                                                     overflow:
                                                                         "hidden",
+
                                                                     lineHeight:
-                                                                        1.6,
-                                                                }}
-                                                            >
+                                                                        1.6
+                                                                }}>
                                                                 {
                                                                     liveClass.description
                                                                 }
@@ -1545,18 +1563,19 @@ const TeacherDashboard = () => {
                                                             >
                                                                 <Typography
                                                                     variant="caption"
-                                                                    color="text.secondary"
-                                                                    fontWeight={
-                                                                        600
-                                                                    }
-                                                                >
+                                                                    sx={{
+                                                                        color: "text.secondary",
+                                                                        fontWeight: 600
+                                                                    }}>
                                                                     Course
                                                                 </Typography>
 
                                                                 <Typography
                                                                     variant="body2"
-                                                                    fontWeight={700}
                                                                     noWrap
+                                                                    sx={{
+                                                                        fontWeight: 700
+                                                                    }}
                                                                 >
                                                                     {liveClass.course
                                                                         ?.title ||
@@ -1597,17 +1616,18 @@ const TeacherDashboard = () => {
                                                             <Box>
                                                                 <Typography
                                                                     variant="caption"
-                                                                    color="text.secondary"
-                                                                    fontWeight={
-                                                                        600
-                                                                    }
-                                                                >
+                                                                    sx={{
+                                                                        color: "text.secondary",
+                                                                        fontWeight: 600
+                                                                    }}>
                                                                     Scheduled
                                                                 </Typography>
 
                                                                 <Typography
                                                                     variant="body2"
-                                                                    fontWeight={700}
+                                                                    sx={{
+                                                                        fontWeight: 700
+                                                                    }}
                                                                 >
                                                                     {formatDateTime(
                                                                         liveClass.scheduledAt
@@ -1838,16 +1858,19 @@ const TeacherDashboard = () => {
                         <Box>
                             <Typography
                                 variant="h5"
-                                fontWeight={800}
+                                sx={{
+                                    fontWeight: 800
+                                }}
                             >
                                 My Courses
                             </Typography>
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
-                                sx={{ mt: 0.5 }}
-                            >
+                                sx={{
+                                    color: "text.secondary",
+                                    mt: 0.5
+                                }}>
                                 Manage and monitor
                                 your courses.
                             </Typography>
@@ -1896,16 +1919,19 @@ const TeacherDashboard = () => {
 
                             <Typography
                                 variant="h6"
-                                fontWeight={800}
+                                sx={{
+                                    fontWeight: 800
+                                }}
                             >
                                 No courses created
                                 yet
                             </Typography>
 
                             <Typography
-                                color="text.secondary"
-                                sx={{ mt: 1 }}
-                            >
+                                sx={{
+                                    color: "text.secondary",
+                                    mt: 1
+                                }}>
                                 Create a course to
                                 see it here.
                             </Typography>
@@ -2081,18 +2107,22 @@ const TeacherDashboard = () => {
                                                 >
                                                     <Typography
                                                         variant="h6"
-                                                        fontWeight={800}
                                                         sx={{
+                                                            fontWeight: 800,
+
                                                             display:
                                                                 "-webkit-box",
+
                                                             WebkitLineClamp: 2,
+
                                                             WebkitBoxOrient:
                                                                 "vertical",
+
                                                             overflow:
                                                                 "hidden",
-                                                            minHeight: 56,
-                                                        }}
-                                                    >
+
+                                                            minHeight: 56
+                                                        }}>
                                                         {
                                                             course.title
                                                         }
@@ -2100,20 +2130,24 @@ const TeacherDashboard = () => {
 
                                                     <Typography
                                                         variant="body2"
-                                                        color="text.secondary"
                                                         sx={{
+                                                            color: "text.secondary",
                                                             mt: 1,
                                                             lineHeight: 1.6,
+
                                                             display:
                                                                 "-webkit-box",
+
                                                             WebkitLineClamp: 2,
+
                                                             WebkitBoxOrient:
                                                                 "vertical",
+
                                                             overflow:
                                                                 "hidden",
-                                                            minHeight: 45,
-                                                        }}
-                                                    >
+
+                                                            minHeight: 45
+                                                        }}>
                                                         {course.description ||
                                                             "No description available."}
                                                     </Typography>
@@ -2150,7 +2184,9 @@ const TeacherDashboard = () => {
                                                         <Box>
                                                             <Typography
                                                                 variant="body2"
-                                                                fontWeight={800}
+                                                                sx={{
+                                                                    fontWeight: 800
+                                                                }}
                                                             >
                                                                 {
                                                                     studentCount
@@ -2164,7 +2200,9 @@ const TeacherDashboard = () => {
 
                                                             <Typography
                                                                 variant="caption"
-                                                                color="text.secondary"
+                                                                sx={{
+                                                                    color: "text.secondary"
+                                                                }}
                                                             >
                                                                 Enrolled
                                                                 learners
@@ -2280,16 +2318,19 @@ const TeacherDashboard = () => {
                     <Box sx={{ mb: 2.5 }}>
                         <Typography
                             variant="h5"
-                            fontWeight={800}
+                            sx={{
+                                fontWeight: 800
+                            }}
                         >
                             My Students
                         </Typography>
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
-                            sx={{ mt: 0.5 }}
-                        >
+                            sx={{
+                                color: "text.secondary",
+                                mt: 0.5
+                            }}>
                             View your enrolled
                             students and their
                             courses.
@@ -2328,7 +2369,9 @@ const TeacherDashboard = () => {
 
                             <Typography
                                 variant="h6"
-                                fontWeight={800}
+                                sx={{
+                                    fontWeight: 800
+                                }}
                             >
                                 No students enrolled
                                 yet
@@ -2336,9 +2379,10 @@ const TeacherDashboard = () => {
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
-                                sx={{ mt: 1 }}
-                            >
+                                sx={{
+                                    color: "text.secondary",
+                                    mt: 1
+                                }}>
                                 Students will appear
                                 here when they enroll
                                 in your courses.
@@ -2419,10 +2463,10 @@ const TeacherDashboard = () => {
                                                         }}
                                                     >
                                                         <Typography
-                                                            fontWeight={
-                                                                800
-                                                            }
                                                             noWrap
+                                                            sx={{
+                                                                fontWeight: 800
+                                                            }}
                                                         >
                                                             {
                                                                 studentName
@@ -2431,7 +2475,9 @@ const TeacherDashboard = () => {
 
                                                         <Typography
                                                             variant="body2"
-                                                            color="text.secondary"
+                                                            sx={{
+                                                                color: "text.secondary"
+                                                            }}
                                                         >
                                                             {
                                                                 courses.length
@@ -2455,7 +2501,9 @@ const TeacherDashboard = () => {
                                                     0 ? (
                                                     <Typography
                                                         variant="body2"
-                                                        color="text.secondary"
+                                                        sx={{
+                                                            color: "text.secondary"
+                                                        }}
                                                     >
                                                         No
                                                         courses

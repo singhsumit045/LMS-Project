@@ -883,7 +883,9 @@ const CourseDetails = () => {
         <Grid
           container
           spacing={0}
-          alignItems="stretch"
+          sx={{
+            alignItems: "stretch"
+          }}
         >
           {/* HERO TEXT */}
 
@@ -908,12 +910,11 @@ const CourseDetails = () => {
               <Stack
                 direction="row"
                 spacing={1}
-                flexWrap="wrap"
                 useFlexGap
                 sx={{
-                  mb: 2,
-                }}
-              >
+                  flexWrap: "wrap",
+                  mb: 2
+                }}>
                 {course.category && (
                   <Chip
                     label={course.category}
@@ -946,16 +947,17 @@ const CourseDetails = () => {
 
               <Typography
                 variant="h2"
-                fontWeight={800}
                 sx={{
+                  fontWeight: 800,
+
                   fontSize: {
                     xs: "2rem",
                     sm: "2.5rem",
                     md: "3.2rem",
                   },
-                  lineHeight: 1.15,
-                }}
-              >
+
+                  lineHeight: 1.15
+                }}>
                 {course.title}
               </Typography>
 
@@ -978,12 +980,11 @@ const CourseDetails = () => {
               <Stack
                 direction="row"
                 spacing={2}
-                flexWrap="wrap"
                 useFlexGap
                 sx={{
-                  mt: 3,
-                }}
-              >
+                  flexWrap: "wrap",
+                  mt: 3
+                }}>
                 <Box
                   sx={{
                     display: "flex",
@@ -1104,7 +1105,9 @@ const CourseDetails = () => {
       <Grid
         container
         spacing={4}
-        alignItems="flex-start"
+        sx={{
+          alignItems: "flex-start"
+        }}
       >
         {/* =================================================
             LEFT
@@ -1153,14 +1156,18 @@ const CourseDetails = () => {
               <Box>
                 <Typography
                   variant="h5"
-                  fontWeight={800}
+                  sx={{
+                    fontWeight: 800
+                  }}
                 >
                   Course Videos
                 </Typography>
 
                 <Typography
                   variant="body2"
-                  color="text.secondary"
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   Video lessons for this course
                 </Typography>
@@ -1187,14 +1194,17 @@ const CourseDetails = () => {
                     mb: 1,
                   }}
                 >
-                  <Typography fontWeight={700}>
+                  <Typography sx={{
+                    fontWeight: 700
+                  }}>
                     Your Course Progress
                   </Typography>
 
                   <Typography
-                    fontWeight={800}
-                    color="primary.main"
-                  >
+                    sx={{
+                      fontWeight: 800,
+                      color: "primary.main"
+                    }}>
                     {Math.round(
                       courseProgress.progress ||
                       0
@@ -1229,12 +1239,11 @@ const CourseDetails = () => {
 
                 <Typography
                   variant="caption"
-                  color="text.secondary"
                   sx={{
+                    color: "text.secondary",
                     display: "block",
-                    mt: 0.8,
-                  }}
-                >
+                    mt: 0.8
+                  }}>
                   {courseProgress.completedVideos ||
                     0}{" "}
                   of{" "}
@@ -1400,7 +1409,9 @@ const CourseDetails = () => {
                                 {isCompleted ? (
                                   <CheckCircle />
                                 ) : (
-                                  <Typography fontWeight={800}>
+                                  <Typography sx={{
+                                    fontWeight: 800
+                                  }}>
                                     {index + 1}
                                   </Typography>
                                 )}
@@ -1413,18 +1424,20 @@ const CourseDetails = () => {
                                 }}
                               >
                                 <Typography
-                                  fontWeight={700}
                                   sx={{
+                                    fontWeight: 700,
+
                                     overflow:
                                       "hidden",
+
                                     textOverflow:
                                       "ellipsis",
+
                                     whiteSpace: {
                                       xs: "normal",
                                       sm: "nowrap",
-                                    },
-                                  }}
-                                >
+                                    }
+                                  }}>
                                   {video.title}
                                 </Typography>
 
@@ -1478,7 +1491,9 @@ const CourseDetails = () => {
                                             ? "success.main"
                                             : "text.secondary"
                                         }
-                                        fontWeight={600}
+                                        sx={{
+                                          fontWeight: 600
+                                        }}
                                       >
                                         {Math.round(
                                           watchedPercentage
@@ -1590,11 +1605,10 @@ const CourseDetails = () => {
                             <Box sx={{ pt: 2 }}>
                               <Typography
                                 variant="h6"
-                                fontWeight={800}
                                 sx={{
-                                  lineHeight: 1.4,
-                                }}
-                              >
+                                  fontWeight: 800,
+                                  lineHeight: 1.4
+                                }}>
                                 {index + 1}.{" "}
                                 {video.title}
                               </Typography>
@@ -1613,19 +1627,23 @@ const CourseDetails = () => {
                                     >
                                       <Typography
                                         variant="caption"
-                                        color="text.secondary"
+                                        sx={{
+                                          color: "text.secondary"
+                                        }}
                                       >
                                         Video Progress
                                       </Typography>
 
                                       <Typography
                                         variant="caption"
-                                        fontWeight={700}
                                         color={
                                           isCompleted
                                             ? "success.main"
                                             : "text.secondary"
                                         }
+                                        sx={{
+                                          fontWeight: 700
+                                        }}
                                       >
                                         {Math.round(
                                           watchedPercentage
@@ -1667,12 +1685,11 @@ const CourseDetails = () => {
 
                               {video.description && (
                                 <Typography
-                                  color="text.secondary"
                                   sx={{
+                                    color: "text.secondary",
                                     mt: 1.2,
-                                    lineHeight: 1.7,
-                                  }}
-                                >
+                                    lineHeight: 1.7
+                                  }}>
                                   {
                                     video.description
                                   }
@@ -1682,11 +1699,10 @@ const CourseDetails = () => {
                               {video.duration && (
                                 <Typography
                                   variant="body2"
-                                  color="text.secondary"
                                   sx={{
-                                    mt: 1,
-                                  }}
-                                >
+                                    color: "text.secondary",
+                                    mt: 1
+                                  }}>
                                   Duration:{" "}
                                   {Math.floor(
                                     video.duration /
@@ -1770,14 +1786,18 @@ const CourseDetails = () => {
                 <Box>
                   <Typography
                     variant="h5"
-                    fontWeight={800}
+                    sx={{
+                      fontWeight: 800
+                    }}
                   >
                     Announcements
                   </Typography>
 
                   <Typography
                     variant="body2"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Important updates from your
                     instructor
@@ -1847,17 +1867,18 @@ const CourseDetails = () => {
 
                   <Typography
                     variant="h6"
-                    fontWeight={700}
+                    sx={{
+                      fontWeight: 700
+                    }}
                   >
                     No announcements yet
                   </Typography>
 
                   <Typography
-                    color="text.secondary"
                     sx={{
-                      mt: 0.5,
-                    }}
-                  >
+                      color: "text.secondary",
+                      mt: 0.5
+                    }}>
                     Important course updates will
                     appear here.
                   </Typography>
@@ -1889,9 +1910,11 @@ const CourseDetails = () => {
                             sm: "row",
                           }}
                           spacing={2}
-                          alignItems={{
-                            xs: "flex-start",
-                            sm: "center",
+                          sx={{
+                            alignItems: {
+                              xs: "flex-start",
+                              sm: "center",
+                            }
                           }}
                         >
                           <Box
@@ -1921,7 +1944,9 @@ const CourseDetails = () => {
                           >
                             <Typography
                               variant="h6"
-                              fontWeight={800}
+                              sx={{
+                                fontWeight: 800
+                              }}
                             >
                               {
                                 announcement.title
@@ -1929,14 +1954,14 @@ const CourseDetails = () => {
                             </Typography>
 
                             <Typography
-                              color="text.secondary"
                               sx={{
+                                color: "text.secondary",
                                 mt: 0.7,
                                 lineHeight: 1.7,
+
                                 whiteSpace:
-                                  "pre-wrap",
-                              }}
-                            >
+                                  "pre-wrap"
+                              }}>
                               {
                                 announcement.message
                               }
@@ -1944,12 +1969,11 @@ const CourseDetails = () => {
 
                             <Typography
                               variant="caption"
-                              color="text.secondary"
                               sx={{
+                                color: "text.secondary",
                                 display: "block",
-                                mt: 1,
-                              }}
-                            >
+                                mt: 1
+                              }}>
                               {announcement
                                 .teacher?.name
                                 ? `Posted by ${announcement.teacher.name} • `
@@ -2005,14 +2029,18 @@ const CourseDetails = () => {
                 <Box>
                   <Typography
                     variant="h5"
-                    fontWeight={800}
+                    sx={{
+                      fontWeight: 800
+                    }}
                   >
                     Course Exams
                   </Typography>
 
                   <Typography
                     variant="body2"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Complete all course videos to
                     unlock the exam.
@@ -2103,7 +2131,9 @@ const CourseDetails = () => {
                         <Box>
                           <Typography
                             variant="h6"
-                            fontWeight={800}
+                            sx={{
+                              fontWeight: 800
+                            }}
                           >
                             {exam.title}
                           </Typography>
@@ -2111,11 +2141,10 @@ const CourseDetails = () => {
                           {exam.description && (
                             <Typography
                               variant="body2"
-                              color="text.secondary"
                               sx={{
-                                mt: 0.5,
-                              }}
-                            >
+                                color: "text.secondary",
+                                mt: 0.5
+                              }}>
                               {
                                 exam.description
                               }
@@ -2125,12 +2154,11 @@ const CourseDetails = () => {
                           <Stack
                             direction="row"
                             spacing={1}
-                            flexWrap="wrap"
                             useFlexGap
                             sx={{
-                              mt: 1.5,
-                            }}
-                          >
+                              flexWrap: "wrap",
+                              mt: 1.5
+                            }}>
                             <Chip
                               label={`${exam.duration || 30} min`}
                               size="small"
@@ -2253,14 +2281,18 @@ const CourseDetails = () => {
                 <Box>
                   <Typography
                     variant="h5"
-                    fontWeight={800}
+                    sx={{
+                      fontWeight: 800
+                    }}
                   >
                     Course Notes
                   </Typography>
 
                   <Typography
                     variant="body2"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     PDF learning materials
                   </Typography>
@@ -2323,17 +2355,18 @@ const CourseDetails = () => {
 
                   <Typography
                     variant="h6"
-                    fontWeight={700}
+                    sx={{
+                      fontWeight: 700
+                    }}
                   >
                     No notes available
                   </Typography>
 
                   <Typography
-                    color="text.secondary"
                     sx={{
-                      mt: 0.5,
-                    }}
-                  >
+                      color: "text.secondary",
+                      mt: 0.5
+                    }}>
                     Notes will appear here when
                     the instructor uploads them.
                   </Typography>
@@ -2362,9 +2395,11 @@ const CourseDetails = () => {
                           sm: "row",
                         }}
                         spacing={2}
-                        alignItems={{
-                          xs: "flex-start",
-                          sm: "center",
+                        sx={{
+                          alignItems: {
+                            xs: "flex-start",
+                            sm: "center",
+                          }
                         }}
                       >
                         <Box
@@ -2397,7 +2432,9 @@ const CourseDetails = () => {
                         >
                           <Typography
                             variant="h6"
-                            fontWeight={800}
+                            sx={{
+                              fontWeight: 800
+                            }}
                           >
                             {note.title ||
                               "Untitled Note"}
@@ -2406,24 +2443,22 @@ const CourseDetails = () => {
                           {note.content && (
                             <Typography
                               variant="body2"
-                              color="text.secondary"
                               sx={{
+                                color: "text.secondary",
                                 mt: 0.5,
-                                lineHeight: 1.6,
-                              }}
-                            >
+                                lineHeight: 1.6
+                              }}>
                               {note.content}
                             </Typography>
                           )}
 
                           <Typography
                             variant="caption"
-                            color="text.secondary"
                             sx={{
+                              color: "text.secondary",
                               display: "block",
-                              mt: 0.8,
-                            }}
-                          >
+                              mt: 0.8
+                            }}>
                             PDF Learning Material
                           </Typography>
                         </Box>
@@ -2497,9 +2532,10 @@ const CourseDetails = () => {
 
             <Typography
               variant="h5"
-              fontWeight={800}
-              mb={2}
-            >
+              sx={{
+                fontWeight: 800,
+                mb: 2
+              }}>
               Course Reviews
             </Typography>
 
@@ -2517,8 +2553,10 @@ const CourseDetails = () => {
 
               <Typography
                 variant="h3"
-                fontWeight={800}
                 color="primary"
+                sx={{
+                  fontWeight: 800
+                }}
               >
 
                 {Number(averageRating || 0).toFixed(1)}
@@ -2527,9 +2565,10 @@ const CourseDetails = () => {
 
 
               <Typography
-                fontSize={35}
-                color="warning.main"
-              >
+                sx={{
+                  fontSize: 35,
+                  color: "warning.main"
+                }}>
                 ★★★★★
               </Typography>
 
@@ -2542,9 +2581,10 @@ const CourseDetails = () => {
   <Box>
 
     <Typography
-      fontWeight={700}
-      mb={1}
-    >
+      sx={{
+        fontWeight: 700,
+        mb: 1
+      }}>
       Give Your Rating
     </Typography>
 
@@ -2602,18 +2642,25 @@ const CourseDetails = () => {
       bgcolor:"#f8f9fa"
     }}
   >
-    <Typography fontWeight={700} mb={1}>
+    <Typography
+      sx={{
+        fontWeight: 700,
+        mb: 1
+      }}>
       Your Review
     </Typography>
 
     <Typography
-      fontSize={24}
-      color="warning.main"
-    >
+      sx={{
+        fontSize: 24,
+        color: "warning.main"
+      }}>
       {"★".repeat(myRating.rating)}
     </Typography>
 
-    <Typography color="text.secondary">
+    <Typography sx={{
+      color: "text.secondary"
+    }}>
       {myRating.review || "No review"}
     </Typography>
 
@@ -2647,7 +2694,9 @@ const CourseDetails = () => {
 
 
                     <Typography
-                      fontWeight={700}
+                      sx={{
+                        fontWeight: 700
+                      }}
                     >
                       {
                         item.student?.name ||
@@ -2657,15 +2706,18 @@ const CourseDetails = () => {
 
 
                     <Typography
-                      color="warning.main"
-                      fontSize={22}
-                    >
+                      sx={{
+                        color: "warning.main",
+                        fontSize: 22
+                      }}>
                       {"★".repeat(item.rating)}
                     </Typography>
 
 
                     <Typography
-                      color="text.secondary"
+                      sx={{
+                        color: "text.secondary"
+                      }}
                     >
                       {item.review}
                     </Typography>
@@ -2699,11 +2751,10 @@ const CourseDetails = () => {
           >
             <Typography
               variant="h5"
-              fontWeight={800}
               sx={{
-                mb: 3,
-              }}
-            >
+                fontWeight: 800,
+                mb: 3
+              }}>
               What you'll learn
             </Typography>
 
@@ -2767,20 +2818,18 @@ const CourseDetails = () => {
           >
             <Typography
               variant="h5"
-              fontWeight={800}
               sx={{
-                mb: 2,
-              }}
-            >
+                fontWeight: 800,
+                mb: 2
+              }}>
               About this course
             </Typography>
 
             <Typography
-              color="text.secondary"
               sx={{
-                lineHeight: 1.8,
-              }}
-            >
+                color: "text.secondary",
+                lineHeight: 1.8
+              }}>
               {course.description ||
                 "This course is designed to help you develop practical skills and build real-world projects."}
             </Typography>
@@ -2804,11 +2853,10 @@ const CourseDetails = () => {
           >
             <Typography
               variant="h5"
-              fontWeight={800}
               sx={{
-                mb: 3,
-              }}
-            >
+                fontWeight: 800,
+                mb: 3
+              }}>
               Instructor
             </Typography>
 
@@ -2833,13 +2881,17 @@ const CourseDetails = () => {
 
               <Box>
                 <Typography
-                  fontWeight={700}
                   variant="h6"
+                  sx={{
+                    fontWeight: 700
+                  }}
                 >
                   {instructorName}
                 </Typography>
 
-                <Typography color="text.secondary">
+                <Typography sx={{
+                  color: "text.secondary"
+                }}>
                   {instructorRole}
                 </Typography>
               </Box>
@@ -2915,12 +2967,11 @@ const CourseDetails = () => {
 
             <Typography
               variant="h4"
-              fontWeight={800}
-              color="success.main"
               sx={{
-                mt: 3,
-              }}
-            >
+                fontWeight: 800,
+                color: "success.main",
+                mt: 3
+              }}>
               ₹{course.price ?? 0}
             </Typography>
 

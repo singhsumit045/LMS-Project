@@ -11,6 +11,7 @@ import {
     Container,
     Stack,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 
 import {
     EmailOutlined,
@@ -106,16 +107,21 @@ const VerifyEmail = () => {
 
     return (
         <Box
-            sx={{
+            sx={(theme) => ({
                 minHeight: "100vh",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background:
-                    "linear-gradient(135deg, #eef2ff 0%, #f8fafc 50%, #e0f2fe 100%)",
+                background: `linear-gradient(135deg, ${alpha(
+                    theme.palette.primary.light,
+                    theme.palette.mode === "dark" ? 0.15 : 0.25
+                )} 0%, ${theme.palette.background.default} 50%, ${alpha(
+                    theme.palette.secondary.light,
+                    theme.palette.mode === "dark" ? 0.15 : 0.2
+                )} 100%)`,
                 px: 2,
                 py: 4,
-            }}
+            })}
         >
             <Container
                 maxWidth="sm"
@@ -126,7 +132,7 @@ const VerifyEmail = () => {
             >
                 <Paper
                     elevation={0}
-                    sx={{
+                    sx={(theme) => ({
                         width: "100%",
                         maxWidth: 460,
                         p: {
@@ -136,32 +142,37 @@ const VerifyEmail = () => {
                         borderRadius: 4,
                         border: "1px solid",
                         borderColor: "divider",
-                        boxShadow:
-                            "0 20px 50px rgba(15, 23, 42, 0.10)",
-                    }}
+                        backgroundColor: "background.paper",
+                        boxShadow: `0 20px 50px ${alpha(
+                            theme.palette.common.black,
+                            theme.palette.mode === "dark" ? 0.4 : 0.1
+                        )}`,
+                    })}
                 >
                     {/* Header */}
 
 
                     <Stack
                         spacing={2}
-                        alignItems="center"
-                        sx={{ mb: 3 }}
-                    >
+                        sx={{
+                            alignItems: "center",
+                            mb: 3
+                        }}>
                         <Box
-                            sx={{
+                            sx={(theme) => ({
                                 width: 68,
                                 height: 68,
                                 borderRadius: "50%",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                background:
-                                    "linear-gradient(135deg, #4f46e5, #2563eb)",
-                                color: "white",
-                                boxShadow:
-                                    "0 10px 25px rgba(37, 99, 235, 0.25)",
-                            }}
+                                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                                color: theme.palette.primary.contrastText,
+                                boxShadow: `0 10px 25px ${alpha(
+                                    theme.palette.primary.main,
+                                    0.25
+                                )}`,
+                            })}
                         >
                             <CheckCircle
                                 sx={{ fontSize: 34 }}
@@ -171,20 +182,20 @@ const VerifyEmail = () => {
                         <Box sx={{ textAlign: "center" }}>
                             <Typography
                                 variant="h5"
-                                fontWeight={700}
-                                color="text.primary"
-                            >
+                                sx={{
+                                    fontWeight: 700,
+                                    color: "text.primary"
+                                }}>
                                 Verify Your Email
                             </Typography>
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
                                 sx={{
+                                    color: "text.secondary",
                                     mt: 1,
-                                    lineHeight: 1.7,
-                                }}
-                            >
+                                    lineHeight: 1.7
+                                }}>
                                 We've sent a 6-digit verification
                                 code to your email address.
                             </Typography>
@@ -233,12 +244,7 @@ const VerifyEmail = () => {
                             }}
                             disabled={loading}
                             autoComplete="email"
-                            sx={{
-                                mb: 2.5,
-                                "& .MuiOutlinedInput-root": {
-                                    borderRadius: 2.5,
-                                },
-                            }}
+                            sx={{ mb: 2.5 }}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
@@ -261,9 +267,6 @@ const VerifyEmail = () => {
                             }}
                             sx={{
                                 mb: 2.5,
-                                "& .MuiOutlinedInput-root": {
-                                    borderRadius: 2.5,
-                                },
                                 "& input": {
                                     letterSpacing: "8px",
                                     fontWeight: 700,
@@ -284,30 +287,17 @@ const VerifyEmail = () => {
                             fullWidth
                             type="submit"
                             variant="contained"
+                            color="primary"
                             disabled={loading}
-                            sx={{
-                                minHeight: 50,
-                                borderRadius: 2.5,
-                                textTransform: "none",
-                                fontSize: "1rem",
-                                fontWeight: 600,
-                                background:
-                                    "linear-gradient(135deg, #4f46e5, #2563eb)",
-                                boxShadow:
-                                    "0 8px 20px rgba(37, 99, 235, 0.20)",
-                                "&:hover": {
-                                    background:
-                                        "linear-gradient(135deg, #4338ca, #1d4ed8)",
-                                    boxShadow:
-                                        "0 10px 25px rgba(37, 99, 235, 0.28)",
-                                },
-                            }}
+                            sx={{ minHeight: 50 }}
                         >
                             {loading ? (
                                 <Stack
                                     direction="row"
                                     spacing={1}
-                                    alignItems="center"
+                                    sx={{
+                                        alignItems: "center"
+                                    }}
                                 >
                                     <CircularProgress
                                         size={21}
@@ -324,31 +314,38 @@ const VerifyEmail = () => {
                     {/* Security Information */}
 
                     <Box
-                        sx={{
+                        sx={(theme) => ({
                             mt: 3,
                             p: 2,
                             borderRadius: 2.5,
-                            backgroundColor: "grey.50",
+                            backgroundColor:
+                                theme.palette.mode === "dark"
+                                    ? alpha(theme.palette.common.white, 0.05)
+                                    : "grey.50",
                             border: "1px solid",
-                            borderColor: "grey.200",
-                        }}
+                            borderColor:
+                                theme.palette.mode === "dark"
+                                    ? alpha(theme.palette.common.white, 0.1)
+                                    : "grey.200",
+                        })}
                     >
                         <Typography
                             variant="body2"
-                            fontWeight={600}
+                            sx={{
+                                fontWeight: 600
+                            }}
                         >
                             🔒 Secure Verification
                         </Typography>
 
                         <Typography
                             variant="caption"
-                            color="text.secondary"
                             sx={{
+                                color: "text.secondary",
                                 display: "block",
                                 mt: 0.5,
-                                lineHeight: 1.6,
-                            }}
-                        >
+                                lineHeight: 1.6
+                            }}>
                             Your verification OTP is valid for
                             10 minutes. Never share this code
                             with anyone.
@@ -362,14 +359,10 @@ const VerifyEmail = () => {
                         to="/login"
                         fullWidth
                         startIcon={<ArrowBack />}
+                        color="inherit"
                         sx={{
                             mt: 2.5,
-                            textTransform: "none",
-                            fontWeight: 600,
                             color: "text.secondary",
-                            "&:hover": {
-                                backgroundColor: "grey.100",
-                            },
                         }}
                     >
                         Back to Login
@@ -379,20 +372,17 @@ const VerifyEmail = () => {
 
                     <Typography
                         variant="caption"
-                        color="text.secondary"
                         align="center"
                         sx={{
+                            color: "text.secondary",
                             display: "block",
-                            mt: 3,
-                        }}
-                    >
+                            mt: 3
+                        }}>
                         © {new Date().getFullYear()} LearnHub LMS
                     </Typography>
                 </Paper>
             </Container>
         </Box>
-
-
     );
 };
 

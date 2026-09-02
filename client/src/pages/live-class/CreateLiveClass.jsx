@@ -377,7 +377,9 @@ const CreateLiveClass = () => {
               <Box>
                 <Typography
                   variant="h5"
-                  fontWeight={700}
+                  sx={{
+                    fontWeight: 700
+                  }}
                 >
                   Create Live Class
                 </Typography>

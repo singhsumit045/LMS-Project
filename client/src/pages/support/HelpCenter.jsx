@@ -163,9 +163,10 @@ const HelpCenter = () => {
         >
           <Stack
             spacing={3}
-            alignItems="center"
-            textAlign="center"
-          >
+            sx={{
+              alignItems: "center",
+              textAlign: "center"
+            }}>
             <Chip
               label="LEARNHUB SUPPORT"
               sx={{
@@ -177,14 +178,14 @@ const HelpCenter = () => {
 
             <Typography
               variant="h2"
-              fontWeight={900}
               sx={{
+                fontWeight: 900,
+
                 fontSize: {
                   xs: "2.2rem",
                   md: "3.5rem",
-                },
-              }}
-            >
+                }
+              }}>
               How can we help you?
             </Typography>
 
@@ -233,16 +234,18 @@ const HelpCenter = () => {
         <Box sx={{ mb: 6 }}>
           <Typography
             variant="h4"
-            fontWeight={800}
-            sx={{ mb: 1 }}
-          >
+            sx={{
+              fontWeight: 800,
+              mb: 1
+            }}>
             Browse Help Topics
           </Typography>
 
           <Typography
-            color="text.secondary"
-            sx={{ mb: 3 }}
-          >
+            sx={{
+              color: "text.secondary",
+              mb: 3
+            }}>
             Choose a category to find relevant help.
           </Typography>
 
@@ -287,17 +290,18 @@ const HelpCenter = () => {
 
                       <Typography
                         variant="h6"
-                        fontWeight={800}
+                        sx={{
+                          fontWeight: 800
+                        }}
                       >
                         {category.title}
                       </Typography>
 
                       <Typography
-                        color="text.secondary"
                         sx={{
-                          minHeight: 48,
-                        }}
-                      >
+                          color: "text.secondary",
+                          minHeight: 48
+                        }}>
                         {category.description}
                       </Typography>
                     </Stack>
@@ -312,16 +316,18 @@ const HelpCenter = () => {
         <Box sx={{ mb: 6 }}>
           <Typography
             variant="h4"
-            fontWeight={800}
-            sx={{ mb: 1 }}
-          >
+            sx={{
+              fontWeight: 800,
+              mb: 1
+            }}>
             Frequently Asked Questions
           </Typography>
 
           <Typography
-            color="text.secondary"
-            sx={{ mb: 3 }}
-          >
+            sx={{
+              color: "text.secondary",
+              mb: 3
+            }}>
             Quick answers to the most common questions.
           </Typography>
 
@@ -348,16 +354,19 @@ const HelpCenter = () => {
                   <AccordionSummary
                     expandIcon={<ExpandMoreIcon />}
                   >
-                    <Typography fontWeight={700}>
+                    <Typography sx={{
+                      fontWeight: 700
+                    }}>
                       {faq.question}
                     </Typography>
                   </AccordionSummary>
 
                   <AccordionDetails>
                     <Typography
-                      color="text.secondary"
-                      lineHeight={1.8}
-                    >
+                      sx={{
+                        color: "text.secondary",
+                        lineHeight: 1.8
+                      }}>
                       {faq.answer}
                     </Typography>
                   </AccordionDetails>
@@ -381,22 +390,27 @@ const HelpCenter = () => {
               md: "row",
             }}
             spacing={3}
-            alignItems={{
-              xs: "flex-start",
-              md: "center",
-            }}
-            justifyContent="space-between"
-          >
+            sx={{
+              alignItems: {
+                xs: "flex-start",
+                md: "center",
+              },
+
+              justifyContent: "space-between"
+            }}>
             <Box>
               <Typography
                 variant="h5"
-                fontWeight={800}
-                sx={{ mb: 1 }}
-              >
+                sx={{
+                  fontWeight: 800,
+                  mb: 1
+                }}>
                 Still need help?
               </Typography>
 
-              <Typography color="text.secondary">
+              <Typography sx={{
+                color: "text.secondary"
+              }}>
                 Our support team is ready to help you
                 with your issue.
               </Typography>

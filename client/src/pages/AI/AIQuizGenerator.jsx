@@ -355,14 +355,18 @@ const AIQuizGenerator = () => {
           <Box>
             <Typography
               variant="h4"
-              fontWeight={800}
+              sx={{
+                fontWeight: 800
+              }}
             >
               AI Quiz Generator
             </Typography>
 
             <Typography
               variant="body1"
-              color="text.secondary"
+              sx={{
+                color: "text.secondary"
+              }}
             >
               Generate multiple-choice questions
               using AI and save them directly
@@ -626,27 +630,31 @@ const AIQuizGenerator = () => {
               xs: "column",
               sm: "row",
             }}
-            justifyContent="space-between"
             spacing={1}
             sx={{
+              justifyContent: "space-between",
               mb: 2,
+
               alignItems: {
                 xs: "flex-start",
                 sm: "center",
-              },
-            }}
-          >
+              }
+            }}>
             <Box>
               <Typography
                 variant="h5"
-                fontWeight={800}
+                sx={{
+                  fontWeight: 800
+                }}
               >
                 Generated Quiz
               </Typography>
 
               <Typography
                 variant="body2"
-                color="text.secondary"
+                sx={{
+                  color: "text.secondary"
+                }}
               >
                 Review the questions before
                 saving them to an exam.
@@ -708,11 +716,10 @@ const AIQuizGenerator = () => {
 
                       <Typography
                         variant="h6"
-                        fontWeight={700}
                         sx={{
-                          flex: 1,
-                        }}
-                      >
+                          fontWeight: 700,
+                          flex: 1
+                        }}>
                         {
                           question.questionText
                         }
@@ -775,11 +782,10 @@ const AIQuizGenerator = () => {
                                   }}
                                 >
                                   <Typography
-                                    fontWeight={700}
                                     sx={{
-                                      minWidth: 24,
-                                    }}
-                                  >
+                                      fontWeight: 700,
+                                      minWidth: 24
+                                    }}>
                                     {
                                       optionLetter
                                     }

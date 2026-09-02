@@ -354,12 +354,11 @@ const StudentDashboard = () => {
 
             <Typography
                 variant="h5"
-                fontWeight={700}
                 sx={{
+                    fontWeight: 700,
                     mb: 2.5,
-                    color: "text.primary",
-                }}
-            >
+                    color: "text.primary"
+                }}>
                 Your Learning Overview
             </Typography>
 
@@ -511,16 +510,19 @@ const StudentDashboard = () => {
                 <Box>
                     <Typography
                         variant="h5"
-                        fontWeight={700}
+                        sx={{
+                            fontWeight: 700
+                        }}
                     >
                         Live Classes
                     </Typography>
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
-                        sx={{ mt: 0.5 }}
-                    >
+                        sx={{
+                            color: "text.secondary",
+                            mt: 0.5
+                        }}>
                         Join your teacher's live classes
                     </Typography>
                 </Box>
@@ -598,15 +600,18 @@ const StudentDashboard = () => {
 
                         <Typography
                             variant="h6"
-                            fontWeight={600}
+                            sx={{
+                                fontWeight: 600
+                            }}
                         >
                             No live classes available
                         </Typography>
 
                         <Typography
-                            color="text.secondary"
-                            sx={{ mt: 1 }}
-                        >
+                            sx={{
+                                color: "text.secondary",
+                                mt: 1
+                            }}>
                             Your teacher's live classes
                             will appear here.
                         </Typography>
@@ -715,18 +720,18 @@ const StudentDashboard = () => {
                                                     >
                                                         <Typography
                                                             variant="h6"
-                                                            fontWeight={
-                                                                700
-                                                            }
                                                             sx={{
+                                                                fontWeight: 700,
+
                                                                 overflow:
                                                                     "hidden",
+
                                                                 textOverflow:
                                                                     "ellipsis",
+
                                                                 whiteSpace:
-                                                                    "nowrap",
-                                                            }}
-                                                        >
+                                                                    "nowrap"
+                                                            }}>
                                                             {
                                                                 liveClass.title
                                                             }
@@ -734,7 +739,9 @@ const StudentDashboard = () => {
 
                                                         <Typography
                                                             variant="body2"
-                                                            color="text.secondary"
+                                                            sx={{
+                                                                color: "text.secondary"
+                                                            }}
                                                         >
                                                             Course
                                                             ID:{" "}
@@ -746,7 +753,9 @@ const StudentDashboard = () => {
                                                         {liveClass.teacherName && (
                                                             <Typography
                                                                 variant="body2"
-                                                                color="text.secondary"
+                                                                sx={{
+                                                                    color: "text.secondary"
+                                                                }}
                                                             >
                                                                 Teacher:{" "}
                                                                 {
@@ -783,11 +792,10 @@ const StudentDashboard = () => {
                                             {liveClass.description && (
                                                 <Typography
                                                     variant="body2"
-                                                    color="text.secondary"
                                                     sx={{
-                                                        mt: 2,
-                                                    }}
-                                                >
+                                                        color: "text.secondary",
+                                                        mt: 2
+                                                    }}>
                                                     {
                                                         liveClass.description
                                                     }
@@ -811,7 +819,9 @@ const StudentDashboard = () => {
                                             >
                                                 <Typography
                                                     variant="body2"
-                                                    color="text.secondary"
+                                                    sx={{
+                                                        color: "text.secondary"
+                                                    }}
                                                 >
                                                     <strong>
                                                         Scheduled:
@@ -921,7 +931,9 @@ const StudentDashboard = () => {
             >
                 <Typography
                     variant="h5"
-                    fontWeight={700}
+                    sx={{
+                        fontWeight: 700
+                    }}
                 >
                     My Courses
                 </Typography>
@@ -1002,19 +1014,20 @@ const StudentDashboard = () => {
 
                         <Typography
                             variant="h6"
-                            fontWeight={600}
+                            sx={{
+                                fontWeight: 600
+                            }}
                         >
                             No courses yet
                         </Typography>
 
                         <Typography
-                            color="text.secondary"
                             sx={{
+                                color: "text.secondary",
                                 mt: 1,
                                 maxWidth: 500,
-                                mx: "auto",
-                            }}
-                        >
+                                mx: "auto"
+                            }}>
                             You haven't enrolled in any
                             courses yet. Explore our courses
                             and start learning today.
@@ -1553,8 +1566,8 @@ const StudentDashboard = () => {
 
             <Typography
                 variant="h5"
-                fontWeight={700}
                 sx={{
+                    fontWeight: 700,
                     mb: 2.5,
 
                     // COURSE CARDS KE BAAD SPACE
@@ -1564,9 +1577,8 @@ const StudentDashboard = () => {
                         md: 6,
                     },
 
-                    color: "text.primary",
-                }}
-            >
+                    color: "text.primary"
+                }}>
                 Learning Progress
             </Typography>
 

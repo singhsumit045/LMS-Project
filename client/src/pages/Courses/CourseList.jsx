@@ -636,8 +636,9 @@ const CourseList = () => {
         >
           <Typography
             variant="h6"
-            fontWeight={750}
             sx={{
+              fontWeight: 750,
+
               display:
                 "-webkit-box",
 
@@ -647,20 +648,17 @@ const CourseList = () => {
                 "vertical",
 
               overflow: "hidden",
-
               lineHeight: 1.35,
-
-              minHeight: 58,
-            }}
-          >
+              minHeight: 58
+            }}>
             {course.title ||
               "Untitled Course"}
           </Typography>
 
           <Typography
             variant="body2"
-            color="text.secondary"
             sx={{
+              color: "text.secondary",
               mt: 1.5,
 
               display:
@@ -672,12 +670,9 @@ const CourseList = () => {
                 "vertical",
 
               overflow: "hidden",
-
               lineHeight: 1.65,
-
-              minHeight: 68,
-            }}
-          >
+              minHeight: 68
+            }}>
             {course.description ||
               "No description available for this course."}
           </Typography>
@@ -814,27 +809,26 @@ const CourseList = () => {
         <Box>
           <Typography
             variant="h4"
-            fontWeight={800}
             sx={{
+              fontWeight: 800,
+
               fontSize: {
                 xs: "2rem",
                 md: "2.5rem",
               },
 
               letterSpacing:
-                "-0.5px",
-            }}
-          >
+                "-0.5px"
+            }}>
             Explore Courses
           </Typography>
 
           <Typography
-            color="text.secondary"
             sx={{
+              color: "text.secondary",
               mt: 0.8,
-              fontSize: "1rem",
-            }}
-          >
+              fontSize: "1rem"
+            }}>
             Learn new skills and grow
             your career
           </Typography>
@@ -1016,7 +1010,9 @@ const CourseList = () => {
             <Box>
               <Typography
                 variant="h6"
-                fontWeight={700}
+                sx={{
+                  fontWeight: 700
+                }}
               >
                 {filteredCourses.length}{" "}
                 {filteredCourses.length ===
@@ -1029,7 +1025,9 @@ const CourseList = () => {
                 3 && (
                 <Typography
                   variant="caption"
-                  color="text.secondary"
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   Move your mouse to
                   the left or right
@@ -1095,17 +1093,18 @@ const CourseList = () => {
 
               <Typography
                 variant="h6"
-                fontWeight={700}
+                sx={{
+                  fontWeight: 700
+                }}
               >
                 No courses found
               </Typography>
 
               <Typography
-                color="text.secondary"
                 sx={{
-                  mt: 1,
-                }}
-              >
+                  color: "text.secondary",
+                  mt: 1
+                }}>
                 Try changing your
                 search or category
                 filter.

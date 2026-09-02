@@ -205,14 +205,18 @@ const AIAssistant = () => {
           <Box sx={{ minWidth: 0 }}>
             <Typography
               variant="h6"
-              fontWeight={700}
+              sx={{
+                fontWeight: 700
+              }}
             >
               AI Study Assistant
             </Typography>
 
             <Typography
               variant="body2"
-              color="text.secondary"
+              sx={{
+                color: "text.secondary"
+              }}
             >
               Your personal AI learning assistant
             </Typography>
@@ -382,7 +386,9 @@ const AIAssistant = () => {
 
                     <Typography
                       variant="body2"
-                      color="text.secondary"
+                      sx={{
+                        color: "text.secondary"
+                      }}
                     >
                       AI is thinking...
                     </Typography>
@@ -485,13 +491,12 @@ const AIAssistant = () => {
 
           <Typography
             variant="caption"
-            color="text.secondary"
             sx={{
+              color: "text.secondary",
               display: "block",
               mt: 1,
-              textAlign: "center",
-            }}
-          >
+              textAlign: "center"
+            }}>
             Press Enter to send • Shift +
             Enter for a new line
           </Typography>

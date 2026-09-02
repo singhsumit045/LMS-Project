@@ -202,7 +202,9 @@ const Home = () => {
         />
 
         <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2 }}>
-          <Grid container spacing={{ xs: 6, md: 8 }} alignItems="center">
+          <Grid container spacing={{ xs: 6, md: 8 }} sx={{
+            alignItems: "center"
+          }}>
             {/* LEFT */}
 
             <Grid size={{ xs: 12, md: 7 }}>
@@ -227,18 +229,19 @@ const Home = () => {
 
               <Typography
                 component="h1"
-                fontWeight={900}
                 sx={{
+                  fontWeight: 900,
+
                   fontSize: {
                     xs: "2.7rem",
                     sm: "3.6rem",
                     md: "5.1rem",
                   },
+
                   lineHeight: 1.03,
                   letterSpacing: "-3px",
-                  maxWidth: 800,
-                }}
-              >
+                  maxWidth: 800
+                }}>
                 Learn Skills.
                 <br />
 
@@ -286,7 +289,9 @@ const Home = () => {
                   sm: "row",
                 }}
                 spacing={2}
-                mt={5}
+                sx={{
+                  mt: 5
+                }}
               >
                 <Button
                   size="large"
@@ -351,7 +356,9 @@ const Home = () => {
                   sm: "row",
                 }}
                 spacing={3}
-                mt={5}
+                sx={{
+                  mt: 5
+                }}
               >
                 {[
                   "Learn at your own pace",
@@ -362,7 +369,9 @@ const Home = () => {
                     key={item}
                     direction="row"
                     spacing={1}
-                    alignItems="center"
+                    sx={{
+                      alignItems: "center"
+                    }}
                   >
                     <CheckCircle
                       sx={{
@@ -373,9 +382,10 @@ const Home = () => {
 
                     <Typography
                       variant="body2"
-                      fontWeight={600}
-                      color="text.secondary"
-                    >
+                      sx={{
+                        fontWeight: 600,
+                        color: "text.secondary"
+                      }}>
                       {item}
                     </Typography>
                   </Stack>
@@ -413,18 +423,23 @@ const Home = () => {
 
                   <Stack
                     direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    mb={3}
-                  >
+                    sx={{
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 3
+                    }}>
                     <Box>
-                      <Typography fontWeight={800}>
+                      <Typography sx={{
+                        fontWeight: 800
+                      }}>
                         Student Dashboard
                       </Typography>
 
                       <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                          color: "text.secondary"
+                        }}
                       >
                         Your learning overview
                       </Typography>
@@ -456,7 +471,9 @@ const Home = () => {
                       )}`,
                     }}
                   >
-                    <Stack direction="row" spacing={2} alignItems="center">
+                    <Stack direction="row" spacing={2} sx={{
+                      alignItems: "center"
+                    }}>
                       <Avatar
                         variant="rounded"
                         sx={{
@@ -469,14 +486,20 @@ const Home = () => {
                         <Code />
                       </Avatar>
 
-                      <Box flex={1}>
-                        <Typography fontWeight={800}>
+                      <Box sx={{
+                        flex: 1
+                      }}>
+                        <Typography sx={{
+                          fontWeight: 800
+                        }}>
                           Web Development
                         </Typography>
 
                         <Typography
                           variant="body2"
-                          color="text.secondary"
+                          sx={{
+                            color: "text.secondary"
+                          }}
                         >
                           React + NestJS
                         </Typography>
@@ -485,18 +508,23 @@ const Home = () => {
 
                     <Stack
                       direction="row"
-                      justifyContent="space-between"
-                      mt={3}
-                      mb={1}
-                    >
-                      <Typography variant="body2" fontWeight={700}>
+                      sx={{
+                        justifyContent: "space-between",
+                        mt: 3,
+                        mb: 1
+                      }}>
+                      <Typography variant="body2" sx={{
+                        fontWeight: 700
+                      }}>
                         Course Progress
                       </Typography>
 
                       <Typography
                         variant="body2"
-                        fontWeight={800}
                         color="primary"
+                        sx={{
+                          fontWeight: 800
+                        }}
                       >
                         75%
                       </Typography>
@@ -524,7 +552,9 @@ const Home = () => {
 
                   {/* Dashboard stats */}
 
-                  <Grid container spacing={2} mt={1}>
+                  <Grid container spacing={2} sx={{
+                    mt: 1
+                  }}>
                     {[
                       ["15", "Videos Completed"],
                       ["92%", "Exam Score"],
@@ -548,15 +578,19 @@ const Home = () => {
                         >
                           <Typography
                             variant="h5"
-                            fontWeight={900}
                             color="primary"
+                            sx={{
+                              fontWeight: 900
+                            }}
                           >
                             {value}
                           </Typography>
 
                           <Typography
                             variant="caption"
-                            color="text.secondary"
+                            sx={{
+                              color: "text.secondary"
+                            }}
                           >
                             {label}
                           </Typography>
@@ -625,12 +659,11 @@ const Home = () => {
                   }}
                 >
                   <Stack
-                    alignItems="center"
                     spacing={1}
                     sx={{
-                      py: 1,
-                    }}
-                  >
+                      alignItems: "center",
+                      py: 1
+                    }}>
                     <Avatar
                       sx={{
                         bgcolor: alpha(primary, 0.10),
@@ -649,9 +682,10 @@ const Home = () => {
 
                     <Typography
                       variant="body2"
-                      color="text.secondary"
-                      textAlign="center"
-                    >
+                      sx={{
+                        color: "text.secondary",
+                        textAlign: "center"
+                      }}>
                       {item.label}
                     </Typography>
                   </Stack>
@@ -676,7 +710,11 @@ const Home = () => {
         }}
       >
         <Reveal>
-          <Box textAlign="center" mb={7}>
+          <Box
+            sx={{
+              textAlign: "center",
+              mb: 7
+            }}>
             <Chip
               label="LEARNHUB FEATURES"
               sx={{
@@ -689,24 +727,25 @@ const Home = () => {
 
             <Typography
               variant="h3"
-              fontWeight={900}
               sx={{
+                fontWeight: 900,
+
                 fontSize: {
                   xs: "2rem",
                   md: "3rem",
-                },
-              }}
-            >
+                }
+              }}>
               Everything You Need To Learn
             </Typography>
 
             <Typography
-              mt={2}
-              color="text.secondary"
-              maxWidth={650}
-              mx="auto"
-              lineHeight={1.8}
-            >
+              sx={{
+                mt: 2,
+                color: "text.secondary",
+                maxWidth: 650,
+                mx: "auto",
+                lineHeight: 1.8
+              }}>
               A complete learning platform designed to help students learn
               technology, practice skills, measure progress and achieve their
               career goals.
@@ -769,15 +808,18 @@ const Home = () => {
                       {feature.icon}
                     </Box>
 
-                    <Typography variant="h6" fontWeight={800}>
+                    <Typography variant="h6" sx={{
+                      fontWeight: 800
+                    }}>
                       {feature.title}
                     </Typography>
 
                     <Typography
-                      mt={2}
-                      color="text.secondary"
-                      lineHeight={1.75}
-                    >
+                      sx={{
+                        mt: 2,
+                        color: "text.secondary",
+                        lineHeight: 1.75
+                      }}>
                       {feature.description}
                     </Typography>
 
@@ -819,7 +861,11 @@ const Home = () => {
       >
         <Container maxWidth="xl">
           <Reveal>
-            <Box textAlign="center" mb={8}>
+            <Box
+              sx={{
+                textAlign: "center",
+                mb: 8
+              }}>
               <Chip
                 label="HOW IT WORKS"
                 sx={{
@@ -832,18 +878,22 @@ const Home = () => {
 
               <Typography
                 variant="h3"
-                fontWeight={900}
                 sx={{
+                  fontWeight: 900,
+
                   fontSize: {
                     xs: "2rem",
                     md: "3rem",
-                  },
-                }}
-              >
+                  }
+                }}>
                 Your Learning Journey
               </Typography>
 
-              <Typography mt={2} color="text.secondary">
+              <Typography
+                sx={{
+                  mt: 2,
+                  color: "text.secondary"
+                }}>
                 From beginner to confident professional.
               </Typography>
             </Box>
@@ -904,16 +954,19 @@ const Home = () => {
 
                       <Typography
                         variant="h6"
-                        fontWeight={800}
+                        sx={{
+                          fontWeight: 800
+                        }}
                       >
                         {item.title}
                       </Typography>
 
                       <Typography
-                        mt={2}
-                        color="text.secondary"
-                        lineHeight={1.7}
-                      >
+                        sx={{
+                          mt: 2,
+                          color: "text.secondary",
+                          lineHeight: 1.7
+                        }}>
                         {item.desc}
                       </Typography>
 
@@ -959,7 +1012,9 @@ const Home = () => {
             xs: 5,
             md: 8,
           }}
-          alignItems="center"
+          sx={{
+            alignItems: "center"
+          }}
         >
           {/* LEFT */}
 
@@ -977,31 +1032,34 @@ const Home = () => {
 
               <Typography
                 variant="h3"
-                fontWeight={900}
                 sx={{
+                  fontWeight: 900,
+
                   fontSize: {
                     xs: "2rem",
                     md: "3rem",
-                  },
-                }}
-              >
+                  }
+                }}>
                 Built For Students
                 <br />
                 & Teachers
               </Typography>
 
               <Typography
-                mt={3}
-                color="text.secondary"
-                lineHeight={1.8}
-                maxWidth={600}
-              >
+                sx={{
+                  mt: 3,
+                  color: "text.secondary",
+                  lineHeight: 1.8,
+                  maxWidth: 600
+                }}>
                 LearnHub brings students and teachers together in one complete
                 learning ecosystem. Teachers can manage courses and students can
                 learn, practice, take exams and track their progress.
               </Typography>
 
-              <Stack spacing={2.2} mt={4}>
+              <Stack spacing={2.2} sx={{
+                mt: 4
+              }}>
                 {[
                   "Teacher course management",
                   "Video based learning",
@@ -1013,7 +1071,9 @@ const Home = () => {
                     key={item}
                     direction="row"
                     spacing={1.5}
-                    alignItems="center"
+                    sx={{
+                      alignItems: "center"
+                    }}
                   >
                     <CheckCircle
                       sx={{
@@ -1022,7 +1082,9 @@ const Home = () => {
                       }}
                     />
 
-                    <Typography fontWeight={600}>
+                    <Typography sx={{
+                      fontWeight: 600
+                    }}>
                       {item}
                     </Typography>
                   </Stack>
@@ -1072,9 +1134,10 @@ const Home = () => {
                   <Stack
                     direction="row"
                     spacing={2}
-                    alignItems="center"
-                    position="relative"
-                  >
+                    sx={{
+                      alignItems: "center",
+                      position: "relative"
+                    }}>
                     <Avatar
                       sx={{
                         bgcolor: "#fff",
@@ -1089,7 +1152,9 @@ const Home = () => {
                     <Box>
                       <Typography
                         variant="h6"
-                        fontWeight={900}
+                        sx={{
+                          fontWeight: 900
+                        }}
                       >
                         Learning Analytics
                       </Typography>
@@ -1108,9 +1173,10 @@ const Home = () => {
                   <Grid
                     container
                     spacing={2}
-                    mt={3}
-                    position="relative"
-                  >
+                    sx={{
+                      mt: 3,
+                      position: "relative"
+                    }}>
                     {[
                       ["75%", "Course Progress"],
                       ["92%", "Exam Score"],
@@ -1135,7 +1201,9 @@ const Home = () => {
                         >
                           <Typography
                             variant="h5"
-                            fontWeight={900}
+                            sx={{
+                              fontWeight: 900
+                            }}
                           >
                             {value}
                           </Typography>
@@ -1222,7 +1290,9 @@ const Home = () => {
                 }}
               />
 
-              <Box position="relative">
+              <Box sx={{
+                position: "relative"
+              }}>
                 <Avatar
                   sx={{
                     width: 70,
@@ -1237,27 +1307,26 @@ const Home = () => {
 
                 <Typography
                   variant="h3"
-                  fontWeight={900}
-                  mt={3}
                   sx={{
+                    fontWeight: 900,
+                    mt: 3,
+
                     fontSize: {
                       xs: "2rem",
                       md: "3rem",
-                    },
-                  }}
-                >
+                    }
+                  }}>
                   Start Building Your Future Today
                 </Typography>
 
                 <Typography
-                  mt={3}
-                  maxWidth={650}
-                  mx="auto"
                   sx={{
+                    mt: 3,
+                    maxWidth: 650,
+                    mx: "auto",
                     opacity: 0.85,
-                    lineHeight: 1.8,
-                  }}
-                >
+                    lineHeight: 1.8
+                  }}>
                   Join LearnHub and transform your learning into real skills,
                   projects and career opportunities.
                 </Typography>

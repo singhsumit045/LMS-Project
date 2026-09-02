@@ -659,28 +659,28 @@ const ManageUsers = () => {
                     >
                         <Typography
                             variant="h4"
-                            fontWeight={800}
                             sx={{
+                                fontWeight: 800,
+
                                 fontSize: {
                                     xs: "1.5rem",
                                     sm: "1.8rem",
                                     md: "2rem",
-                                },
-                            }}
-                        >
+                                }
+                            }}>
                             Manage Users
                         </Typography>
 
                         <Typography
-                            color="text.secondary"
                             sx={{
+                                color: "text.secondary",
                                 mt: 0.3,
+
                                 fontSize: {
                                     xs: "0.85rem",
                                     sm: "0.9rem",
-                                },
-                            }}
-                        >
+                                }
+                            }}>
                             View and manage
                             all users
                             registered on
@@ -838,10 +838,11 @@ const ManageUsers = () => {
                 }}
             >
                 <Typography
-                    fontWeight={600}
-                    color="text.secondary"
-                    fontSize="0.85rem"
-                >
+                    sx={{
+                        fontWeight: 600,
+                        color: "text.secondary",
+                        fontSize: "0.85rem"
+                    }}>
                     {filteredUsers.length ===
                         0
                         ? "No users"
@@ -860,9 +861,10 @@ const ManageUsers = () => {
                     0 && (
                         <Typography
                             variant="body2"
-                            color="text.secondary"
-                            fontSize="0.8rem"
-                        >
+                            sx={{
+                                color: "text.secondary",
+                                fontSize: "0.8rem"
+                            }}>
                             Page {page} of{" "}
                             {totalPages}
                         </Typography>
@@ -898,19 +900,21 @@ const ManageUsers = () => {
 
                     <Typography
                         variant="h6"
-                        fontWeight={700}
+                        sx={{
+                            fontWeight: 700
+                        }}
                     >
                         No users found
                     </Typography>
 
                     <Typography
-                        color="text.secondary"
                         sx={{
+                            color: "text.secondary",
                             mt: 0.5,
+
                             fontSize:
-                                "0.9rem",
-                        }}
-                    >
+                                "0.9rem"
+                        }}>
                         Try changing your
                         search or role
                         filter.
@@ -1031,34 +1035,34 @@ const ManageUsers = () => {
                                                 }}
                                             >
                                                 <Typography
-                                                    fontWeight={
-                                                        700
-                                                    }
-                                                    fontSize={{
-                                                        xs: "0.95rem",
-                                                        sm: "1rem",
-                                                    }}
                                                     sx={{
+                                                        fontWeight: 700,
+
+                                                        fontSize: {
+                                                            xs: "0.95rem",
+                                                            sm: "1rem",
+                                                        },
+
                                                         wordBreak:
-                                                            "break-word",
-                                                    }}
-                                                >
+                                                            "break-word"
+                                                    }}>
                                                     {user?.name ||
                                                         "Unknown User"}
                                                 </Typography>
 
                                                 <Typography
                                                     variant="body2"
-                                                    color="text.secondary"
-                                                    fontSize={{
-                                                        xs: "0.78rem",
-                                                        sm: "0.82rem",
-                                                    }}
                                                     sx={{
+                                                        color: "text.secondary",
+
+                                                        fontSize: {
+                                                            xs: "0.78rem",
+                                                            sm: "0.82rem",
+                                                        },
+
                                                         wordBreak:
-                                                            "break-word",
-                                                    }}
-                                                >
+                                                            "break-word"
+                                                    }}>
                                                     {user?.email ||
                                                         "No email"}
                                                 </Typography>
@@ -1133,17 +1137,18 @@ const ManageUsers = () => {
 
                                             <Typography
                                                 variant="body2"
-                                                color="text.secondary"
-                                                fontSize="0.78rem"
                                                 sx={{
+                                                    color: "text.secondary",
+                                                    fontSize: "0.78rem",
+
                                                     display:
                                                     {
                                                         xs: "none",
                                                         md: "block",
                                                     },
-                                                    minWidth: 55,
-                                                }}
-                                            >
+
+                                                    minWidth: 55
+                                                }}>
                                                 ID:{" "}
                                                 {
                                                     user.id

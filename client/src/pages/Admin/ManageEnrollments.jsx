@@ -277,23 +277,24 @@ const ManageEnrollments = () => {
       <Box sx={{ mb: 3 }}>
         <Typography
           variant="h4"
-          fontWeight={700}
           sx={{
+            fontWeight: 700,
+
             fontSize: {
               xs: "1.7rem",
               sm: "2rem",
               md: "2.2rem",
-            },
-          }}
-        >
+            }
+          }}>
           Manage Enrollments
         </Typography>
 
         <Typography
           variant="body2"
-          color="text.secondary"
-          sx={{ mt: 0.5 }}
-        >
+          sx={{
+            color: "text.secondary",
+            mt: 0.5
+          }}>
           Monitor student enrollments, course progress and
           completion status.
         </Typography>
@@ -348,12 +349,16 @@ const ManageEnrollments = () => {
             <Box>
               <Typography
                 variant="body2"
-                color="text.secondary"
+                sx={{
+                  color: "text.secondary"
+                }}
               >
                 Total Enrollments
               </Typography>
 
-              <Typography variant="h5" fontWeight={700}>
+              <Typography variant="h5" sx={{
+                fontWeight: 700
+              }}>
                 {totalEnrollments}
               </Typography>
             </Box>
@@ -383,12 +388,16 @@ const ManageEnrollments = () => {
             <Box>
               <Typography
                 variant="body2"
-                color="text.secondary"
+                sx={{
+                  color: "text.secondary"
+                }}
               >
                 Completed
               </Typography>
 
-              <Typography variant="h5" fontWeight={700}>
+              <Typography variant="h5" sx={{
+                fontWeight: 700
+              }}>
                 {completedEnrollments}
               </Typography>
             </Box>
@@ -418,12 +427,16 @@ const ManageEnrollments = () => {
             <Box>
               <Typography
                 variant="body2"
-                color="text.secondary"
+                sx={{
+                  color: "text.secondary"
+                }}
               >
                 In Progress
               </Typography>
 
-              <Typography variant="h5" fontWeight={700}>
+              <Typography variant="h5" sx={{
+                fontWeight: 700
+              }}>
                 {inProgressEnrollments}
               </Typography>
             </Box>
@@ -573,7 +586,9 @@ const ManageEnrollments = () => {
               }}
             />
 
-            <Typography color="text.secondary">
+            <Typography sx={{
+              color: "text.secondary"
+            }}>
               No enrollments found.
             </Typography>
           </Box>
@@ -602,16 +617,20 @@ const ManageEnrollments = () => {
               <Box sx={{ minWidth: 0 }}>
                 <Typography
                   variant="body2"
-                  fontWeight={600}
                   noWrap
+                  sx={{
+                    fontWeight: 600
+                  }}
                 >
                   {enrollment.student?.name || "—"}
                 </Typography>
 
                 <Typography
                   variant="caption"
-                  color="text.secondary"
                   noWrap
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   {enrollment.student?.email || "—"}
                 </Typography>
@@ -640,7 +659,9 @@ const ManageEnrollments = () => {
 
               <Typography
                 variant="body2"
-                fontWeight={600}
+                sx={{
+                  fontWeight: 600
+                }}
               >
                 {enrollment.progress ?? 0}%
               </Typography>
@@ -665,7 +686,9 @@ const ManageEnrollments = () => {
 
               <Typography
                 variant="body2"
-                color="text.secondary"
+                sx={{
+                  color: "text.secondary"
+                }}
               >
                 {formatDate(enrollment.enrolledAt)}
               </Typography>
@@ -709,7 +732,9 @@ const ManageEnrollments = () => {
               borderRadius: 3,
             }}
           >
-            <Typography color="text.secondary">
+            <Typography sx={{
+              color: "text.secondary"
+            }}>
               No enrollments found.
             </Typography>
           </Paper>
@@ -740,16 +765,20 @@ const ManageEnrollments = () => {
                 <Box sx={{ minWidth: 0 }}>
                   <Typography
                     variant="body1"
-                    fontWeight={700}
                     noWrap
+                    sx={{
+                      fontWeight: 700
+                    }}
                   >
                     {enrollment.student?.name || "—"}
                   </Typography>
 
                   <Typography
                     variant="caption"
-                    color="text.secondary"
                     noWrap
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     {enrollment.student?.email || "—"}
                   </Typography>
@@ -782,16 +811,20 @@ const ManageEnrollments = () => {
                 <Box sx={{ minWidth: 0 }}>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Course
                   </Typography>
 
                   <Typography
                     variant="body2"
-                    fontWeight={600}
                     noWrap
                     title={enrollment.course?.title || ""}
+                    sx={{
+                      fontWeight: 600
+                    }}
                   >
                     {enrollment.course?.title || "—"}
                   </Typography>
@@ -800,7 +833,9 @@ const ManageEnrollments = () => {
                 <Box>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Teacher
                   </Typography>
@@ -813,14 +848,18 @@ const ManageEnrollments = () => {
                 <Box>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Progress
                   </Typography>
 
                   <Typography
                     variant="body2"
-                    fontWeight={600}
+                    sx={{
+                      fontWeight: 600
+                    }}
                   >
                     {enrollment.progress ?? 0}%
                   </Typography>
@@ -829,7 +868,9 @@ const ManageEnrollments = () => {
                 <Box>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Enrolled
                   </Typography>
@@ -858,7 +899,6 @@ const ManageEnrollments = () => {
           ))
         )}
       </Box>
-
 
       {/* PAGINATION */}
 
@@ -890,7 +930,9 @@ const ManageEnrollments = () => {
           >
             <Typography
               variant="body2"
-              color="text.secondary"
+              sx={{
+                color: "text.secondary"
+              }}
             >
               Rows per page:
             </Typography>
@@ -917,7 +959,9 @@ const ManageEnrollments = () => {
 
           <Typography
             variant="body2"
-            color="text.secondary"
+            sx={{
+              color: "text.secondary"
+            }}
           >
             {Math.min(
               (page - 1) * rowsPerPage + 1,

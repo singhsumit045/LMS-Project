@@ -338,24 +338,23 @@ const ExamResult = () => {
         <Box>
           <Typography
             variant="h4"
-            fontWeight={700}
             sx={{
+              fontWeight: 700,
+
               fontSize: {
                 xs: "1.7rem",
                 sm: "2rem",
                 md: "2.3rem",
-              },
-            }}
-          >
+              }
+            }}>
             Exam Results
           </Typography>
 
           <Typography
-            color="text.secondary"
             sx={{
-              mt: 0.7,
-            }}
-          >
+              color: "text.secondary",
+              mt: 0.7
+            }}>
             Monitor student performance and exam
             results
           </Typography>
@@ -419,18 +418,19 @@ const ExamResult = () => {
               <Box>
                 <Typography
                   variant="body2"
-                  color="text.secondary"
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   Total Attempts
                 </Typography>
 
                 <Typography
                   variant="h4"
-                  fontWeight={700}
                   sx={{
-                    mt: 0.5,
-                  }}
-                >
+                    fontWeight: 700,
+                    mt: 0.5
+                  }}>
                   {statistics.totalAttempts}
                 </Typography>
               </Box>
@@ -476,18 +476,19 @@ const ExamResult = () => {
               <Box>
                 <Typography
                   variant="body2"
-                  color="text.secondary"
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   Average Score
                 </Typography>
 
                 <Typography
                   variant="h4"
-                  fontWeight={700}
                   sx={{
-                    mt: 0.5,
-                  }}
-                >
+                    fontWeight: 700,
+                    mt: 0.5
+                  }}>
                   {statistics.averageScore.toFixed(1)}%
                 </Typography>
               </Box>
@@ -533,18 +534,19 @@ const ExamResult = () => {
               <Box>
                 <Typography
                   variant="body2"
-                  color="text.secondary"
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   Passed
                 </Typography>
 
                 <Typography
                   variant="h4"
-                  fontWeight={700}
                   sx={{
-                    mt: 0.5,
-                  }}
-                >
+                    fontWeight: 700,
+                    mt: 0.5
+                  }}>
                   {statistics.passedCount}
                 </Typography>
               </Box>
@@ -590,18 +592,19 @@ const ExamResult = () => {
               <Box>
                 <Typography
                   variant="body2"
-                  color="text.secondary"
+                  sx={{
+                    color: "text.secondary"
+                  }}
                 >
                   Failed
                 </Typography>
 
                 <Typography
                   variant="h4"
-                  fontWeight={700}
                   sx={{
-                    mt: 0.5,
-                  }}
-                >
+                    fontWeight: 700,
+                    mt: 0.5
+                  }}>
                   {statistics.failedCount}
                 </Typography>
               </Box>
@@ -646,7 +649,9 @@ const ExamResult = () => {
         >
           <FilterList color="primary" />
 
-          <Typography fontWeight={700}>
+          <Typography sx={{
+            fontWeight: 700
+          }}>
             Filter Results
           </Typography>
         </Box>
@@ -776,18 +781,19 @@ const ExamResult = () => {
         <Box>
           <Typography
             variant="h6"
-            fontWeight={700}
+            sx={{
+              fontWeight: 700
+            }}
           >
             Student Results
           </Typography>
 
           <Typography
             variant="body2"
-            color="text.secondary"
             sx={{
-              mt: 0.4,
-            }}
-          >
+              color: "text.secondary",
+              mt: 0.4
+            }}>
             Showing {filteredResults.length} of{" "}
             {results.length} results
           </Typography>
@@ -831,17 +837,18 @@ const ExamResult = () => {
 
           <Typography
             variant="h6"
-            fontWeight={600}
+            sx={{
+              fontWeight: 600
+            }}
           >
             No results found
           </Typography>
 
           <Typography
-            color="text.secondary"
             sx={{
-              mt: 1,
-            }}
-          >
+              color: "text.secondary",
+              mt: 1
+            }}>
             Try changing your search or filters.
           </Typography>
 
@@ -944,9 +951,10 @@ const ExamResult = () => {
                       <TableCell>
                         <Typography
                           variant="body2"
-                          fontWeight={600}
-                          color="text.secondary"
-                        >
+                          sx={{
+                            fontWeight: 600,
+                            color: "text.secondary"
+                          }}>
                           {index + 1}
                         </Typography>
                       </TableCell>
@@ -976,14 +984,18 @@ const ExamResult = () => {
 
                           <Box>
                             <Typography
-                              fontWeight={600}
+                              sx={{
+                                fontWeight: 600
+                              }}
                             >
                               {studentName}
                             </Typography>
 
                             <Typography
                               variant="caption"
-                              color="text.secondary"
+                              sx={{
+                                color: "text.secondary"
+                              }}
                             >
                               Student
                             </Typography>
@@ -1007,7 +1019,9 @@ const ExamResult = () => {
                           />
 
                           <Typography
-                            fontWeight={500}
+                            sx={{
+                              fontWeight: 500
+                            }}
                           >
                             {examTitle}
                           </Typography>
@@ -1017,7 +1031,9 @@ const ExamResult = () => {
                       {/* SCORE */}
 
                       <TableCell>
-                        <Typography fontWeight={700}>
+                        <Typography sx={{
+                          fontWeight: 700
+                        }}>
                           {score}
 
                           {totalMarks
@@ -1029,7 +1045,9 @@ const ExamResult = () => {
                       {/* PERCENTAGE */}
 
                       <TableCell>
-                        <Typography fontWeight={700}>
+                        <Typography sx={{
+                          fontWeight: 700
+                        }}>
                           {percentage.toFixed(1)}%
                         </Typography>
                       </TableCell>

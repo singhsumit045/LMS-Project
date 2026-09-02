@@ -378,26 +378,26 @@ const ManageCourseContent = () => {
 
               <Typography
                 variant="h4"
-                fontWeight={800}
                 sx={{
+                  fontWeight: 800,
+
                   fontSize: {
                     xs: "1.8rem",
                     md: "2.4rem",
                   },
-                  lineHeight: 1.2,
-                }}
-              >
+
+                  lineHeight: 1.2
+                }}>
                 {course.title}
               </Typography>
 
               <Typography
-                color="text.secondary"
                 sx={{
+                  color: "text.secondary",
                   mt: 1.5,
                   lineHeight: 1.7,
-                  maxWidth: 750,
-                }}
-              >
+                  maxWidth: 750
+                }}>
                 {course.description ||
                   "Manage all learning content for this course from one place."}
               </Typography>
@@ -429,7 +429,9 @@ const ManageCourseContent = () => {
 
                   <Typography
                     variant="body2"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Video Lessons
                   </Typography>
@@ -446,7 +448,9 @@ const ManageCourseContent = () => {
 
                   <Typography
                     variant="body2"
-                    color="text.secondary"
+                    sx={{
+                      color: "text.secondary"
+                    }}
                   >
                     Learning Content
                   </Typography>
@@ -468,17 +472,18 @@ const ManageCourseContent = () => {
       >
         <Typography
           variant="h5"
-          fontWeight={800}
+          sx={{
+            fontWeight: 800
+          }}
         >
           Manage Course Content
         </Typography>
 
         <Typography
-          color="text.secondary"
           sx={{
-            mt: 0.7,
-          }}
-        >
+            color: "text.secondary",
+            mt: 0.7
+          }}>
           Add and organize learning resources for your
           students.
         </Typography>
@@ -566,7 +571,9 @@ const ManageCourseContent = () => {
               >
                 <Typography
                   variant="h6"
-                  fontWeight={800}
+                  sx={{
+                    fontWeight: 800
+                  }}
                 >
                   {item.title}
                 </Typography>
@@ -577,13 +584,12 @@ const ManageCourseContent = () => {
               ================================================= */}
 
               <Typography
-                color="text.secondary"
                 sx={{
+                  color: "text.secondary",
                   mt: 1,
                   lineHeight: 1.7,
-                  flexGrow: 1,
-                }}
-              >
+                  flexGrow: 1
+                }}>
                 {item.description}
               </Typography>
 
@@ -632,18 +638,19 @@ const ManageCourseContent = () => {
           backgroundColor: "action.hover",
         }}
       >
-        <Typography fontWeight={700}>
+        <Typography sx={{
+          fontWeight: 700
+        }}>
           💡 Content Management
         </Typography>
 
         <Typography
           variant="body2"
-          color="text.secondary"
           sx={{
+            color: "text.secondary",
             mt: 0.7,
-            lineHeight: 1.7,
-          }}
-        >
+            lineHeight: 1.7
+          }}>
           You can now manage video lessons, notes,
           announcements and exams for this course.
         </Typography>

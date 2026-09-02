@@ -67,11 +67,12 @@ const ContactUs = () => {
       <Container maxWidth="lg">
         {/* HEADER */}
         <Stack
-          alignItems="center"
-          textAlign="center"
           spacing={2}
-          sx={{ mb: 6 }}
-        >
+          sx={{
+            alignItems: "center",
+            textAlign: "center",
+            mb: 6
+          }}>
           <Box
             sx={{
               width: 64,
@@ -89,25 +90,24 @@ const ContactUs = () => {
 
           <Typography
             variant="h2"
-            fontWeight={900}
             sx={{
+              fontWeight: 900,
+
               fontSize: {
                 xs: "2.2rem",
                 md: "3.4rem",
-              },
-            }}
-          >
+              }
+            }}>
             Contact Us
           </Typography>
 
           <Typography
-            color="text.secondary"
             variant="h6"
             sx={{
+              color: "text.secondary",
               maxWidth: 700,
-              fontWeight: 400,
-            }}
-          >
+              fontWeight: 400
+            }}>
             Have a question or facing an issue?
             Send us a message and our team will
             get back to you.
@@ -145,19 +145,19 @@ const ContactUs = () => {
                 <CardContent sx={{ p: 3 }}>
                   <Typography
                     variant="h5"
-                    fontWeight={800}
-                    sx={{ mb: 1 }}
-                  >
+                    sx={{
+                      fontWeight: 800,
+                      mb: 1
+                    }}>
                     Get in touch
                   </Typography>
 
                   <Typography
-                    color="text.secondary"
                     sx={{
+                      color: "text.secondary",
                       mb: 3,
-                      lineHeight: 1.8,
-                    }}
-                  >
+                      lineHeight: 1.8
+                    }}>
                     We are here to help with your
                     learning experience and technical
                     questions.
@@ -173,12 +173,16 @@ const ContactUs = () => {
                       />
 
                       <Box>
-                        <Typography fontWeight={700}>
+                        <Typography sx={{
+                          fontWeight: 700
+                        }}>
                           Email
                         </Typography>
 
                         <Typography
-                          color="text.secondary"
+                          sx={{
+                            color: "text.secondary"
+                          }}
                         >
                           learnhub.lms@gmail.com
                         </Typography>
@@ -194,12 +198,16 @@ const ContactUs = () => {
                       />
 
                       <Box>
-                        <Typography fontWeight={700}>
+                        <Typography sx={{
+                          fontWeight: 700
+                        }}>
                           Phone
                         </Typography>
 
                         <Typography
-                          color="text.secondary"
+                          sx={{
+                            color: "text.secondary"
+                          }}
                         >
                           +91 7004854366
                         </Typography>
@@ -215,12 +223,16 @@ const ContactUs = () => {
                       />
 
                       <Box>
-                        <Typography fontWeight={700}>
+                        <Typography sx={{
+                          fontWeight: 700
+                        }}>
                           Location
                         </Typography>
 
                         <Typography
-                          color="text.secondary"
+                          sx={{
+                            color: "text.secondary"
+                          }}
                         >
                           India, jaipur
                         </Typography>
@@ -240,9 +252,10 @@ const ContactUs = () => {
               >
                 <Typography
                   variant="h6"
-                  fontWeight={800}
-                  sx={{ mb: 1 }}
-                >
+                  sx={{
+                    fontWeight: 800,
+                    mb: 1
+                  }}>
                   Support hours
                 </Typography>
 
@@ -283,16 +296,18 @@ const ContactUs = () => {
               >
                 <Typography
                   variant="h5"
-                  fontWeight={800}
-                  sx={{ mb: 1 }}
-                >
+                  sx={{
+                    fontWeight: 800,
+                    mb: 1
+                  }}>
                   Send us a message
                 </Typography>
 
                 <Typography
-                  color="text.secondary"
-                  sx={{ mb: 3 }}
-                >
+                  sx={{
+                    color: "text.secondary",
+                    mb: 3
+                  }}>
                   Fill out the form below and provide
                   as much detail as possible.
                 </Typography>
