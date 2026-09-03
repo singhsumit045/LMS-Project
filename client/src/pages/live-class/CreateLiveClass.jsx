@@ -71,8 +71,8 @@ const CreateLiveClass = () => {
         const courseList = Array.isArray(data)
           ? data
           : Array.isArray(data?.courses)
-          ? data.courses
-          : [];
+            ? data.courses
+            : [];
 
         setCourses(courseList);
 
@@ -203,7 +203,7 @@ const CreateLiveClass = () => {
 
       const liveClassId = Number(
         createdLiveClass?.id ??
-          createdLiveClass?.liveClassId
+        createdLiveClass?.liveClassId
       );
 
       console.log(
@@ -401,7 +401,7 @@ const CreateLiveClass = () => {
           {/* ====================================
               CONTENT
           ==================================== */}
-
+          
           <CardContent
             sx={{
               p: {
@@ -561,7 +561,18 @@ const CreateLiveClass = () => {
                   value={form.scheduledAt}
                   onChange={handleChange}
                   slotProps={{
-                    shrink: true,
+                    inputLabel: {
+                      shrink: true,
+                    },
+                  }}
+                  sx={{
+                    "& input::-webkit-calendar-picker-indicator": {
+                      filter: (theme) =>
+                        theme.palette.mode === "dark"
+                          ? "invert(1)"
+                          : "none",
+                      cursor: "pointer",
+                    },
                   }}
                   required
                   disabled={loading}
@@ -575,7 +586,7 @@ const CreateLiveClass = () => {
                     sm: "row",
                   }}
                   spacing={2}
-                  
+
                   sx={{
                     pt: 2,
                     justifyContent: "flex-end",

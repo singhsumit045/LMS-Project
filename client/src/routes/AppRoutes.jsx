@@ -108,6 +108,11 @@ const ManageCourses = lazy(() =>
 const LiveClassRoom = lazy(() =>
   import("../pages/live-class/LiveClassRoom")
 );
+
+const LiveClasses = lazy(() => 
+  import("../pages/live-class/LiveClasses")
+);
+
 const CreateLiveClass = lazy(() =>
   import("../pages/live-class/CreateLiveClass")
 );
@@ -306,6 +311,8 @@ const AppRoutes = ({ darkMode, toggleTheme }) => {
             path="/live-class/:id"
             element={<LiveClassRoom />}
           />
+
+          <Route path="/live-classes" element={<LiveClasses />} />
           {/* =================================================
               CREATE COURSE
               TEACHER + ADMIN

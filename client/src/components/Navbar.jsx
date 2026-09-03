@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 
 import NotificationsIcon from "@mui/icons-material/Notifications";
+import VideoCameraFrontIcon from "@mui/icons-material/VideoCameraFront";
 
 import {
   DarkMode,
@@ -1202,6 +1203,20 @@ const Navbar = ({
               Courses
             </Button>
 
+            {/* LIVE CLASSES */}
+
+            <Button
+              color="inherit"
+              component={NavLink}
+              to="/live-classes"
+              startIcon={
+                <VideoCameraFrontIcon />
+              }
+              sx={navButtonSx("/live-classes")}
+            >
+              Live Classes
+            </Button>
+
             {/* AI ASSISTANT */}
 
             <Button
@@ -1905,6 +1920,29 @@ const Navbar = ({
 
                 <ListItemText>
                   Courses
+                </ListItemText>
+              </ListItemButton>
+            </ListItem>
+
+            {/* LIVE CLASSES */}
+
+            <ListItem disablePadding>
+              <ListItemButton
+                component={NavLink}
+                to="/live-classes"
+                onClick={
+                  closeMobileMenu
+                }
+                sx={
+                  mobileNavButtonSx("/live-classes")
+                }
+              >
+                <ListItemIcon>
+                  <VideoCameraFrontIcon />
+                </ListItemIcon>
+
+                <ListItemText>
+                  Live Classes
                 </ListItemText>
               </ListItemButton>
             </ListItem>
