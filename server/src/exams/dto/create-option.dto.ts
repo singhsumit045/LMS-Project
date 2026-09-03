@@ -1,9 +1,7 @@
 import {
   IsBoolean,
-  IsInt,
   IsNotEmpty,
   IsString,
-  Min,
 } from 'class-validator';
 
 export class CreateOptionDto {
@@ -13,8 +11,4 @@ export class CreateOptionDto {
 
   @IsBoolean()
   isCorrect!: boolean;
-
-  @IsInt()
-  @Min(1)
-  questionId!: number;
 }

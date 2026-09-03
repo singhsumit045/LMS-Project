@@ -11,7 +11,7 @@ export const createOption = async (
   const response = await api.post(
     `/exams/questions/${questionId}/options`,
     optionData
-  );
+  ); 
 
   return response.data;
 };

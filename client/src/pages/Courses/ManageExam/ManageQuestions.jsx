@@ -102,7 +102,7 @@ const ManageQuestions = () => {
 
       alert(
         error?.response?.data?.message ||
-          "Unable to load questions"
+        "Unable to load questions"
       );
     } finally {
       setLoading(false);
@@ -313,18 +313,18 @@ const ManageQuestions = () => {
       // =================================================
 
       if (!editingId) {
-        const createdQuestion =
-          await createQuestion(
-            Number(examId),
-            questionPayload
-          );
+        const createdQuestion = await createQuestion(
+          Number(examId),
+          questionPayload
+        );
 
-        const questionId =
-          createdQuestion?.id;
 
-        if (!questionId) {
+        const questionId = createdQuestion?.id;
+
+
+        if (!questionId || Number(questionId) <= 0) {
           throw new Error(
-            "Question was created but question ID was not returned"
+            "Question ID was not returned from createQuestion"
           );
         }
 
@@ -483,8 +483,8 @@ const ManageQuestions = () => {
 
       alert(
         error?.response?.data?.message ||
-          error?.message ||
-          "Something went wrong while saving question"
+        error?.message ||
+        "Something went wrong while saving question"
       );
     } finally {
       setSaving(false);
@@ -519,7 +519,7 @@ const ManageQuestions = () => {
 
       alert(
         error?.response?.data?.message ||
-          "Something went wrong while deleting question"
+        "Something went wrong while deleting question"
       );
     }
   };
@@ -736,7 +736,7 @@ const ManageQuestions = () => {
                             >
                               {String.fromCharCode(
                                 65 +
-                                  optionIndex
+                                optionIndex
                               )}
                               .{" "}
                               {
