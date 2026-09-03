@@ -414,7 +414,7 @@ const TeacherDashboard = () => {
 
                                     maxWidth: 650,
 
-                                    lineHeight: 1.7,
+                                    lineHeight: 1,
 
                                     color:
                                         theme.palette.text.secondary,
@@ -1081,7 +1081,7 @@ const TeacherDashboard = () => {
 
                                                 <Box
                                                     sx={{
-                                                        p: 2.5,
+                                                        p: 2,
                                                         display:
                                                             "flex",
                                                         flexDirection:
@@ -1105,7 +1105,7 @@ const TeacherDashboard = () => {
                                                             overflow:
                                                                 "hidden",
 
-                                                            minHeight: 56
+                                                            minHeight: 7
                                                         }}>
                                                         {
                                                             course.title
@@ -1130,7 +1130,7 @@ const TeacherDashboard = () => {
                                                             overflow:
                                                                 "hidden",
 
-                                                            minHeight: 45
+                                                            minHeight: 32
                                                         }}>
                                                         {course.description ||
                                                             "No description available."}
@@ -1143,7 +1143,7 @@ const TeacherDashboard = () => {
                                                             alignItems:
                                                                 "center",
                                                             gap: 1,
-                                                            mt: 2,
+                                                            mt: 1,
                                                         }}
                                                     >
                                                         <Avatar
@@ -1196,7 +1196,7 @@ const TeacherDashboard = () => {
 
                                                     <Divider
                                                         sx={{
-                                                            my: 2,
+                                                            my: 1,
                                                         }}
                                                     />
 

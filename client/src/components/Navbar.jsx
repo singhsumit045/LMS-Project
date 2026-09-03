@@ -1205,17 +1205,19 @@ const Navbar = ({
 
             {/* LIVE CLASSES */}
 
-            <Button
-              color="inherit"
-              component={NavLink}
-              to="/live-classes"
-              startIcon={
-                <VideoCameraFrontIcon />
-              }
-              sx={navButtonSx("/live-classes")}
-            >
-              Live Classes
-            </Button>
+            {/* LIVE CLASSES */}
+
+            {user?.role !== "admin" && (
+              <Button
+                color="inherit"
+                component={NavLink}
+                to="/live-classes"
+                startIcon={<VideoCameraFrontIcon />}
+                sx={navButtonSx("/live-classes")}
+              >
+                Live Classes
+              </Button>
+            )}
 
             {/* AI ASSISTANT */}
 
