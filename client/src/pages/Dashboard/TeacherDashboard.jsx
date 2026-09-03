@@ -217,48 +217,6 @@ const TeacherDashboard = () => {
     ];
 
     // =========================================================
-    // LOADING
-    // =========================================================
-
-    if (loading) {
-        return (
-            <Box
-                sx={{
-                    minHeight: "56vh",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    bgcolor: defaultBg,
-                }}
-            >
-                <CircularProgress />
-            </Box>
-        );
-    }
-
-    // =========================================================
-    // ERROR
-    // =========================================================
-
-    if (error) {
-        return (
-            <Container
-                maxWidth="xl"
-                sx={{ py: 5 }}
-            >
-                <Alert
-                    severity="error"
-                    sx={{
-                        borderRadius: 2,
-                    }}
-                >
-                    {error}
-                </Alert>
-            </Container>
-        );
-    }
-
-    // =========================================================
     // MAIN UI
     // =========================================================
 
@@ -359,9 +317,7 @@ const TeacherDashboard = () => {
                                         variant="overline"
                                         sx={{
                                             fontWeight: 800,
-                                            color: theme.palette.mode === 'dark' 
-    ? theme.palette.primary.light 
-    : theme.palette.primary.dark,
+                                            color: theme.palette.primary.main,
                                             letterSpacing: 1.2,
 
                                             fontSize: {
@@ -477,6 +433,28 @@ const TeacherDashboard = () => {
 
                     </Box>
                 </Paper>
+
+                {loading ? (
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            py: 10,
+                        }}
+                    >
+                        <CircularProgress />
+                    </Box>
+                ) : error ? (
+                    <Alert
+                        severity="error"
+                        sx={{
+                            borderRadius: 2,
+                        }}
+                    >
+                        {error}
+                    </Alert>
+                ) : (
+                <>
 
                 {/* =====================================================
                     OVERVIEW
@@ -885,11 +863,10 @@ const TeacherDashboard = () => {
                         <Chip
                             icon={<MenuBook />}
                             label={`${dashboard.totalCourses} Courses`}
-                            color="filled"
+                            color="primary"
                             variant="outlined"
                             sx={{
                                 fontWeight: 700,
-                                color: "#fff",
                             }}
                         />
                     </Box>
@@ -991,8 +968,8 @@ const TeacherDashboard = () => {
                                                 <Box
                                                     sx={{
                                                         height: {
-                                                            xs: 140,
-                                                            sm: 170,
+                                                            xs: 170,
+                                                            sm: 190,
                                                         },
                                                         position:
                                                             "relative",
@@ -1104,7 +1081,7 @@ const TeacherDashboard = () => {
 
                                                 <Box
                                                     sx={{
-                                                        p: 1,
+                                                        p: 2.5,
                                                         display:
                                                             "flex",
                                                         flexDirection:
@@ -1128,6 +1105,7 @@ const TeacherDashboard = () => {
                                                             overflow:
                                                                 "hidden",
 
+                                                            minHeight: 56
                                                         }}>
                                                         {
                                                             course.title
@@ -1138,7 +1116,7 @@ const TeacherDashboard = () => {
                                                         variant="body2"
                                                         sx={{
                                                             color: "text.secondary",
-                                                            mt: 0.5,
+                                                            mt: 1,
                                                             lineHeight: 1.6,
 
                                                             display:
@@ -1152,7 +1130,7 @@ const TeacherDashboard = () => {
                                                             overflow:
                                                                 "hidden",
 
-                                                            minHeight: 32
+                                                            minHeight: 45
                                                         }}>
                                                         {course.description ||
                                                             "No description available."}
@@ -1167,7 +1145,7 @@ const TeacherDashboard = () => {
                                                             gap: 1,
                                                             mt: 2,
                                                         }}
-                                                    > 
+                                                    >
                                                         <Avatar
                                                             sx={{
                                                                 width: 36,
@@ -1283,7 +1261,7 @@ const TeacherDashboard = () => {
                                                             variant="text"
                                                             size="small"
                                                             startIcon={
-                                                                <Edit /> 
+                                                                <Edit />
                                                             }
                                                             onClick={() =>
                                                                 navigate(
@@ -1302,7 +1280,8 @@ const TeacherDashboard = () => {
                                                                 },
                                                             }}
                                                         >
-                                                            Edit Course
+                                                            Edit
+                                                            Course
                                                         </Button>
                                                     </Box>
                                                 </Box>
@@ -1582,6 +1561,9 @@ const TeacherDashboard = () => {
                         </Grid>
                     )}
                 </Box>
+
+                </>
+                )}
             </Container>
         </Box>
     );

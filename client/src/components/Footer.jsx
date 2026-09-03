@@ -25,7 +25,7 @@ const Footer = () => {
 
   const linkStyles = {
     opacity: 0.82,
-    transition: "all 0.2s ease", 
+    transition: "all 0.2s ease",
     display: "inline-block",
 
     "&:hover": {
@@ -70,8 +70,8 @@ const Footer = () => {
          * Same primary/secondary colors used
          * by the application theme.
          */
-background:
-  "linear-gradient(135deg, #0B4F8A 0%, #1769AA 50%, #3B82C4 100%)",
+        background:
+          "linear-gradient(135deg, #0B4F8A 0%, #1769AA 50%, #3B82C4 100%)",
         color: theme.palette.primary.contrastText,
 
         borderRadius: "24px 24px 0 0",
