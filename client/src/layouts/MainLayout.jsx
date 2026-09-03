@@ -1,4 +1,3 @@
-
 import { Outlet } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
@@ -11,7 +10,10 @@ const MainLayout = ({ darkMode, toggleTheme }) => {
         darkMode={darkMode}
         toggleTheme={toggleTheme}
       />
-      <Outlet />
+
+      <main>
+        <Outlet />
+      </main>
 
       <Footer />
     </>
@@ -19,4 +21,3 @@ const MainLayout = ({ darkMode, toggleTheme }) => {
 };
 
 export default MainLayout;
-

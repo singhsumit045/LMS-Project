@@ -359,7 +359,9 @@ const TeacherDashboard = () => {
                                         variant="overline"
                                         sx={{
                                             fontWeight: 800,
-                                            color: theme.palette.primary.main,
+                                            color: theme.palette.mode === 'dark' 
+    ? theme.palette.primary.light 
+    : theme.palette.primary.dark,
                                             letterSpacing: 1.2,
 
                                             fontSize: {
@@ -883,10 +885,11 @@ const TeacherDashboard = () => {
                         <Chip
                             icon={<MenuBook />}
                             label={`${dashboard.totalCourses} Courses`}
-                            color="primary"
+                            color="filled"
                             variant="outlined"
                             sx={{
                                 fontWeight: 700,
+                                color: "#fff",
                             }}
                         />
                     </Box>

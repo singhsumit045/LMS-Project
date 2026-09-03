@@ -129,6 +129,7 @@ background:
             <Box
               component={RouterLink}
               to="/"
+              aria-label="LearnHub - Go to homepage"
               sx={{
                 display: "inline-flex",
                 alignItems: "center",
