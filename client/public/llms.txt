@@ -1,0 +1,9 @@
+# LearnHub
+
+> LearnHub is a learning management platform where teachers manage courses, students, live classes and exams, and students enroll in courses and track their progress.
+
+## Pages
+
+- [Home](https://yourapp.vercel.app/): Landing page
+- [Dashboard](https://yourapp.vercel.app/dashboard): Teacher/student dashboard
+- [Courses](https://yourapp.vercel.app/courses): Browse and manage courses
