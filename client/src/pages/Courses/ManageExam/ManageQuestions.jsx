@@ -1,8 +1,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useTheme } from "@mui/material/styles";
 
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -11,6 +13,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   Grid,
   IconButton,
   MenuItem,
@@ -18,9 +21,13 @@ import {
   Typography,
 } from "@mui/material";
 
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Quiz as QuizIcon,
+  CheckCircle as CheckCircleIcon,
+} from "@mui/icons-material";
 
 import {
   createQuestion,
@@ -32,16 +39,12 @@ import {
 import {
   createOption,
   updateOption,
-  deleteOption,
 } from "../../../services/optionService";
 
-// =====================================================
-// INITIAL FORM
-// =====================================================
 
 const initialForm = {
   questionText: "",
-  marks: "",
+  marks: 1,
   questionType: "single",
 
   optionA: "",
@@ -52,603 +55,503 @@ const initialForm = {
   correctAnswer: "A",
 };
 
+
 const ManageQuestions = () => {
   const { examId } = useParams();
+  const theme = useTheme();
 
   const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] =
-    useState(initialForm);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState(null);
 
-  const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState(initialForm);
 
-  const [editingId, setEditingId] =
-    useState(null);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const [editingOptions, setEditingOptions] =
-    useState([]);
 
-  const [loading, setLoading] =
-    useState(false);
-
-  const [saving, setSaving] =
-    useState(false);
-
-  // =====================================================
-  // FETCH QUESTIONS
-  // =====================================================
+  // --------------------------------------------------
+  // Fetch Questions
+  // --------------------------------------------------
 
   const fetchQuestions = async () => {
-    if (!examId || Number(examId) <= 0) {
-      return;
-    }
-
     try {
       setLoading(true);
+      setError("");
 
-      const data =
-        await getQuestionsByExam(
-          Number(examId)
-        );
+      const data = await getQuestionsByExam(examId);
 
-      setQuestions(
-        Array.isArray(data) ? data : []
-      );
-    } catch (error) {
-      console.error(
-        "Error fetching questions:",
-        error
-      );
+      setQuestions(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching questions:", err);
 
-      alert(
-        error?.response?.data?.message ||
-        "Unable to load questions"
+      setError(
+        err?.response?.data?.message ||
+          "Failed to load questions."
       );
     } finally {
       setLoading(false);
     }
   };
 
-  // =====================================================
-  // LOAD QUESTIONS
-  // =====================================================
 
   useEffect(() => {
-    fetchQuestions();
+    if (examId) {
+      fetchQuestions();
+    }
   }, [examId]);
 
-  // =====================================================
-  // CREATE QUESTION
-  // =====================================================
 
-  const handleCreate = () => {
-    setEditingId(null);
-    setEditingOptions([]);
-
-    setFormData({
-      ...initialForm,
-    });
-
-    setOpen(true);
-  };
-
-  // =====================================================
-  // EDIT QUESTION
-  // =====================================================
-
-  const handleEdit = (question) => {
-    setEditingId(question.id);
-
-    const options = Array.isArray(
-      question.options
-    )
-      ? question.options
-      : [];
-
-    setEditingOptions(options);
-
-    const optionA = options[0];
-    const optionB = options[1];
-    const optionC = options[2];
-    const optionD = options[3];
-
-    let correctAnswer = "A";
-
-    const correctIndex = options.findIndex(
-      (option) => option.isCorrect === true
-    );
-
-    if (correctIndex === 1) {
-      correctAnswer = "B";
-    } else if (correctIndex === 2) {
-      correctAnswer = "C";
-    } else if (correctIndex === 3) {
-      correctAnswer = "D";
-    }
-
-    setFormData({
-      questionText:
-        question.questionText || "",
-
-      marks:
-        question.marks ?? "",
-
-      questionType:
-        question.questionType || "single",
-
-      optionA:
-        optionA?.optionText || "",
-
-      optionB:
-        optionB?.optionText || "",
-
-      optionC:
-        optionC?.optionText || "",
-
-      optionD:
-        optionD?.optionText || "",
-
-      correctAnswer,
-    });
-
-    setOpen(true);
-  };
-
-  // =====================================================
-  // CLOSE DIALOG
-  // =====================================================
-
-  const handleClose = () => {
-    if (saving) return;
-
-    setOpen(false);
-    setEditingId(null);
-    setEditingOptions([]);
-
-    setFormData({
-      ...initialForm,
-    });
-  };
-
-  // =====================================================
-  // INPUT CHANGE
-  // =====================================================
+  // --------------------------------------------------
+  // Input Change
+  // --------------------------------------------------
 
   const handleChange = (event) => {
-    const {
-      name,
-      value,
-    } = event.target;
+    const { name, value } = event.target;
 
-    setFormData((previous) => ({
-      ...previous,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
     }));
   };
 
-  // =====================================================
-  // SUBMIT QUESTION
-  // =====================================================
+
+  // --------------------------------------------------
+  // Open Create Dialog
+  // --------------------------------------------------
+
+  const handleAddQuestion = () => {
+    setEditingQuestion(null);
+    setFormData(initialForm);
+    setError("");
+    setSuccess("");
+    setOpenDialog(true);
+  };
+
+
+  // --------------------------------------------------
+  // Open Edit Dialog
+  // --------------------------------------------------
+
+  const handleEditQuestion = (question) => {
+    setEditingQuestion(question);
+
+    const options = question.options || [];
+
+    setFormData({
+      questionText: question.questionText || "",
+      marks: question.marks || 1,
+      questionType: question.questionType || "single",
+
+      optionA: options[0]?.optionText || "",
+      optionB: options[1]?.optionText || "",
+      optionC: options[2]?.optionText || "",
+      optionD: options[3]?.optionText || "",
+
+      correctAnswer:
+        options.find((option) => option.isCorrect)?.optionText
+          ? String.fromCharCode(
+              65 +
+                options.findIndex(
+                  (option) => option.isCorrect
+                )
+            )
+          : "A",
+    });
+
+    setError("");
+    setSuccess("");
+    setOpenDialog(true);
+  };
+
+
+  // --------------------------------------------------
+  // Close Dialog
+  // --------------------------------------------------
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setEditingQuestion(null);
+    setFormData(initialForm);
+  };
+
+
+  // --------------------------------------------------
+  // Save Question
+  // --------------------------------------------------
 
   const handleSubmit = async () => {
-    // ===================================================
-    // EXAM ID VALIDATION
-    // ===================================================
-
-    if (
-      !examId ||
-      Number(examId) <= 0
-    ) {
-      alert("Invalid exam ID");
-      return;
-    }
-
-    // ===================================================
-    // QUESTION VALIDATION
-    // ===================================================
-
-    if (
-      !formData.questionText.trim()
-    ) {
-      alert("Please enter question");
-      return;
-    }
-
-    // ===================================================
-    // MARKS VALIDATION
-    // ===================================================
-
-    if (
-      formData.marks === "" ||
-      Number(formData.marks) <= 0
-    ) {
-      alert("Please enter valid marks");
-      return;
-    }
-
-    // ===================================================
-    // OPTIONS VALIDATION
-    // ===================================================
-
-    if (!formData.optionA.trim()) {
-      alert("Please enter Option A");
-      return;
-    }
-
-    if (!formData.optionB.trim()) {
-      alert("Please enter Option B");
-      return;
-    }
-
-    if (!formData.optionC.trim()) {
-      alert("Please enter Option C");
-      return;
-    }
-
-    if (!formData.optionD.trim()) {
-      alert("Please enter Option D");
-      return;
-    }
-
     try {
-      setSaving(true);
+      setLoading(true);
+      setError("");
+      setSuccess("");
 
-      // =================================================
-      // QUESTION PAYLOAD
-      // =================================================
-
-      const questionPayload = {
-        questionText:
-          formData.questionText.trim(),
-
-        marks:
-          Number(formData.marks),
-
-        questionType:
-          formData.questionType,
+      const questionData = {
+        questionText: formData.questionText,
+        marks: Number(formData.marks),
+        questionType: formData.questionType,
       };
 
-      // =================================================
+
+      // ----------------------------------------------
       // CREATE QUESTION
-      // =================================================
+      // ----------------------------------------------
 
-      if (!editingId) {
+      if (!editingQuestion) {
         const createdQuestion = await createQuestion(
-          Number(examId),
-          questionPayload
+          examId,
+          questionData
         );
-
 
         const questionId = createdQuestion?.id;
 
-
-        if (!questionId || Number(questionId) <= 0) {
+        if (!questionId) {
           throw new Error(
-            "Question ID was not returned from createQuestion"
+            "Question created but question ID was not returned."
           );
         }
 
-        // ===============================================
-        // OPTIONS
-        // ===============================================
 
         const options = [
           {
-            optionText:
-              formData.optionA.trim(),
-            isCorrect:
-              formData.correctAnswer === "A",
+            optionText: formData.optionA,
+            isCorrect: formData.correctAnswer === "A",
           },
           {
-            optionText:
-              formData.optionB.trim(),
-            isCorrect:
-              formData.correctAnswer === "B",
+            optionText: formData.optionB,
+            isCorrect: formData.correctAnswer === "B",
           },
           {
-            optionText:
-              formData.optionC.trim(),
-            isCorrect:
-              formData.correctAnswer === "C",
+            optionText: formData.optionC,
+            isCorrect: formData.correctAnswer === "C",
           },
           {
-            optionText:
-              formData.optionD.trim(),
-            isCorrect:
-              formData.correctAnswer === "D",
+            optionText: formData.optionD,
+            isCorrect: formData.correctAnswer === "D",
           },
         ];
 
-        // ===============================================
-        // CREATE ALL OPTIONS
-        // ===============================================
 
         for (const option of options) {
-          await createOption(
-            questionId,
-            option
-          );
+          await createOption(questionId, option);
         }
 
-        alert(
-          "Question and options created successfully"
-        );
+        setSuccess("Question created successfully.");
       }
 
-      // =================================================
+
+      // ----------------------------------------------
       // UPDATE QUESTION
-      // =================================================
+      // ----------------------------------------------
 
       else {
-        await updateQuestion(
-          editingId,
-          questionPayload
-        );
+        const questionId = editingQuestion.id;
 
-        // ===============================================
-        // UPDATED OPTIONS
-        // ===============================================
+        await updateQuestion(questionId, questionData);
+
+
+        const existingOptions =
+          editingQuestion.options || [];
+
 
         const options = [
           {
-            letter: "A",
-            optionText:
-              formData.optionA.trim(),
-            isCorrect:
-              formData.correctAnswer === "A",
+            optionText: formData.optionA,
+            isCorrect: formData.correctAnswer === "A",
           },
           {
-            letter: "B",
-            optionText:
-              formData.optionB.trim(),
-            isCorrect:
-              formData.correctAnswer === "B",
+            optionText: formData.optionB,
+            isCorrect: formData.correctAnswer === "B",
           },
           {
-            letter: "C",
-            optionText:
-              formData.optionC.trim(),
-            isCorrect:
-              formData.correctAnswer === "C",
+            optionText: formData.optionC,
+            isCorrect: formData.correctAnswer === "C",
           },
           {
-            letter: "D",
-            optionText:
-              formData.optionD.trim(),
-            isCorrect:
-              formData.correctAnswer === "D",
+            optionText: formData.optionD,
+            isCorrect: formData.correctAnswer === "D",
           },
         ];
 
-        // ===============================================
-        // UPDATE / CREATE OPTIONS
-        // ===============================================
 
-        for (
-          let i = 0;
-          i < options.length;
-          i++
-        ) {
-          const option = options[i];
-
-          const existingOption =
-            editingOptions[i];
-
-          if (existingOption?.id) {
+        for (let i = 0; i < options.length; i++) {
+          if (existingOptions[i]?.id) {
             await updateOption(
-              existingOption.id,
-              {
-                optionText:
-                  option.optionText,
-                isCorrect:
-                  option.isCorrect,
-              }
+              existingOptions[i].id,
+              options[i]
             );
           } else {
-            await createOption(
-              editingId,
-              {
-                optionText:
-                  option.optionText,
-                isCorrect:
-                  option.isCorrect,
-              }
-            );
+            await createOption(questionId, options[i]);
           }
         }
 
-        alert(
-          "Question and options updated successfully"
-        );
+        setSuccess("Question updated successfully.");
       }
 
-      // =================================================
-      // RESET
-      // =================================================
 
-      setOpen(false);
-      setEditingId(null);
-      setEditingOptions([]);
-
-      setFormData({
-        ...initialForm,
-      });
-
+      handleCloseDialog();
       await fetchQuestions();
-    } catch (error) {
-      console.error(
-        "Error saving question:",
-        error
-      );
 
-      alert(
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong while saving question"
+    } catch (err) {
+      console.error("Error saving question:", err);
+
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to save question."
       );
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
-  // =====================================================
-  // DELETE QUESTION
-  // =====================================================
 
-  const handleDelete = async (id) => {
-    const confirmed =
-      window.confirm(
-        "Are you sure you want to delete this question?"
-      );
+  // --------------------------------------------------
+  // Delete Question
+  // --------------------------------------------------
+
+  const handleDeleteQuestion = async (questionId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this question?"
+    );
 
     if (!confirmed) return;
 
     try {
-      await deleteQuestion(id);
+      setLoading(true);
+      setError("");
+      setSuccess("");
+
+      await deleteQuestion(questionId);
+
+      setSuccess("Question deleted successfully.");
 
       await fetchQuestions();
 
-      alert(
-        "Question deleted successfully"
-      );
-    } catch (error) {
-      console.error(
-        "Error deleting question:",
-        error
-      );
+    } catch (err) {
+      console.error("Error deleting question:", err);
 
-      alert(
-        error?.response?.data?.message ||
-        "Something went wrong while deleting question"
+      setError(
+        err?.response?.data?.message ||
+          "Failed to delete question."
       );
+    } finally {
+      setLoading(false);
     }
   };
 
-  // =====================================================
-  // RENDER
-  // =====================================================
+
+  // --------------------------------------------------
+  // Option Color
+  // --------------------------------------------------
+
+  const getOptionStyles = (isCorrect) => ({
+    display: "flex",
+    alignItems: "center",
+    gap: 1,
+    p: 1.5,
+    borderRadius: 2,
+
+    border: `1px solid ${
+      isCorrect
+        ? theme.palette.success.main
+        : theme.palette.divider
+    }`,
+
+    backgroundColor: isCorrect
+      ? theme.palette.action.selected
+      : theme.palette.background.default,
+
+    color: theme.palette.text.primary,
+
+    transition: "all 0.2s ease",
+
+    "&:hover": {
+      backgroundColor: theme.palette.action.hover,
+    },
+  });
+
 
   return (
     <Box
       sx={{
-        p: {
-          xs: 2,
-          sm: 3,
-          md: 4,
-        },
+        width: "100%",
+        minHeight: "100%",
+        backgroundColor: theme.palette.background.default,
+        color: theme.palette.text.primary,
+        p: { xs: 1.5, sm: 2, md: 3 },
       }}
     >
-      {/* =================================================
-          HEADER
-      ================================================= */}
+
+      {/* ------------------------------------------- */}
+      {/* HEADER */}
+      {/* ------------------------------------------- */}
 
       <Box
         sx={{
           display: "flex",
+          alignItems: { xs: "flex-start", sm: "center" },
           justifyContent: "space-between",
-          alignItems: {
-            xs: "flex-start",
-            sm: "center",
-          },
-          flexDirection: {
-            xs: "column",
-            sm: "row",
-          },
           gap: 2,
-          mb: 4,
+          mb: 3,
+          flexDirection: { xs: "column", sm: "row" },
         }}
       >
-        <Box>
-          <Typography
-            variant="h4"
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+          }}
+        >
+          <Box
             sx={{
-              fontWeight: 700
+              width: 44,
+              height: 44,
+              borderRadius: 2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+
+              backgroundColor:
+                theme.palette.primary.main,
+
+              color:
+                theme.palette.primary.contrastText,
             }}
           >
-            Manage Questions
-          </Typography>
+            <QuizIcon />
+          </Box>
 
-          <Typography
-            sx={{
-              color: "text.secondary",
-              mt: 0.5
-            }}>
-            Add questions and options for
-            this exam
-          </Typography>
+          <Box>
+            <Typography
+              variant="h5"
+              fontWeight={700}
+              color="text.primary"
+            >
+              Manage Questions
+            </Typography>
 
-          {examId && (
             <Typography
               variant="body2"
-              sx={{
-                color: "text.secondary",
-                mt: 0.5
-              }}>
-              Exam ID: {examId}
+              color="text.secondary"
+            >
+              Create and manage exam questions
             </Typography>
-          )}
+          </Box>
         </Box>
+
 
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={handleCreate}
+          onClick={handleAddQuestion}
+          sx={{
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 600,
+            px: 2.5,
+          }}
         >
           Add Question
         </Button>
+
       </Box>
 
-      {/* =================================================
-          QUESTION LIST
-      ================================================= */}
 
-      {loading ? (
-        <Box
+      {/* ------------------------------------------- */}
+      {/* ALERTS */}
+      {/* ------------------------------------------- */}
+
+      {error && (
+        <Alert
+          severity="error"
+          onClose={() => setError("")}
           sx={{
-            display: "flex",
-            justifyContent: "center",
-            py: 8,
+            mb: 2,
+            borderRadius: 2,
           }}
         >
-          <Typography sx={{
-            color: "text.secondary"
-          }}>
-            Loading questions...
-          </Typography>
-        </Box>
-      ) : questions.length === 0 ? (
-        <Card>
+          {Array.isArray(error)
+            ? error.join(", ")
+            : error}
+        </Alert>
+      )}
+
+
+      {success && (
+        <Alert
+          severity="success"
+          onClose={() => setSuccess("")}
+          sx={{
+            mb: 2,
+            borderRadius: 2,
+          }}
+        >
+          {success}
+        </Alert>
+      )}
+
+
+      {/* ------------------------------------------- */}
+      {/* QUESTIONS */}
+      {/* ------------------------------------------- */}
+
+      {questions.length === 0 && !loading ? (
+        <Card
+          elevation={0}
+          sx={{
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: 3,
+            backgroundColor:
+              theme.palette.background.paper,
+          }}
+        >
           <CardContent
             sx={{
+              minHeight: 220,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
               textAlign: "center",
-              py: 8,
+              gap: 1,
             }}
           >
+            <QuizIcon
+              sx={{
+                fontSize: 48,
+                color: theme.palette.text.secondary,
+              }}
+            />
+
             <Typography
               variant="h6"
-              sx={{
-                fontWeight: 600
-              }}
+              fontWeight={600}
+              color="text.primary"
             >
               No questions found
             </Typography>
 
             <Typography
-              sx={{
-                color: "text.secondary",
-                mt: 1
-              }}>
-              Add your first question to
-              this exam.
+              variant="body2"
+              color="text.secondary"
+            >
+              Add your first question to this exam.
             </Typography>
 
             <Button
-              variant="contained"
+              variant="outlined"
               startIcon={<AddIcon />}
+              onClick={handleAddQuestion}
               sx={{
-                mt: 3,
+                mt: 1,
+                borderRadius: 2,
+                textTransform: "none",
               }}
-              onClick={handleCreate}
             >
               Add Question
             </Button>
@@ -657,236 +560,360 @@ const ManageQuestions = () => {
       ) : (
         <Grid
           container
-          spacing={3}
+          spacing={2}
         >
-          {questions.map(
-            (question, index) => (
-              <Grid
-                size={{
-                  xs: 12,
-                  md: 6,
+          {questions.map((question, index) => (
+            <Grid
+              key={question.id}
+              size={{
+                xs: 12,
+                md: 6,
+              }}
+            >
+              <Card
+                elevation={0}
+                sx={{
+                  height: "100%",
+                  border: `1px solid ${
+                    theme.palette.divider
+                  }`,
+                  borderRadius: 3,
+
+                  backgroundColor:
+                    theme.palette.background.paper,
+
+                  transition: "all 0.2s ease",
+
+                  "&:hover": {
+                    borderColor:
+                      theme.palette.primary.main,
+
+                    boxShadow:
+                      theme.shadows[3],
+                  },
                 }}
-                key={question.id}
               >
-                <Card
-                  sx={{
-                    height: "100%",
-                    borderRadius: 2,
-                  }}
-                >
-                  <CardContent>
-                    <Typography
-                      variant="body2"
-                      color="primary"
+
+                <CardContent>
+
+                  {/* QUESTION HEADER */}
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      justifyContent: "space-between",
+                      gap: 1,
+                    }}
+                  >
+
+                    <Box
                       sx={{
-                        fontWeight: 600
+                        display: "flex",
+                        gap: 1.5,
+                        flex: 1,
                       }}
                     >
-                      Question {index + 1}
-                    </Typography>
 
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 600,
-                        mt: 1,
+                      <Box
+                        sx={{
+                          minWidth: 34,
+                          height: 34,
+                          borderRadius: 1.5,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
 
-                        wordBreak:
-                          "break-word"
-                      }}>
-                      {question.questionText}
-                    </Typography>
+                          backgroundColor:
+                            theme.palette.action.hover,
 
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "text.secondary",
-                        mt: 1
-                      }}>
-                      Marks:{" "}
-                      {question.marks ?? 0}
-                    </Typography>
+                          color:
+                            theme.palette.primary.main,
 
-                    {/* OPTIONS */}
+                          fontWeight: 700,
+                        }}
+                      >
+                        {index + 1}
+                      </Box>
 
-                    {Array.isArray(
-                      question.options
-                    ) &&
-                      question.options.map(
-                        (option, optionIndex) => (
-                          <Box
-                            key={option.id}
-                            sx={{
-                              mt: 1,
-                              p: 1.2,
-                              borderRadius: 1,
-                              backgroundColor:
-                                option.isCorrect
-                                  ? "success.light"
-                                  : "grey.100",
-                            }}
+                      <Box>
+                        <Typography
+                          variant="subtitle1"
+                          fontWeight={600}
+                          color="text.primary"
+                          sx={{
+                            wordBreak: "break-word",
+                          }}
+                        >
+                          {question.questionText}
+                        </Typography>
+
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 1.5,
+                            mt: 0.5,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
                           >
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                fontWeight: option.isCorrect
-                                  ? 700
-                                  : 400
-                              }}
-                            >
-                              {String.fromCharCode(
-                                65 +
-                                optionIndex
-                              )}
-                              .{" "}
-                              {
-                                option.optionText
-                              }
+                            Marks: {question.marks}
+                          </Typography>
 
-                              {option.isCorrect &&
-                                " ✓ Correct"}
-                            </Typography>
-                          </Box>
-                        )
-                      )}
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                          >
+                            Type: {question.questionType}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                    </Box>
+
 
                     {/* ACTIONS */}
 
                     <Box
                       sx={{
                         display: "flex",
-                        justifyContent:
-                          "flex-end",
-                        gap: 1,
-                        mt: 2,
+                        gap: 0.5,
                       }}
                     >
-                      <IconButton
-                        color="primary"
-                        title="Edit Question"
-                        onClick={() =>
-                          handleEdit(
-                            question
-                          )
-                        }
-                      >
-                        <EditIcon />
-                      </IconButton>
 
                       <IconButton
-                        color="error"
-                        title="Delete Question"
+                        size="small"
                         onClick={() =>
-                          handleDelete(
-                            question.id
-                          )
+                          handleEditQuestion(question)
                         }
+                        sx={{
+                          color:
+                            theme.palette.primary.main,
+
+                          "&:hover": {
+                            backgroundColor:
+                              theme.palette.action.hover,
+                          },
+                        }}
                       >
-                        <DeleteIcon />
+                        <EditIcon fontSize="small" />
                       </IconButton>
+
+
+                      <IconButton
+                        size="small"
+                        onClick={() =>
+                          handleDeleteQuestion(question.id)
+                        }
+                        sx={{
+                          color:
+                            theme.palette.error.main,
+
+                          "&:hover": {
+                            backgroundColor:
+                              theme.palette.action.hover,
+                          },
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+
                     </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )
-          )}
+
+                  </Box>
+
+
+                  <Divider
+                    sx={{
+                      my: 2,
+                    }}
+                  />
+
+
+                  {/* OPTIONS */}
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1,
+                    }}
+                  >
+
+                    {(question.options || []).map(
+                      (option, optionIndex) => {
+                        const optionLabel =
+                          String.fromCharCode(
+                            65 + optionIndex
+                          );
+
+                        return (
+                          <Box
+                            key={option.id || optionIndex}
+                            sx={getOptionStyles(
+                              option.isCorrect
+                            )}
+                          >
+
+                            <Typography
+                              variant="body2"
+                              fontWeight={700}
+                              sx={{
+                                minWidth: 22,
+                              }}
+                            >
+                              {optionLabel}.
+                            </Typography>
+
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                flex: 1,
+                                wordBreak: "break-word",
+                              }}
+                            >
+                              {option.optionText}
+                            </Typography>
+
+                            {option.isCorrect && (
+                              <CheckCircleIcon
+                                fontSize="small"
+                                sx={{
+                                  color:
+                                    theme.palette
+                                      .success.main,
+                                }}
+                              />
+                            )}
+
+                          </Box>
+                        );
+                      }
+                    )}
+
+                  </Box>
+
+                </CardContent>
+
+              </Card>
+            </Grid>
+          ))}
         </Grid>
       )}
 
-      {/* =================================================
-          CREATE / EDIT DIALOG
-      ================================================= */}
+
+      {/* ------------------------------------------- */}
+      {/* CREATE / EDIT DIALOG */}
+      {/* ------------------------------------------- */}
 
       <Dialog
-        open={open}
-        onClose={handleClose}
+        open={openDialog}
+        onClose={handleCloseDialog}
         fullWidth
         maxWidth="md"
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            backgroundColor:
+              theme.palette.background.paper,
+            backgroundImage: "none",
+          },
+        }}
       >
+
         <DialogTitle
           sx={{
             fontWeight: 700,
+            color: theme.palette.text.primary,
           }}
         >
-          {editingId
+          {editingQuestion
             ? "Edit Question"
             : "Add Question"}
         </DialogTitle>
 
-        <DialogContent>
-          {/* QUESTION */}
 
-          <TextField
-            fullWidth
-            required
-            label="Question"
-            name="questionText"
-            value={
-              formData.questionText
-            }
-            onChange={handleChange}
-            margin="normal"
-            multiline
-            rows={3}
-            placeholder="Enter your question..."
-          />
-
-          {/* MARKS */}
-
-          <TextField
-            fullWidth
-            required
-            label="Marks"
-            name="marks"
-            type="number"
-            value={formData.marks}
-            onChange={handleChange}
-            margin="normal"
-            inputProps={{
-              min: 1,
-            }}
-          />
-
-          {/* QUESTION TYPE */}
-
-          <TextField
-            fullWidth
-            select
-            label="Question Type"
-            name="questionType"
-            value={
-              formData.questionType
-            }
-            onChange={handleChange}
-            margin="normal"
-          >
-            <MenuItem value="single">
-              Single Correct Answer
-            </MenuItem>
-
-            <MenuItem value="multiple">
-              Multiple Correct Answers
-            </MenuItem>
-          </TextField>
-
-          {/* =================================================
-              OPTIONS
-          ================================================= */}
-
-          <Typography
-            variant="subtitle1"
-            sx={{
-              fontWeight: 700,
-              mt: 3,
-              mb: 1
-            }}>
-            Options
-          </Typography>
+        <DialogContent dividers>
 
           <Grid
             container
             spacing={2}
+            sx={{
+              pt: 1,
+            }}
           >
+
+            {/* QUESTION */}
+
+            <Grid
+              size={{
+                xs: 12,
+              }}
+            >
+              <TextField
+                fullWidth
+                multiline
+                minRows={3}
+                label="Question"
+                name="questionText"
+                value={formData.questionText}
+                onChange={handleChange}
+              />
+            </Grid>
+
+
+            {/* MARKS */}
+
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+              }}
+            >
+              <TextField
+                fullWidth
+                type="number"
+                label="Marks"
+                name="marks"
+                value={formData.marks}
+                onChange={handleChange}
+                inputProps={{
+                  min: 1,
+                }}
+              />
+            </Grid>
+
+
+            {/* QUESTION TYPE */}
+
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+              }}
+            >
+              <TextField
+                fullWidth
+                select
+                label="Question Type"
+                name="questionType"
+                value={formData.questionType}
+                onChange={handleChange}
+              >
+                <MenuItem value="single">
+                  Single Choice
+                </MenuItem>
+
+                <MenuItem value="multiple">
+                  Multiple Choice
+                </MenuItem>
+              </TextField>
+            </Grid>
+
+
             {/* OPTION A */}
 
             <Grid
@@ -897,16 +924,13 @@ const ManageQuestions = () => {
             >
               <TextField
                 fullWidth
-                required
                 label="Option A"
                 name="optionA"
-                value={
-                  formData.optionA
-                }
+                value={formData.optionA}
                 onChange={handleChange}
-                placeholder="Enter option A"
               />
             </Grid>
+
 
             {/* OPTION B */}
 
@@ -918,16 +942,13 @@ const ManageQuestions = () => {
             >
               <TextField
                 fullWidth
-                required
                 label="Option B"
                 name="optionB"
-                value={
-                  formData.optionB
-                }
+                value={formData.optionB}
                 onChange={handleChange}
-                placeholder="Enter option B"
               />
             </Grid>
+
 
             {/* OPTION C */}
 
@@ -939,16 +960,13 @@ const ManageQuestions = () => {
             >
               <TextField
                 fullWidth
-                required
                 label="Option C"
                 name="optionC"
-                value={
-                  formData.optionC
-                }
+                value={formData.optionC}
                 onChange={handleChange}
-                placeholder="Enter option C"
               />
             </Grid>
+
 
             {/* OPTION D */}
 
@@ -960,82 +978,98 @@ const ManageQuestions = () => {
             >
               <TextField
                 fullWidth
-                required
                 label="Option D"
                 name="optionD"
-                value={
-                  formData.optionD
-                }
+                value={formData.optionD}
                 onChange={handleChange}
-                placeholder="Enter option D"
               />
             </Grid>
+
+
+            {/* CORRECT ANSWER */}
+
+            <Grid
+              size={{
+                xs: 12,
+              }}
+            >
+              <TextField
+                fullWidth
+                select
+                label="Correct Answer"
+                name="correctAnswer"
+                value={formData.correctAnswer}
+                onChange={handleChange}
+              >
+                <MenuItem value="A">
+                  Option A
+                </MenuItem>
+
+                <MenuItem value="B">
+                  Option B
+                </MenuItem>
+
+                <MenuItem value="C">
+                  Option C
+                </MenuItem>
+
+                <MenuItem value="D">
+                  Option D
+                </MenuItem>
+              </TextField>
+            </Grid>
+
           </Grid>
 
-          {/* =================================================
-              CORRECT ANSWER
-          ================================================= */}
-
-          <TextField
-            fullWidth
-            select
-            required
-            label="Correct Answer"
-            name="correctAnswer"
-            value={
-              formData.correctAnswer
-            }
-            onChange={handleChange}
-            margin="normal"
-          >
-            <MenuItem value="A">
-              Option A
-            </MenuItem>
-
-            <MenuItem value="B">
-              Option B
-            </MenuItem>
-
-            <MenuItem value="C">
-              Option C
-            </MenuItem>
-
-            <MenuItem value="D">
-              Option D
-            </MenuItem>
-          </TextField>
         </DialogContent>
 
-        {/* =================================================
-            DIALOG ACTIONS
-        ================================================= */}
 
         <DialogActions
           sx={{
             px: 3,
-            pb: 2,
+            py: 2,
+            gap: 1,
           }}
         >
+
           <Button
-            onClick={handleClose}
-            disabled={saving}
+            onClick={handleCloseDialog}
+            variant="outlined"
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+            }}
           >
             Cancel
           </Button>
 
+
           <Button
-            variant="contained"
             onClick={handleSubmit}
-            disabled={saving}
+            variant="contained"
+            disabled={
+              loading ||
+              !formData.questionText.trim() ||
+              !formData.optionA.trim() ||
+              !formData.optionB.trim() ||
+              !formData.optionC.trim() ||
+              !formData.optionD.trim()
+            }
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 600,
+            }}
           >
-            {saving
-              ? "Saving..."
-              : editingId
-                ? "Update Question"
-                : "Add Question"}
+            {editingQuestion
+              ? "Update Question"
+              : "Create Question"}
           </Button>
+
         </DialogActions>
+
       </Dialog>
+
     </Box>
   );
 };
