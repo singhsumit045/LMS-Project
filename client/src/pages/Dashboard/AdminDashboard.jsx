@@ -91,6 +91,14 @@ const STAT_CONFIG = [
         color: "info",
         growthKey: "enrollmentsGrowth",
     },
+
+       {
+        key: "totalAdmins",
+        title: "Admins",
+        icon: Security,
+        color: "warning",
+        growthKey: "AdminsGrowth",
+    },
 ];
 
 const ACTION_CONFIG = [
@@ -115,6 +123,7 @@ const ACTION_CONFIG = [
         path: "/admin/enrollments",
         color: "success",
     },
+    
 ];
 
 /* =========================================================
@@ -162,11 +171,12 @@ const AdminDashboard = () => {
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
     const [dashboard, setDashboard] = useState({
-        totalUsers: 0,
+        totalUsers: 0,  
         totalStudents: 0,
-        totalTeachers: 0,
-        totalCourses: 0,
-        totalEnrollments: 0,
+        totalTeachers: 0, 
+        totalCourses: 0, 
+        totalEnrollments: 0,  
+        totalAdmins: 0, 
 
         /*
          * These values should ideally come from backend.

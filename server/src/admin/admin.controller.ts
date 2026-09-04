@@ -31,9 +31,9 @@ export class AdminController {
   // =========================
 
   @Get('dashboard')
-  @Roles('admin')
+  @Roles('admin')  
   async getDashboard() {
-    return this.adminService.getDashboard();
+    return this.adminService.getDashboard(); 
   }
 
   // =========================

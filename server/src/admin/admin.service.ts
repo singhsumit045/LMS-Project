@@ -46,6 +46,12 @@ export class AdminService {
           role: 'teacher',
         },
       });
+        const totalAdmins =
+      await this.userRepository.count({
+        where: {
+          role: 'admin',
+        },
+      });
 
     const totalCourses =
       await this.courseRepository.count();
@@ -53,12 +59,15 @@ export class AdminService {
     const totalEnrollments =
       await this.enrollmentRepository.count();
 
+    // const totalAdmins = await this.  
+
     return {
       totalUsers,
       totalStudents,
       totalTeachers,
       totalCourses,
       totalEnrollments,
+      totalAdmins,
     };
   }
 
