@@ -251,40 +251,71 @@ const LiveClasses = () => {
         )}
       </Stack>
 
-      <Tabs
-        value={tab}
-        onChange={(_, value) => setTab(value)}
-        variant="scrollable"
-        scrollButtons="auto"
-        allowScrollButtonsMobile
-        sx={{
-          mb: 3,
-          minHeight: 0,
-          "& .MuiTabs-flexContainer": { gap: 1 },
-        }}
-        TabIndicatorProps={{ style: { display: "none" } }}
-      >
-        <Tab
-          value="all"
-          label={`All (${counts.all})`}
-          sx={{ minHeight: 0, borderRadius: 2, whiteSpace: "nowrap", "&.Mui-selected": { bgcolor: "primary.main", color: "#fff" } }}
-        />
-        <Tab
-          value="live"
-          label={`Live now (${counts.live})`}
-          sx={{ minHeight: 0, borderRadius: 2, whiteSpace: "nowrap", border: "1px solid", borderColor: "divider" }}
-        />
-        <Tab
-          value="upcoming"
-          label={`Upcoming (${counts.upcoming})`}
-          sx={{ minHeight: 0, borderRadius: 2, whiteSpace: "nowrap", border: "1px solid", borderColor: "divider" }}
-        />
-        <Tab
-          value="completed"
-          label={`Completed (${counts.completed})`}
-          sx={{ minHeight: 0, borderRadius: 2, whiteSpace: "nowrap", border: "1px solid", borderColor: "divider" }}
-        />
-      </Tabs>
+   <Tabs
+  value={tab}
+  onChange={(_, value) => setTab(value)}
+  variant="scrollable"
+  scrollButtons="auto"
+  allowScrollButtonsMobile
+  sx={{
+    mb: 3,
+    minHeight: 0,
+    "& .MuiTabs-flexContainer": { gap: 1 },
+    "& .MuiTabs-indicator": {
+      display: "none",
+    },
+  }}
+>
+  <Tab
+    value="all"
+    label={`All (${counts.all})`}
+    sx={{
+      minHeight: 0,
+      borderRadius: 2,
+      whiteSpace: "nowrap",
+      "&.Mui-selected": {
+        bgcolor: "primary.main",
+        color: "#fff",
+      },
+    }}
+  />
+
+  <Tab
+    value="live"
+    label={`Live now (${counts.live})`}
+    sx={{
+      minHeight: 0,
+      borderRadius: 2,
+      whiteSpace: "nowrap",
+      border: "1px solid",
+      borderColor: "divider",
+    }}
+  />
+
+  <Tab
+    value="upcoming"
+    label={`Upcoming (${counts.upcoming})`}
+    sx={{
+      minHeight: 0,
+      borderRadius: 2,
+      whiteSpace: "nowrap",
+      border: "1px solid",
+      borderColor: "divider",
+    }}
+  />
+
+  <Tab
+    value="completed"
+    label={`Completed (${counts.completed})`}
+    sx={{
+      minHeight: 0,
+      borderRadius: 2,
+      whiteSpace: "nowrap",
+      border: "1px solid",
+      borderColor: "divider",
+    }}
+  />
+</Tabs>
 
       {loading && (
         <Stack sx={{ alignItems: "center", py: 6 }}>

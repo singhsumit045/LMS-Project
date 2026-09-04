@@ -1216,7 +1216,7 @@ const Navbar = ({
                 sx={navButtonSx("/live-classes")}
               >
                 Live Classes
-              </Button>
+              </Button> 
             )}
 
             {/* AI ASSISTANT */}

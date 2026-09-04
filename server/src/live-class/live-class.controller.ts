@@ -45,7 +45,7 @@ export class LiveClassController {
     // GET /live-classes/teacher/my-classes
     // =====================================================
     @Get('teacher/my-classes')
-    @Roles('teacher')
+    @Roles('teacher','admin')
     async findTeacherClasses(
         @Req() req: any,
     ) {
@@ -61,7 +61,7 @@ export class LiveClassController {
     // GET /live-classes/student/available
     // =====================================================
     @Get('student/available')
-    @Roles('student')
+    @Roles('student', 'admin')
     async findStudentClasses(
         @Req() req: any,
     ) {

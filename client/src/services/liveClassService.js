@@ -14,7 +14,7 @@ export const createLiveClass = (data) => {
 // =====================================================
 export const getMyLiveClasses = () => {
     return api.get("/live-classes/teacher/my-classes");
-};
+}; 
 
 // =====================================================
 // STUDENT - AVAILABLE LIVE CLASSES
