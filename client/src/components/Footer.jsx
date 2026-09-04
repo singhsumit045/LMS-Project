@@ -9,9 +9,7 @@ import {
 } from "@mui/material";
 
 import {
-  GitHub,
-  LinkedIn,
-  Email,
+  GitHub, LinkedIn, Email,
 } from "@mui/icons-material";
 
 import { Link as RouterLink } from "react-router-dom";
@@ -80,7 +78,7 @@ const Footer = () => {
 
         transition: "background 0.3s ease",
       }}
-    >
+    > 
       {/* =====================================================
           MAIN FOOTER
       ===================================================== */}
@@ -103,8 +101,7 @@ const Footer = () => {
       >
         <Stack
           direction={{
-            xs: "column",
-            md: "row",
+            xs: "column", md: "row",
           }}
           spacing={{
             xs: 5,
@@ -112,7 +109,7 @@ const Footer = () => {
             lg: 8,
           }}
           sx={{
-            justifyContent: "space-between",
+            justifyContent: "space-between", 
           }}
         >
           {/* =================================================

@@ -85,7 +85,7 @@ const Login = () => {
 
             const response = await loginUser(formData);
 
-            console.log("LOGIN SUCCESS:", response.data);
+         
 
             if (response.data?.user) {
                 localStorage.setItem(
@@ -96,8 +96,8 @@ const Login = () => {
 
             navigate("/dashboard");
         } catch (error) {
-            console.log("LOGIN ERROR:", error);
-            console.log("RESPONSE:", error.response?.data);
+            // console.log("LOGIN ERROR:", error);
+            // console.log("RESPONSE:", error.response?.data);
 
             const message =
                 error.response?.data?.message ||
