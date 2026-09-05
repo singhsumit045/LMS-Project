@@ -496,7 +496,7 @@ const TeacherDashboard = () => {
                                     key={card.key}
                                     size={{
                                         xs: 12,
-                                        sm: 6,
+                                        sm: 3,
                                         lg: 3,
                                     }}
                                 >

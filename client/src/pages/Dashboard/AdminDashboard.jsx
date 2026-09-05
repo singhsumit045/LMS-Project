@@ -5,13 +5,13 @@ import {
     Typography,
     Grid,
     Avatar,
-    CircularProgress,
+    CircularProgress, 
     Alert,
     Button,
     Stack,
     Chip,
     LinearProgress,
-} from "@mui/material";
+} from "@mui/material";    
 
 import {
     People,
@@ -49,7 +49,7 @@ import {
     getMonthlyUsers,
     getCourseEnrollment,
     getTopCourses,
-} from "../../services/analyticsService";
+} from "../../services/analyticsService";   
 
 /* =========================================================
    DASHBOARD CONFIG
@@ -61,14 +61,14 @@ const STAT_CONFIG = [
         title: "Total Users",
         icon: People,
         color: "primary",
-        growthKey: "usersGrowth",
-    },
+        growthKey: "usersGrowth",  
+    }, 
     {
         key: "totalStudents",
         title: "Students",
         icon: School,
         color: "success",
-        growthKey: "studentsGrowth",
+        growthKey: "studentsGrowth", 
     },
     {
         key: "totalTeachers",
@@ -91,13 +91,12 @@ const STAT_CONFIG = [
         color: "info",
         growthKey: "enrollmentsGrowth",
     },
-
-       {
+    {
         key: "totalAdmins",
         title: "Admins",
         icon: Security,
         color: "warning",
-        growthKey: "AdminsGrowth",
+        growthKey: "AdminsGrowth", 
     },
 ];
 
@@ -123,7 +122,7 @@ const ACTION_CONFIG = [
         path: "/admin/enrollments",
         color: "success",
     },
-    
+
 ];
 
 /* =========================================================
@@ -295,7 +294,7 @@ const AdminDashboard = () => {
                     }}
                 >
                     {error}
-                </Alert>
+                </Alert> 
 
                 <Button
                     fullWidth={isMobile}

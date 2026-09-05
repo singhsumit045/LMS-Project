@@ -43,12 +43,13 @@ const AIAssistant = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
+      block: "center",  
     });
   }, [messages, loading]);
 
   // =========================
   // ASK AI
-  // =========================
+  // =========================  
 
   const askAI = async () => {
     const question = message.trim();
@@ -73,6 +74,7 @@ const AIAssistant = () => {
 
     // Start loading
     setLoading(true);
+
 
     try {
       const response = await aiService.chat(question);
@@ -110,7 +112,7 @@ const AIAssistant = () => {
 
       setError(
         backendMessage ||
-          "Unable to connect with AI. Please try again."
+        "Unable to connect with AI. Please try again."
       );
     } finally {
       setLoading(false);
@@ -248,6 +250,11 @@ const AIAssistant = () => {
               return (
                 <Box
                   key={`${item.role}-${index}`}
+                  ref={
+                    index === messages.length - 1
+                      ? messagesEndRef
+                      : null
+                  }
                   sx={{
                     display: "flex",
 
@@ -392,14 +399,12 @@ const AIAssistant = () => {
                     >
                       AI is thinking...
                     </Typography>
+
                   </Stack>
                 </Paper>
               </Box>
             )}
 
-            {/* Auto-scroll target */}
-
-            <Box ref={messagesEndRef} />
           </Stack>
         </Box>
 
@@ -445,7 +450,7 @@ const AIAssistant = () => {
             direction="row"
             spacing={1}
             sx={{
-              alignItems: "flex-end",
+              // alignItems: "flex-end",
             }}
           >
             <TextField
@@ -458,11 +463,13 @@ const AIAssistant = () => {
                   event.target.value
                 )
               }
+
               onKeyDown={handleKeyDown}
               placeholder="Ask your question..."
               disabled={loading}
               size="medium"
             />
+            {/* <Box ref={messagesEndRef} /> */}
 
             <Button
               variant="contained"
