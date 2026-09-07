@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 
 import {
-    School,
+    School,   
     People,
     MenuBook,
     Person,
@@ -44,10 +44,10 @@ import api from "../../services/api";
 
 const TeacherDashboard = () => {
     const navigate = useNavigate();
-    const theme = useTheme();
+    const theme = useTheme(); 
 
     // =========================================================
-    // THEME
+    // THEME 
     // =========================================================
 
     const primary = theme.palette.primary.main;
@@ -132,11 +132,11 @@ const TeacherDashboard = () => {
     // INITIAL LOAD
     // =========================================================
 
-    useEffect(() => {
+    useEffect(() => { 
         fetchTeacherDashboard();
     }, [
         fetchTeacherDashboard,
-    ]);
+    ])
 
     // =========================================================
     // TOTAL ENROLLMENTS
@@ -310,7 +310,7 @@ const TeacherDashboard = () => {
                                     gap: 2,
                                     pr: { xs: 1, sm: 2, md: 3 },
                                 }}
-                            >
+                            >      
                                 {/* TEXT */}
                                 <Box sx={{ minWidth: 0 }}>
                                     <Typography
@@ -357,7 +357,7 @@ const TeacherDashboard = () => {
                                     </Typography>
                                 </Box>
 
-                                {/* ICON - RIGHT SIDE */}
+                                {/* ICON - RIGHT SIDE */}  
                                 <Box
                                     sx={{
                                         width: {
@@ -467,7 +467,7 @@ const TeacherDashboard = () => {
                             sx={{
                                 fontWeight: 800
                             }}
-                        >
+                        > 
                             Overview
                         </Typography>
 
@@ -496,7 +496,7 @@ const TeacherDashboard = () => {
                                     key={card.key}
                                     size={{
                                         xs: 12,
-                                        sm: 3,
+                                        sm: 4,
                                         lg: 3,
                                     }}
                                 >
@@ -570,9 +570,7 @@ const TeacherDashboard = () => {
                                             }}
                                         >
                                             <Box
-                                                sx={{
-                                                    minWidth: 0,
-                                                }}
+                                                sx={{  minWidth: 0, }}
                                             >
                                                 <Typography
                                                     variant="body2"
@@ -703,14 +701,14 @@ const TeacherDashboard = () => {
                                     ),
                                     color: primary,
                                 }}
-                            >
+                            > 
                                 <AutoAwesomeIcon
                                     fontSize="small"
                                 />
                             </Avatar>
 
                             <Box>
-                                <Typography
+                                <Typography 
                                     variant="h5"
                                     sx={{
                                         fontWeight: 800
@@ -740,7 +738,7 @@ const TeacherDashboard = () => {
                                 sm: 6,
                                 md: 4,
                             }}
-                        >
+                        >         
                             <Paper
                                 elevation={0}
                                 sx={{
@@ -880,10 +878,11 @@ const TeacherDashboard = () => {
                                 p: {
                                     xs: 3,
                                     sm: 5,
+                                    // md:2,
                                 },
                                 textAlign: "center",
                             }}
-                        >
+                        > 
                             <Avatar
                                 sx={{
                                     width: 70,
@@ -906,7 +905,7 @@ const TeacherDashboard = () => {
                                 sx={{
                                     fontWeight: 800
                                 }}
-                            >
+                            >     
                                 No courses created
                                 yet
                             </Typography>
@@ -945,7 +944,8 @@ const TeacherDashboard = () => {
                                             size={{
                                                 xs: 12,
                                                 sm: 6,
-                                                lg: 4,
+                                                md:4,
+                                                lg: 3,
                                             }}
                                         >
                                             <Paper
@@ -1088,7 +1088,7 @@ const TeacherDashboard = () => {
                                                             "column",
                                                         flexGrow: 1,
                                                     }}
-                                                >
+                                                >  
                                                     <Typography
                                                         variant="h6"
                                                         sx={{

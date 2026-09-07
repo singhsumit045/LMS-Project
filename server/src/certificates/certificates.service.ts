@@ -388,7 +388,7 @@ private async sendCertificateNotification(
 
     const certificate =
       this.certificateRepository.create({
-        certificateNumber:
+        certificateNumber: 
           this.generateCertificateNumber(),
 
         studentId,

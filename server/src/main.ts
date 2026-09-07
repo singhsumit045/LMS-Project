@@ -11,9 +11,9 @@ async function bootstrap() {
     new Set(
       [
         'http://localhost:5173',
-        // 'http://192.168.5.47:5173',  
+        // 'http://192.168.5.47:5173', 
         'https://lms-project-fawn-omega.vercel.app', 
-        process.env.FRONTEND_URL, 
+        process.env.FRONTEND_URL,  
       ].filter(Boolean),
     ),
   );

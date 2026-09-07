@@ -59,7 +59,7 @@ export class ExamsService {
     private readonly enrollmentRepository: Repository<Enrollment>,
 
     private readonly notificationsService: NotificationsService,
-  ) {}
+  ) { }
 
   // =====================================================
   // SAVE AI GENERATED EXAM
@@ -598,7 +598,7 @@ export class ExamsService {
       // NOTIFY WHEN NEWLY PUBLISHED
       // -------------------------------------------------
 
-      if (        
+      if (
         !wasPublished &&
         exam.isPublished
       ) {
@@ -798,7 +798,7 @@ export class ExamsService {
   // =====================================================
   // DELETE QUESTION
   // =====================================================
-   
+
   async removeQuestion(
     questionId: number,
   ): Promise<{ message: string }> {
@@ -1018,6 +1018,27 @@ export class ExamsService {
       return existingAttempt;
     }
 
+
+    // ---------------------------------------------------
+    // CHECK IF STUDENT HAS ALREADY PASSED
+    // ---------------------------------------------------
+
+    const passedAttempt =
+      await this.examAttemptsRepository.findOne({
+        where: {
+          examId,
+          studentId,
+          submitted: true,   
+          passed: true,  
+        },
+      });
+
+    if (passedAttempt) {
+      throw new BadRequestException(
+        'You have already passed this exam. You cannot retake it.',
+      );
+    }
+
     // ---------------------------------------------------
     // COUNT SUBMITTED ATTEMPTS
     // ---------------------------------------------------
@@ -1180,8 +1201,8 @@ export class ExamsService {
       const marksObtained =
         isCorrect
           ? Number(
-              question.marks,
-            )
+            question.marks,
+          )
           : 0;
 
       if (isCorrect) {
@@ -1200,7 +1221,7 @@ export class ExamsService {
 
           selectedOptionId:
             selectedOption?.id ??
-            null,     
+            null,
 
           isCorrect,
 
@@ -1219,8 +1240,8 @@ export class ExamsService {
     const percentage =
       totalMarks > 0
         ? (totalScore /
-            totalMarks) *
-          100
+          totalMarks) *
+        100
         : 0;
 
     attempt.score =
@@ -1316,7 +1337,7 @@ export class ExamsService {
           id:
             'ASC',
         },
-      }); 
+      });
 
     const totalQuestions =
       questions.length;
@@ -1347,7 +1368,7 @@ export class ExamsService {
           total +
           Number(
             question.marks ||
-              0,
+            0,
           ),
         0,
       );
@@ -1355,18 +1376,18 @@ export class ExamsService {
     const obtainedMarks =
       Number(
         attempt.score ||
-          0,
+        0,
       );
 
     const percentage =
       totalMarks > 0
         ? Number(
-            (
-              (obtainedMarks /
-                totalMarks) *
-              100
-            ).toFixed(2),
-          )
+          (
+            (obtainedMarks /
+              totalMarks) *
+            100
+          ).toFixed(2),
+        )
         : 0;
 
     return {
@@ -1396,21 +1417,21 @@ export class ExamsService {
       certificate:
         certificate
           ? {
-              id:
-                certificate.id,
+            id:
+              certificate.id,
 
-              certificateNumber:
-                certificate.certificateNumber,
+            certificateNumber:
+              certificate.certificateNumber,
 
-              score:
-                certificate.score,
+            score:
+              certificate.score,
 
-              percentage:
-                certificate.percentage,
+            percentage:
+              certificate.percentage,
 
-              issuedAt:
-                certificate.issuedAt,
-            }
+            issuedAt:
+              certificate.issuedAt,
+          }
           : null,
 
       totalQuestions,
@@ -1544,7 +1565,7 @@ export class ExamsService {
           total +
           Number(
             question.marks ||
-              0,
+            0,
           ),
         0,
       );
@@ -1552,18 +1573,18 @@ export class ExamsService {
     const obtainedMarks =
       Number(
         attempt.score ||
-          0,
+        0,
       );
 
     const percentage =
       totalMarks > 0
         ? Number(
-            (
-              (obtainedMarks /
-                totalMarks) *
-              100
-            ).toFixed(2),
-          )
+          (
+            (obtainedMarks /
+              totalMarks) *
+            100
+          ).toFixed(2),
+        )
         : 0;
 
     return {
@@ -1593,21 +1614,21 @@ export class ExamsService {
       certificate:
         certificate
           ? {
-              id:
-                certificate.id,
+            id:
+              certificate.id,
 
-              certificateNumber:
-                certificate.certificateNumber,
+            certificateNumber:
+              certificate.certificateNumber,
 
-              score:
-                certificate.score,
+            score:
+              certificate.score,
 
-              percentage:
-                certificate.percentage,
+            percentage:
+              certificate.percentage,
 
-              issuedAt:
-                certificate.issuedAt,
-            }
+            issuedAt:
+              certificate.issuedAt,
+          }
           : null,
 
       totalQuestions,

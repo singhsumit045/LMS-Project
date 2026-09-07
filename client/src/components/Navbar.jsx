@@ -49,7 +49,7 @@ import {
   markAllAsRead,
   deleteNotification,
   clearAllNotifications,
-} from "../services/notificationService";
+} from "../services/notificationService"; 
 
 import { getProfile } from "../services/authService";
 
@@ -62,7 +62,7 @@ import {
 
 import { useTheme } from "@mui/material/styles";
 
-import logo from "../assets/LearnHub-removebg-preview.webp";
+import logo from "../assets/LearnHub-removebg-preview.webp";  
 
 // ============================================================
 // NOTIFICATION ITEM
@@ -956,8 +956,9 @@ const Navbar = ({
       : "transparent",
 
     borderRadius: "10px",
+     whiteSpace: "nowrap",
 
-    px: 1.5,
+    px: 1,
     minHeight: 40,
     textTransform: "none",
 
@@ -977,7 +978,7 @@ const Navbar = ({
     },
 
     "& .MuiButton-startIcon": {
-      marginRight: 0.7,
+      marginRight: 0.5,
     },
 
     "& svg": {
@@ -1210,6 +1211,7 @@ const Navbar = ({
             {user?.role !== "admin" && (
               <Button
                 color="inherit"
+                
                 component={NavLink}
                 to="/live-classes"
                 startIcon={<VideoCameraFrontIcon />}
@@ -1330,7 +1332,7 @@ const Navbar = ({
                   handleOpenProfile
                 }
                 sx={{
-                  ml: 0.5,
+                  // ml: 0.5,
                   p: 0.4,
                   borderRadius: "50%",
                 }}
@@ -2044,7 +2046,7 @@ const Navbar = ({
                 </ListItemIcon>
 
                 <ListItemText>
-                  Profile
+                  Profile   
                 </ListItemText>
               </ListItemButton>
             </ListItem>
