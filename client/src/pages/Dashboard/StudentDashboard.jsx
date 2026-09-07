@@ -32,20 +32,22 @@ import { useNavigate } from "react-router-dom";
 import { getMyCourses } from "../../services/enrollmentService";  
 
 import { getStudentLiveClasses,} from "../../services/liveClassService";
+import { getMyCertificates } from "../../services/certificateService";
 
 // ======================================================
 // HOW MANY LIVE CLASS CARDS TO SHOW BEFORE "SHOW ALL"
 // ======================================================
-const LIVE_CLASSES_VISIBLE_LIMIT = 6;  
 
+ const LIVE_CLASSES_VISIBLE_LIMIT =6;
 const StudentDashboard = () => {
-    const navigate = useNavigate();
+    const navigate = useNavigate(); 
 
     // =====================================================
     // USER
     // =====================================================
 
     const [user, setUser] = useState(null);
+    const [certificateCount, setCertificateCount] = useState(0);
 
     // =====================================================
     // COURSES
@@ -54,6 +56,7 @@ const StudentDashboard = () => {
     const [myCourses, setMyCourses] = useState([]);
     const [loadingCourses, setLoadingCourses] = useState(true);
     const [coursesError, setCoursesError] = useState("");
+    
 
     // =====================================================
     // LIVE CLASSES
@@ -63,8 +66,7 @@ const StudentDashboard = () => {
     const [loadingLiveClasses, setLoadingLiveClasses] = useState(true);
     const [liveClassError, setLiveClassError] = useState("");
 
-    const [showAllLiveClasses, setShowAllLiveClasses] =
-        useState(false);
+    const [showAllLiveClasses, setShowAllLiveClasses] = useState(false);   
 
     // =====================================================
     // GET USER
@@ -81,6 +83,30 @@ const StudentDashboard = () => {
             }
         }
     }, []);
+
+
+    useEffect(() => {
+    fetchMyCertificates();
+}, []);
+
+const fetchMyCertificates = async () => {
+    try {
+        const response = await getMyCertificates();
+
+        console.log("My Certificates:", response);
+
+        const certificates = Array.isArray(response)
+            ? response
+            : Array.isArray(response?.data)
+            ? response.data
+            : [];
+
+        setCertificateCount(certificates.length);
+    } catch (error) {
+        console.error("Certificate error:", error);
+        setCertificateCount(0);
+    }
+};
 
     // =====================================================
     // FETCH MY COURSES
@@ -170,7 +196,6 @@ const StudentDashboard = () => {
         (item) => item.completed === true
     ).length;
 
-    const certificateCount = 0;
 
     // =====================================================
     // OVERALL PROGRESS

@@ -1493,8 +1493,8 @@ const TeacherDashboard = () => {
                                                         courses
                                                         assigned.
                                                     </Typography>
-                                                ) : (
-                                                    <Stack
+                                                ) : ( 
+                                                    <Stack 
                                                         spacing={
                                                             1
                                                         }

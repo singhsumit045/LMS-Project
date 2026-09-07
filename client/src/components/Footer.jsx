@@ -78,7 +78,7 @@ const Footer = () => {
         </Box>
       </Box>
     </Link>
-  );
+  );  
   return (
     <Box
       component="footer"
@@ -144,14 +144,14 @@ const Footer = () => {
 
               spacing={1}
               sx={{
-                opacity: 0.85,
+                opacity: 0.9,
                 alignItems: "center",
               }}
             >
               <Email fontSize="small" />
 
               <Typography variant="body2">
-                support@learnhub.com
+                learnhub.lms@gmail.com
               </Typography>
             </Stack>
           </Box>
@@ -236,7 +236,7 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 sx={socialButtonStyles}
-              >
+              >  
                 <GitHub />
               </IconButton>
 
@@ -249,7 +249,6 @@ const Footer = () => {
               >
                 <LinkedIn />
               </IconButton>
-
 
             </Stack>
             <Typography
@@ -268,7 +267,7 @@ const Footer = () => {
         {/* Divider */}
         <Divider
           sx={{
-            my: 4,
+            my: 2,
             borderColor: "rgba(255,255,255,0.2)",
           }}
         />

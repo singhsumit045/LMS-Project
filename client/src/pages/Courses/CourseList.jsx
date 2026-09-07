@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -42,14 +42,14 @@ const CourseList = () => {
 
   const [error, setError] = useState("");
 
-  const carouselRef = useRef(null);
-  const animationRef = useRef(null);
+  // const carouselRef = useRef(null);
+  // const animationRef = useRef(null);
 
-  const mousePositionRef = useRef({
-    x: 0,
-    y: 0,
-    inside: false,
-  });
+  // const mousePositionRef = useRef({
+  //   x: 0,
+  //   y: 0,
+  //   inside: false,
+  // });
 
   const navigate = useNavigate();
 
@@ -203,198 +203,7 @@ const CourseList = () => {
     user?.role === "teacher" ||
     user?.role === "admin";
 
-  // =========================================================
-  // STOP CAROUSEL ANIMATION
-  // =========================================================
 
-  const stopCarousel = useCallback(() => {
-    if (animationRef.current) {
-      cancelAnimationFrame(
-        animationRef.current
-      );
-
-      animationRef.current = null;
-    }
-  }, []);
-
-  // =========================================================
-  // MOUSE CONTROLLED CAROUSEL
-  // =========================================================
-
-  const animateCarousel = useCallback(() => {
-    const container = carouselRef.current;
-
-    if (!container) {
-      animationRef.current = null;
-      return;
-    }
-
-    const {
-      x,
-      inside,
-    } = mousePositionRef.current;
-
-    if (!inside) {
-      animationRef.current = null;
-      return;
-    }
-
-    const rect =
-      container.getBoundingClientRect();
-
-    const relativeX = x - rect.left;
-
-    const width = rect.width;
-
-    const edgeZone = Math.min(
-      180,
-      width * 0.22
-    );
-
-    let speed = 0;
-
-    // -------------------------------------------------------
-    // MOVE RIGHT
-    // -------------------------------------------------------
-
-    if (
-      relativeX >
-      width - edgeZone
-    ) {
-      const distanceFromEdge =
-        relativeX -
-        (width - edgeZone);
-
-      const intensity =
-        distanceFromEdge /
-        edgeZone;
-
-      speed =
-        0.8 +
-        intensity * 3.5;
-    }
-
-    // -------------------------------------------------------
-    // MOVE LEFT
-    // -------------------------------------------------------
-
-    else if (
-      relativeX < edgeZone
-    ) {
-      const distanceFromEdge =
-        edgeZone - relativeX;
-
-      const intensity =
-        distanceFromEdge /
-        edgeZone;
-
-      speed =
-        -(0.8 +
-          intensity * 3.5);
-    }
-
-    // -------------------------------------------------------
-    // SCROLL
-    // -------------------------------------------------------
-
-    if (speed !== 0) {
-      const maxScroll =
-        container.scrollWidth -
-        container.clientWidth;
-
-      const nextPosition =
-        container.scrollLeft + speed;
-
-      if (nextPosition <= 0) {
-        container.scrollLeft = 0;
-      } else if (
-        nextPosition >= maxScroll
-      ) {
-        container.scrollLeft = maxScroll;
-      } else {
-        container.scrollLeft = nextPosition;
-      }
-    }
-
-    animationRef.current =
-      requestAnimationFrame(
-        animateCarousel
-      );
-  }, []);
-
-  // =========================================================
-  // MOUSE ENTER
-  // =========================================================
-
-  const handleMouseEnter = () => {
-    mousePositionRef.current.inside = true;
-
-    stopCarousel();
-
-    animationRef.current =
-      requestAnimationFrame(
-        animateCarousel
-      );
-  };
-
-  // =========================================================
-  // MOUSE MOVE
-  // =========================================================
-
-  const handleMouseMove = (event) => {
-    mousePositionRef.current.x =
-      event.clientX;
-
-    mousePositionRef.current.y =
-      event.clientY;
-
-    if (
-      !animationRef.current
-    ) {
-      animationRef.current =
-        requestAnimationFrame(
-          animateCarousel
-        );
-    }
-  };
-
-  // =========================================================
-  // MOUSE LEAVE
-  // =========================================================
-
-  const handleMouseLeave = () => {
-    mousePositionRef.current.inside =
-      false;
-
-    stopCarousel();
-  };
-
-  // =========================================================
-  // CLEANUP
-  // =========================================================
-
-  useEffect(() => {
-    return () => {
-      stopCarousel();
-    };
-  }, [stopCarousel]);
-
-  // =========================================================
-  // RESET CAROUSEL WHEN FILTER CHANGES
-  // =========================================================
-
-  useEffect(() => {
-    if (!carouselRef.current) return;
-
-    carouselRef.current.scrollTo({
-      left: 0,
-      behavior: "smooth",
-    });
-  }, [search, category]);
-
-  // =========================================================
-  // CLEAR FILTERS
-  // =========================================================
 
   const clearFilters = () => {
     setSearch("");
@@ -840,15 +649,12 @@ const CourseList = () => {
               variant="contained"
               startIcon={<Add />}
               onClick={() =>
-                navigate(
-                  "/courses/create"
-                )
+                navigate("/courses/create" )
               }
               sx={{
                 borderRadius: 2.5,
 
                 px: 2.5,
-
                 py: 1.1,
 
                 fontWeight: 700,
@@ -866,7 +672,7 @@ const CourseList = () => {
       </Box>
 
       {/* =====================================================
-          SEARCH + FILTER
+          SEARCH + FILTER 
       ===================================================== */}
 
       <Paper
@@ -1016,43 +822,29 @@ const CourseList = () => {
               >
                 {filteredCourses.length}{" "}
                 {filteredCourses.length ===
-                1
+                  1
                   ? "Course"
                   : "Courses"}
               </Typography>
-
-              {filteredCourses.length >
-                3 && (
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: "text.secondary"
-                  }}
-                >
-                  Move your mouse to
-                  the left or right
-                  edge to scroll
-                </Typography>
-              )}
             </Box>
 
             {(search ||
               category !== "all") && (
-              <Button
-                size="small"
-                onClick={
-                  clearFilters
-                }
-                sx={{
-                  whiteSpace:
-                    "nowrap",
-                  textTransform:
-                    "none",
-                }}
-              >
-                Clear Filters
-              </Button>
-            )}
+                <Button
+                  size="small"
+                  onClick={
+                    clearFilters
+                  }
+                  sx={{
+                    whiteSpace:
+                      "nowrap",
+                    textTransform:
+                      "none",
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              )}
           </Box>
 
           {/* =================================================
@@ -1060,7 +852,7 @@ const CourseList = () => {
           ================================================= */}
 
           {filteredCourses.length ===
-          0 ? (
+            0 ? (
             <Paper
               elevation={0}
               sx={{
@@ -1138,147 +930,23 @@ const CourseList = () => {
                 width: "100%",
               }}
             >
-              {/* LEFT EDGE FADE */}
-
-              {filteredCourses.length >
-                3 && (
-                <>
-                  <Box
-                    sx={{
-                      position:
-                        "absolute",
-
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-
-                      width: {
-                        xs: 20,
-                        md: 55,
-                      },
-
-                      zIndex: 2,
-
-                      pointerEvents:
-                        "none",
-
-                      background:
-                        "linear-gradient(to right, background.paper, transparent)",
-
-                      opacity: 0.7,
-                    }}
-                  />
-
-                  {/* RIGHT EDGE FADE */}
-
-                  <Box
-                    sx={{
-                      position:
-                        "absolute",
-
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-
-                      width: {
-                        xs: 20,
-                        md: 55,
-                      },
-
-                      zIndex: 2,
-
-                      pointerEvents:
-                        "none",
-
-                      background:
-                        "linear-gradient(to left, background.paper, transparent)",
-
-                      opacity: 0.7,
-                    }}
-                  />
-                </>
-              )}
-
               <Box
-                ref={
-                  carouselRef
-                }
-                onMouseEnter={
-                  handleMouseEnter
-                }
-                onMouseMove={
-                  handleMouseMove
-                }
-                onMouseLeave={
-                  handleMouseLeave
-                }
                 sx={{
-                  display: "flex",
-
-                  gap: 3,
-
-                  width: "100%",
-
-                  overflowX:
-                    "auto",
-
-                  overflowY:
-                    "hidden",
-
-                  scrollBehavior:
-                    "auto",
-
-                  WebkitOverflowScrolling:
-                    "touch",
-
-                  px: {
-                    xs: 0,
-                    md: 0.5,
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, minmax(0, 1fr))",
+                    md: "repeat(3, minmax(0, 1fr))",
                   },
-
-                  pb: 2,
-
-                  cursor:
-                    filteredCourses.length >
-                    3
-                      ? "default"
-                      : "default",
-
-                  "&::-webkit-scrollbar":
-                    {
-                      display:
-                        "none",
-                    },
-
-                  scrollbarWidth:
-                    "none",
-
-                  msOverflowStyle:
-                    "none",
+                  gap: 3,
+                  width: "100%",
                 }}
               >
-                {filteredCourses.map(
-                  (course) => (
-                    <Box
-                      key={
-                        course.id
-                      }
-                      sx={{
-                        flex: {
-                          xs: "0 0 100%",
-                          sm: "0 0 calc(50% - 12px)",
-                          md: "0 0 calc(33.333% - 16px)",
-                        },
-
-                        minWidth: 0,
-                      }}
-                    >
-                      {renderCourseCard(
-                        course
-                      )}
-                    </Box>
-                  )
-                )}
+                {filteredCourses.map((course) => (
+                  <Box key={course.id}>
+                    {renderCourseCard(course)}
+                  </Box>
+                ))}
               </Box>
             </Box>
           )}

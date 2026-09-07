@@ -804,7 +804,7 @@ const StudentExam = () => {
           )}
 
           {/* =================================================
-              START EXAM
+              START EXAM 
           ================================================= */}
 
           {!examStarted && (
@@ -848,7 +848,7 @@ const StudentExam = () => {
                 >
                   {starting
                     ? "Starting..."
-                    : `Start Exam (${attemptCount + 1}/${MAX_ATTEMPTS})`}
+                    : `Start Exam`}
                 </Button>
               )}
 
