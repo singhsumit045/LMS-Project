@@ -65,7 +65,7 @@ const Footer = () => {
             lineHeight: 1,
           }}
         >
-          ›
+          ›  
         </Box>
 
         <Box
@@ -83,12 +83,12 @@ const Footer = () => {
     <Box
       component="footer"
       sx={{
-        mt: "auto",
+        mt: "auto", 
         background:
           "linear-gradient(135deg, #0B4F8A 0%, #1769AA 50%, #3B82C4 100%)",
         color: "white",
       }}
-    >
+    > 
       <Container
         maxWidth="lg"
         sx={{
@@ -232,7 +232,7 @@ const Footer = () => {
             <Stack direction="row" spacing={1}>
               <IconButton
                 component="a"
-                href="https://github.com"
+                href="https://github.com/singhsumit045"
                 target="_blank"
                 rel="noopener noreferrer"
                 sx={socialButtonStyles}
@@ -242,7 +242,7 @@ const Footer = () => {
 
               <IconButton
                 component="a"
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/in/sumit-kumar-b9305738b/"
                 target="_blank"
                 rel="noopener noreferrer"
                 sx={socialButtonStyles}

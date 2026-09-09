@@ -206,6 +206,7 @@ async deletePendingUser(pendingUser: PendingUser) {
       throw new Error('User not found');
     }
 
+  
     // -----------------------------------------------------
     // DELETE OLD PROFILE IMAGE
     // -----------------------------------------------------
@@ -235,6 +236,50 @@ async deletePendingUser(pendingUser: PendingUser) {
 
     return await this.findOne(id);
   }
+
+
+  // =====================================================
+// REMOVE PROFILE IMAGE
+// =====================================================
+
+async removeProfileImage(id: number) {
+  const user = await this.findOne(id);
+
+  if (!user) {
+    throw new NotFoundException('User not found');
+  }
+
+  // -----------------------------------------------------
+  // DELETE IMAGE FROM CLOUDINARY
+  // -----------------------------------------------------
+
+  if (user.profileImagePublicId) {
+    try {
+      await this.cloudinaryService.deleteFile(
+        user.profileImagePublicId,
+        'image',
+      );
+    } catch (error) {
+      console.error(
+        'Failed to delete profile image from Cloudinary:',
+        error,
+      );
+    }
+  }
+
+  // -----------------------------------------------------
+  // REMOVE IMAGE DETAILS FROM DATABASE
+  // -----------------------------------------------------
+
+  await this.userRepository.update(id, {
+    profileImageUrl: null,
+    profileImagePublicId: null,
+  });
+
+  return {
+    message: 'Profile picture removed successfully',
+  };
+}
 
   // =====================================================
   // UPDATE ONLINE STATUS
@@ -324,9 +369,7 @@ async updateRole(id: number, newRole: string) {
       throw new BadRequestException('Cannot remove the last admin');
     }
   }
-
   await this.userRepository.update(id, { role: newRole });
-
   return await this.findOne(id);
 }
 

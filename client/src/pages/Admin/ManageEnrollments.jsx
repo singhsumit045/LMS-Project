@@ -20,6 +20,7 @@ import {
   Typography,
   Pagination,
 } from "@mui/material";
+import { Tooltip } from "@mui/material";
 
 import SearchIcon from "@mui/icons-material/Search";
 import SchoolIcon from "@mui/icons-material/School";
@@ -613,28 +614,40 @@ const ManageEnrollments = () => {
               </Typography>
 
               {/* STUDENT */}
-
-              <Box sx={{ minWidth: 0 }}>
+              <Box sx={{ minWidth: 0, width: "100%" }}>
                 <Typography
                   variant="body2"
                   noWrap
                   sx={{
-                    fontWeight: 600
+                    fontWeight: 600,
                   }}
                 >
                   {enrollment.student?.name || "—"}
                 </Typography>
 
-                <Typography
-                  variant="caption"
-                  noWrap
-                  sx={{
-                    color: "text.secondary"
-                  }}
+                <Tooltip
+                  title={enrollment.student?.email || "—"}
+                  arrow
+                  placement="top"
                 >
-                  {enrollment.student?.email || "—"}
-                </Typography>
+                  <Typography
+                    variant="caption"
+                    noWrap
+                    sx={{
+                      display: "block",
+                      color: "text.secondary",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      width: "100%",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {enrollment.student?.email || "—"}
+                  </Typography>
+                </Tooltip>
               </Box>
+
 
               {/* COURSE */}
 
@@ -762,26 +775,39 @@ const ManageEnrollments = () => {
                   mb: 2,
                 }}
               >
-                <Box sx={{ minWidth: 0 }}>
+                <Box sx={{ minWidth: 0, width: "100%" }}>
                   <Typography
-                    variant="body1"
+                    variant="body2"
                     noWrap
                     sx={{
-                      fontWeight: 700
+                      fontWeight: 600,
                     }}
                   >
                     {enrollment.student?.name || "—"}
                   </Typography>
 
-                  <Typography
-                    variant="caption"
-                    noWrap
-                    sx={{
-                      color: "text.secondary"
-                    }}
+                  <Tooltip
+                    title={enrollment.student?.email || "—"}
+                    arrow
+                    placement="top"
                   >
-                    {enrollment.student?.email || "—"}
-                  </Typography>
+                    <Box
+                      component="span"
+                      sx={{
+                        display: "block",
+                        minWidth: 0,
+                        maxWidth: "100%",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        color: "text.secondary",
+                        fontSize: "0.75rem",
+                        cursor: "help",
+                      }}
+                    >
+                      {enrollment.student?.email || "—"}
+                    </Box>
+                  </Tooltip>
                 </Box>
 
                 <Chip

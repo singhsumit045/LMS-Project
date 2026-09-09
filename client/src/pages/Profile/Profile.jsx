@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import Cropper from "react-easy-crop";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -6,11 +7,11 @@ import {
   updateProfile,
   changePassword,
   uploadProfilePicture,
+  removeProfilePicture,
 } from "../../services/authService";
 
-import {
-  uploadSignature,
-} from "../../services/signatureService";
+import { uploadSignature } from "../../services/signatureService";
+
 import {
   Box,
   Container,
@@ -29,6 +30,10 @@ import {
   Tooltip,
   Dialog,
   DialogContent,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 
 import {
@@ -44,6 +49,11 @@ import {
   VisibilityOff,
   Security,
   PhotoCamera,
+  PhotoLibrary,
+  CameraAlt,
+  Delete,
+  ZoomIn,
+  ZoomOut,
   Logout as LogoutIcon,
 } from "@mui/icons-material";
 
@@ -56,37 +66,67 @@ function Profile() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // =========================
+  // =====================================================
   // PROFILE EDIT
-  // =========================
+  // =====================================================
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // =========================
+  // =====================================================
   // PROFILE PICTURE
-  // =========================
+  // =====================================================
 
-  const [uploadingImage, setUploadingImage] =
-    useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [removingImage, setRemovingImage] = useState(false);
 
-  // pending file + preview, shown before the actual upload happens
-  const [profileImageFile, setProfileImageFile] =
-    useState(null);
-
+  const [profileImageFile, setProfileImageFile] = useState(null);
   const [profileImagePreview, setProfileImagePreview] =
     useState("");
 
-  // full-size preview dialog (click on avatar to open)
   const [imagePreviewOpen, setImagePreviewOpen] =
     useState(false);
 
+  // =====================================================
+  // CROP
+  // =====================================================
+
+  const [cropOpen, setCropOpen] = useState(false);
+
+  const [crop, setCrop] = useState({
+    x: 0,
+    y: 0,
+  });
+
+  const [zoom, setZoom] = useState(1);
+
+  const [croppedAreaPixels, setCroppedAreaPixels] =
+    useState(null);
+
+  // =====================================================
+  // CAMERA
+  // =====================================================
+
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraStream, setCameraStream] = useState(null);
+  const [cameraReady, setCameraReady] = useState(false);
+
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  // =====================================================
+  // AVATAR MENU
+  // =====================================================
+
+  const [avatarMenuAnchor, setAvatarMenuAnchor] =
+    useState(null);
+
   const fileInputRef = useRef(null);
 
-  // =========================
+  // =====================================================
   // CHANGE PASSWORD
-  // =========================
+  // =====================================================
 
   const [showChangePassword, setShowChangePassword] =
     useState(false);
@@ -109,39 +149,23 @@ function Profile() {
   const [showConfirmPassword, setShowConfirmPassword] =
     useState(false);
 
-  // =========================
+  // =====================================================
   // TEACHER SIGNATURE
-  // =========================
+  // =====================================================
 
-  const [signatureFile, setSignatureFile] =
-    useState(null);
-
+  const [signatureFile, setSignatureFile] = useState(null);
   const [signaturePreview, setSignaturePreview] =
     useState("");
 
   const [uploadingSignature, setUploadingSignature] =
     useState(false);
 
-  // =========================
+  // =====================================================
   // LOAD PROFILE
-  // =========================
+  // =====================================================
 
   useEffect(() => {
     loadProfile();
-  }, []);
-
-  // Revoke any pending object URLs when the component unmounts
-  useEffect(() => {
-    return () => {
-      if (profileImagePreview) {
-        URL.revokeObjectURL(profileImagePreview);
-      }
-
-      if (signaturePreview) {
-        URL.revokeObjectURL(signaturePreview);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadProfile = async () => {
@@ -165,25 +189,171 @@ function Profile() {
       setLoading(false);
     }
   };
+  
+  // =====================================================
+  // OBJECT URL + CAMERA CLEANUP
+  // =====================================================
 
-  // =========================
-  // PROFILE PICTURE CLICK (camera button -> opens file picker)
-  // =========================
+  useEffect(() => {
+    return () => {
+      if (profileImagePreview) {
+        URL.revokeObjectURL(profileImagePreview);
+      }
 
-  const handleProfilePictureClick = () => {
-    fileInputRef.current?.click();
-  };
+      if (signaturePreview) {
+        URL.revokeObjectURL(signaturePreview);
+      }
 
-  // =========================
-  // AVATAR CLICK (image itself -> opens full-size preview)
-  // =========================
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+      }
+    };
 
-  const currentAvatarSrc =
-    profileImagePreview || user?.profileImageUrl || "";
+    // Cleanup only when component unmounts
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // =====================================================
+  // CAMERA STREAM
+  // =====================================================
+
+  useEffect(() => {
+    if (!cameraOpen || !cameraStream) {
+      return;
+    }
+
+    let cancelled = false;
+    let animationFrame;
+
+    const attachCamera = () => {
+      if (cancelled) {
+        return;
+      }
+
+      const video = videoRef.current;
+
+      if (!video) {
+        animationFrame =
+          requestAnimationFrame(attachCamera);
+
+        return;
+      }
+
+      video.srcObject = cameraStream;
+
+      const markCameraReady = () => {
+        if (!cancelled) {
+          setCameraReady(true);
+        }
+      };
+
+      const startVideo = async () => {
+        try {
+          await video.play();
+
+          if (
+            video.videoWidth > 0 &&
+            video.videoHeight > 0
+          ) {
+            markCameraReady();
+          }
+        } catch (error) {
+          console.error(
+            "Video play error:",
+            error
+          );
+
+          if (
+            video.videoWidth > 0 &&
+            video.videoHeight > 0
+          ) {
+            markCameraReady();
+          }
+        }
+      };
+
+      video.onloadedmetadata = startVideo;
+      video.oncanplay = markCameraReady;
+      video.onplaying = markCameraReady;
+
+      if (
+        video.readyState >= 2 &&
+        video.videoWidth > 0 &&
+        video.videoHeight > 0
+      ) {
+        startVideo();
+      }
+    };
+
+    animationFrame =
+      requestAnimationFrame(attachCamera);
+
+    return () => {
+      cancelled = true;
+
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+
+      const video = videoRef.current;
+
+      if (video) {
+        video.pause();
+
+        video.onloadedmetadata = null;
+        video.oncanplay = null;
+        video.onplaying = null;
+
+        video.srcObject = null;
+      }
+
+      setCameraReady(false);
+    };
+  }, [cameraOpen, cameraStream]);
+
+  // =====================================================
+  // AVATAR MENU
+  // =====================================================
 
   const handleAvatarClick = () => {
-    // Nothing to preview if there's no image at all (just the initial letter)
-    if (!currentAvatarSrc) return;
+    if (uploadingImage || removingImage) {
+      return;
+    }
+
+    const avatarElement = document.querySelector(
+      '[aria-label="Profile avatar"]'
+    );
+
+    if (avatarElement) {
+      setAvatarMenuAnchor(avatarElement);
+    }
+  };
+
+  const handleAvatarMenuClose = () => {
+    setAvatarMenuAnchor(null);
+  };
+
+  // =====================================================
+  // CURRENT AVATAR
+  // =====================================================
+
+  const currentAvatarSrc =
+    profileImagePreview ||
+    user?.profileImageUrl ||
+    "";
+
+  // =====================================================
+  // VIEW PHOTO
+  // =====================================================
+
+  const handleViewPhoto = () => {
+    handleAvatarMenuClose();
+
+    if (!currentAvatarSrc) {
+      return;
+    }
 
     setImagePreviewOpen(true);
   };
@@ -192,14 +362,238 @@ function Profile() {
     setImagePreviewOpen(false);
   };
 
-  // =========================
-  // PROFILE PICTURE SELECT (preview only, no upload yet)
-  // =========================
+  // =====================================================
+  // UPLOAD PHOTO BUTTON
+  // =====================================================
 
-  const handleProfilePictureChange = (event) => {
+  const handleUploadPhotoClick = () => {
+    handleAvatarMenuClose();
+
+    if (uploadingImage || removingImage) {
+      return;
+    }
+
+    fileInputRef.current?.click();
+  };
+
+  // =====================================================
+  // TAKE PHOTO
+  // =====================================================
+
+  const handleTakePhotoClick = async () => {
+    handleAvatarMenuClose();
+
+    try {
+      setError("");
+      setSuccess("");
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setError(
+          "Camera is not supported by this browser. Please use a modern browser."
+        );
+
+        return;
+      }
+
+      const stream =
+        await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "user",
+            width: {
+              ideal: 1280,
+            },
+            height: {
+              ideal: 1280,
+            },
+          },
+          audio: false,
+        });
+
+      setCameraReady(false);
+      setCameraStream(stream);
+      setCameraOpen(true);
+    } catch (error) {
+      console.error(
+        "Camera error:",
+        error
+      );
+
+      if (
+        error.name === "NotAllowedError"
+      ) {
+        setError(
+          "Camera permission denied. Please allow camera access and try again."
+        );
+      } else if (
+        error.name === "NotFoundError"
+      ) {
+        setError(
+          "No camera was found on this device."
+        );
+      } else if (
+        error.name === "NotReadableError"
+      ) {
+        setError(
+          "Camera is already being used by another application."
+        );
+      } else {
+        setError(
+          "Unable to access camera. Please try again."
+        );
+      }
+    }
+  };
+
+  // =====================================================
+  // CLOSE CAMERA
+  // =====================================================
+
+  const handleCloseCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((track) => {
+        track.stop();
+      });
+    }
+
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.srcObject = null;
+    }
+
+    setCameraStream(null);
+    setCameraOpen(false);
+    setCameraReady(false);
+  };
+
+  // =====================================================
+  // CAPTURE CAMERA PHOTO
+  // =====================================================
+
+  const handleCapturePhoto = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    if (!video || !canvas) {
+      return;
+    }
+
+    if (
+      !cameraReady ||
+      !video.videoWidth ||
+      !video.videoHeight
+    ) {
+      setError(
+        "Camera is still starting. Please wait a moment and try again."
+      );
+
+      return;
+    }
+
+    const width = video.videoWidth;
+    const height = video.videoHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      setError("Unable to capture photo.");
+
+      return;
+    }
+
+    /*
+     * Camera preview is mirrored using scaleX(-1).
+     * Mirror canvas again so saved image has
+     * normal orientation.
+     */
+
+    context.save();
+
+    context.translate(width, 0);
+    context.scale(-1, 1);
+
+    context.drawImage(
+      video,
+      0,
+      0,
+      width,
+      height
+    );
+
+    context.restore();
+
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          setError("Unable to capture photo.");
+
+          return;
+        }
+
+        const file = new File(
+          [blob],
+          "camera-profile-picture.jpg",
+          {
+            type: "image/jpeg",
+          }
+        );
+
+        // Stop camera immediately
+        if (cameraStream) {
+          cameraStream
+            .getTracks()
+            .forEach((track) => {
+              track.stop();
+            });
+        }
+
+        if (videoRef.current) {
+          videoRef.current.pause();
+          videoRef.current.srcObject = null;
+        }
+
+        setCameraStream(null);
+        setCameraOpen(false);
+        setCameraReady(false);
+
+        // Create temporary preview
+        const previewUrl =
+          URL.createObjectURL(file);
+
+        setProfileImageFile(file);
+        setProfileImagePreview(previewUrl);
+
+        // Reset crop
+        setCrop({
+          x: 0,
+          y: 0,
+        });
+
+        setZoom(1);
+        setCroppedAreaPixels(null);
+
+        // Open crop dialog
+        setCropOpen(true);
+      },
+      "image/jpeg",
+      0.9
+    );
+  };
+
+  // =====================================================
+  // PROFILE IMAGE SELECT
+  // =====================================================
+
+  const handleProfilePictureChange = (
+    event
+  ) => {
     const file = event.target.files?.[0];
 
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     const allowedTypes = [
       "image/jpeg",
@@ -219,7 +613,6 @@ function Profile() {
       return;
     }
 
-    // Maximum 2 MB
     if (file.size > 2 * 1024 * 1024) {
       setError(
         "Image size must be less than 2 MB."
@@ -232,29 +625,130 @@ function Profile() {
       return;
     }
 
-    // Clean up any previous pending preview before creating a new one
     if (profileImagePreview) {
-      URL.revokeObjectURL(profileImagePreview);
+      URL.revokeObjectURL(
+        profileImagePreview
+      );
     }
 
     setError("");
     setSuccess("");
 
-    setProfileImageFile(file);
-    setProfileImagePreview(URL.createObjectURL(file));
+    const previewUrl =
+      URL.createObjectURL(file);
 
-    // Allow selecting the same image again later
+    setProfileImageFile(file);
+    setProfileImagePreview(previewUrl);
+
+    // Reset crop
+    setCrop({
+      x: 0,
+      y: 0,
+    });
+
+    setZoom(1);
+    setCroppedAreaPixels(null);
+
+    // Open crop dialog
+    setCropOpen(true);
+
+    // Allow selecting same file again
     event.target.value = "";
   };
-      
-  // =========================
-  // CONFIRM PROFILE PICTURE UPLOAD
-  // =========================
 
-  const handleProfilePictureUpload = async () => {
-    if (!profileImageFile) {
-      setError("Please select an image first.");
+  // =====================================================
+  // CROP COMPLETE
+  // =====================================================
 
+  const handleCropComplete = (
+    croppedArea,
+    croppedAreaPixels
+  ) => {
+    setCroppedAreaPixels(
+      croppedAreaPixels
+    );
+  };
+
+  // =====================================================
+  // CREATE CROPPED IMAGE
+  // =====================================================
+
+  const createCroppedImage = async () => {
+    if (
+      !profileImagePreview ||
+      !croppedAreaPixels
+    ) {
+      return null;
+    }
+
+    const image = new Image();
+
+    image.src = profileImagePreview;
+
+    await new Promise(
+      (resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = reject;
+      }
+    );
+
+    const canvas =
+      document.createElement("canvas");
+
+    const size = 400;
+
+    canvas.width = size;
+    canvas.height = size;
+
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      return null;
+    }
+
+    ctx.drawImage(
+      image,
+      croppedAreaPixels.x,
+      croppedAreaPixels.y,
+      croppedAreaPixels.width,
+      croppedAreaPixels.height,
+      0,
+      0,
+      size,
+      size
+    );
+
+    return new Promise((resolve) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            resolve(null);
+
+            return;
+          }
+
+          resolve(
+            new File(
+              [blob],
+              "profile-picture.jpg",
+              {
+                type: "image/jpeg",
+              }
+            )
+          );
+        },
+        "image/jpeg",
+        0.9
+      );
+    });
+  };
+
+  // =====================================================
+  // CROP + UPLOAD
+  // =====================================================
+
+  const handleCropAndUpload = async () => {
+    if (uploadingImage) {
       return;
     }
 
@@ -264,16 +758,35 @@ function Profile() {
       setError("");
       setSuccess("");
 
+      const croppedFile =
+        await createCroppedImage();
+
+      if (!croppedFile) {
+        setError(
+          "Unable to crop image."
+        );
+
+        return;
+      }
+
       const response =
-        await uploadProfilePicture(profileImageFile);
+        await uploadProfilePicture(
+          croppedFile
+        );
 
       const profileImageUrl =
         response.data.profileImageUrl;
+
+      const profileImagePublicId =
+        response.data.profileImagePublicId;
 
       setUser((previous) => {
         const updatedUser = {
           ...previous,
           profileImageUrl,
+          ...(profileImagePublicId && {
+            profileImagePublicId,
+          }),
         };
 
         localStorage.setItem(
@@ -282,9 +795,12 @@ function Profile() {
         );
 
         window.dispatchEvent(
-          new CustomEvent("profileUpdated", {
-            detail: updatedUser,
-          })
+          new CustomEvent(
+            "profileUpdated",
+            {
+              detail: updatedUser,
+            }
+          )
         );
 
         return updatedUser;
@@ -294,11 +810,28 @@ function Profile() {
         "Profile picture updated successfully."
       );
 
-      // Preview has been saved now — clear the pending state
-      URL.revokeObjectURL(profileImagePreview);
+      // Close crop dialog
+      setCropOpen(false);
 
+      // Cleanup object URL
+      if (profileImagePreview) {
+        URL.revokeObjectURL(
+          profileImagePreview
+        );
+      }
+
+      // Reset temporary states
       setProfileImageFile(null);
       setProfileImagePreview("");
+
+      setCroppedAreaPixels(null);
+
+      setCrop({
+        x: 0,
+        y: 0,
+      });
+
+      setZoom(1);
     } catch (error) {
       console.log(error);
 
@@ -316,32 +849,118 @@ function Profile() {
     }
   };
 
-  // =========================
-  // CANCEL PROFILE PICTURE PREVIEW
-  // =========================
+  // =====================================================
+  // CANCEL CROP
+  // =====================================================
 
   const handleProfilePictureCancel = () => {
-    if (profileImagePreview) {
-      URL.revokeObjectURL(profileImagePreview);
+    if (uploadingImage) {
+      return;
     }
+
+    if (profileImagePreview) {
+      URL.revokeObjectURL(
+        profileImagePreview
+      );
+    }
+
+    setCropOpen(false);
 
     setProfileImageFile(null);
     setProfileImagePreview("");
 
+    setCroppedAreaPixels(null);
+
+    setCrop({
+      x: 0,
+      y: 0,
+    });
+
+    setZoom(1);
+
     setError("");
   };
 
-  // =========================
+  // =====================================================
+  // REMOVE PROFILE PHOTO
+  // =====================================================
+
+  const handleRemovePhoto = async () => {
+    handleAvatarMenuClose();
+
+    if (
+      removingImage ||
+      uploadingImage ||
+      !user?.profileImageUrl
+    ) {
+      return;
+    }
+
+    try {
+      setRemovingImage(true);
+
+      setError("");
+      setSuccess("");
+
+      await removeProfilePicture();
+
+      setUser((previous) => {
+        const updatedUser = {
+          ...previous,
+          profileImageUrl: "",
+          profileImagePublicId: "",
+        };
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify(updatedUser)
+        );
+
+        window.dispatchEvent(
+          new CustomEvent(
+            "profileUpdated",
+            {
+              detail: updatedUser,
+            }
+          )
+        );
+
+        return updatedUser;
+      });
+
+      setSuccess(
+        "Profile picture removed successfully."
+      );
+    } catch (error) {
+      console.log(error);
+
+      const message =
+        error.response?.data?.message;
+
+      setError(
+        Array.isArray(message)
+          ? message.join(", ")
+          : message ||
+          "Unable to remove profile picture."
+      );
+    } finally {
+      setRemovingImage(false);
+    }
+  };
+
+  // =====================================================
   // SIGNATURE FILE CHANGE
-  // =========================
+  // =====================================================
 
-  const handleSignatureChange = (event) => {
-
+  const handleSignatureChange = (
+    event
+  ) => {
     const file =
       event.target.files?.[0];
 
-    if (!file) return;
-
+    if (!file) {
+      return;
+    }
 
     const allowedTypes = [
       "image/jpeg",
@@ -350,7 +969,6 @@ function Profile() {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-
       setError(
         "Please select JPG, PNG or WEBP signature image."
       );
@@ -358,12 +976,11 @@ function Profile() {
       setSuccess("");
 
       event.target.value = "";
-      return;
 
+      return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-
       setError(
         "Signature image must be less than 2 MB."
       );
@@ -373,109 +990,78 @@ function Profile() {
       event.target.value = "";
 
       return;
-
     }
 
     if (signaturePreview) {
-      URL.revokeObjectURL(signaturePreview);
+      URL.revokeObjectURL(
+        signaturePreview
+      );
     }
 
     setSignatureFile(file);
 
-
     setSignaturePreview(
       URL.createObjectURL(file)
     );
-
-
   };
 
-  // =========================
+  // =====================================================
   // UPLOAD SIGNATURE
-  // =========================
+  // =====================================================
 
   const handleSignatureUpload = async () => {
-
-
     if (!signatureFile) {
-
       setError(
         "Please select signature image."
       );
 
       return;
-
     }
+
     try {
       setUploadingSignature(true);
 
       setError("");
       setSuccess("");
 
-
-
       const response =
         await uploadSignature(
           signatureFile
         );
 
-
-
       const updatedUser = {
-
         ...user,
-
         signatureUrl:
           response.signatureUrl,
-
         signaturePublicId:
           response.signaturePublicId,
-
       };
 
-
-
       setUser(updatedUser);
-
-
 
       localStorage.setItem(
         "user",
         JSON.stringify(updatedUser)
       );
 
-
-
       setSuccess(
         "Signature uploaded successfully."
       );
-
-
-
     } catch (error) {
-
-
       console.log(error);
-
 
       setError(
         error.response?.data?.message ||
         "Unable to upload signature."
       );
-
-
     } finally {
-
       setUploadingSignature(false);
-
     }
-
-
   };
 
-  // =========================
+  // =====================================================
   // START EDIT
-  // =========================
+  // =====================================================
 
   const handleEdit = () => {
     setName(user.name || "");
@@ -486,9 +1072,9 @@ function Profile() {
     setError("");
   };
 
-  // =========================
+  // =====================================================
   // CANCEL EDIT
-  // =========================
+  // =====================================================
 
   const handleCancel = () => {
     setName(user.name || "");
@@ -498,15 +1084,18 @@ function Profile() {
     setError("");
   };
 
-  // =========================
+  // =====================================================
   // SAVE PROFILE
-  // =========================
+  // =====================================================
 
   const handleSave = async () => {
-    const trimmedName = name.trim();
+    const trimmedName =
+      name.trim();
 
     if (!trimmedName) {
-      setError("Name cannot be empty.");
+      setError(
+        "Name cannot be empty."
+      );
 
       return;
     }
@@ -525,11 +1114,13 @@ function Profile() {
       setError("");
       setSuccess("");
 
-      const response = await updateProfile({
-        name: trimmedName,
-      });
+      const response =
+        await updateProfile({
+          name: trimmedName,
+        });
 
-      const updatedUser = response.data.user;
+      const updatedUser =
+        response.data.user;
 
       setUser(updatedUser);
 
@@ -541,9 +1132,12 @@ function Profile() {
       );
 
       window.dispatchEvent(
-        new CustomEvent("profileUpdated", {
-          detail: updatedUser,
-        })
+        new CustomEvent(
+          "profileUpdated",
+          {
+            detail: updatedUser,
+          }
+        )
       );
 
       setEditing(false);
@@ -568,9 +1162,9 @@ function Profile() {
     }
   };
 
-  // =========================
+  // =====================================================
   // OPEN CHANGE PASSWORD
-  // =========================
+  // =====================================================
 
   const handleOpenChangePassword = () => {
     setShowChangePassword(true);
@@ -579,9 +1173,9 @@ function Profile() {
     setSuccess("");
   };
 
-  // =========================
+  // =====================================================
   // CLOSE CHANGE PASSWORD
-  // =========================
+  // =====================================================
 
   const handleCancelChangePassword = () => {
     setShowChangePassword(false);
@@ -599,129 +1193,151 @@ function Profile() {
     setError("");
   };
 
-  // =========================
+  // =====================================================
   // PASSWORD INPUT CHANGE
-  // =========================
+  // =====================================================
 
-  const handlePasswordChange = (event) => {
-    const { name, value } = event.target;
+  const handlePasswordChange = (
+    event
+  ) => {
+    const {
+      name,
+      value,
+    } = event.target;
 
-    setPasswordData((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
+    setPasswordData(
+      (previous) => ({
+        ...previous,
+        [name]: value,
+      })
+    );
 
     setError("");
     setSuccess("");
   };
 
-  // =========================
+  // =====================================================
   // CHANGE PASSWORD
-  // =========================
+  // =====================================================
 
-  const handleChangePassword = async () => {
-    setError("");
-    setSuccess("");
+  const handleChangePassword =
+    async () => {
+      setError("");
+      setSuccess("");
 
-    const {
-      currentPassword,
-      newPassword,
-      confirmPassword,
-    } = passwordData;
-
-    if (!currentPassword.trim()) {
-      setError(
-        "Please enter your current password."
-      );
-
-      return;
-    }
-
-    if (!newPassword.trim()) {
-      setError(
-        "Please enter a new password."
-      );
-
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setError(
-        "New password must contain at least 6 characters."
-      );
-
-      return;
-    }
-
-    if (!confirmPassword.trim()) {
-      setError(
-        "Please confirm your new password."
-      );
-
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setError(
-        "New password and confirm password do not match."
-      );
-
-      return;
-    }
-
-    if (currentPassword === newPassword) {
-      setError(
-        "New password must be different from your current password."
-      );
-
-      return;
-    }
-
-    try {
-      setChangingPassword(true);
-
-      await changePassword({
+      const {
         currentPassword,
         newPassword,
-      });
+        confirmPassword,
+      } = passwordData;
 
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
+      if (!currentPassword.trim()) {
+        setError(
+          "Please enter your current password."
+        );
 
-      setShowCurrentPassword(false);
-      setShowNewPassword(false);
-      setShowConfirmPassword(false);
+        return;
+      }
 
-      setSuccess(
-        "Password changed successfully."
-      );
-    } catch (error) {
-      console.log(error);
+      if (!newPassword.trim()) {
+        setError(
+          "Please enter a new password."
+        );
 
-      const message =
-        error.response?.data?.message;
+        return;
+      }
 
-      setError(
-        Array.isArray(message)
-          ? message.join(", ")
-          : message ||
-          "Unable to change password."
-      );
-    } finally {
-      setChangingPassword(false);
-    }
-  };
+      if (newPassword.length < 6) {
+        setError(
+          "New password must contain at least 6 characters."
+        );
 
-  // =========================
+        return;
+      }
+
+      if (!confirmPassword.trim()) {
+        setError(
+          "Please confirm your new password."
+        );
+
+        return;
+      }
+
+      if (
+        newPassword !==
+        confirmPassword
+      ) {
+        setError(
+          "New password and confirm password do not match."
+        );
+
+        return;
+      }
+
+      if (
+        currentPassword ===
+        newPassword
+      ) {
+        setError(
+          "New password must be different from your current password."
+        );
+
+        return;
+      }
+
+      try {
+        setChangingPassword(true);
+
+        await changePassword({
+          currentPassword,
+          newPassword,
+        });
+
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+
+        setShowCurrentPassword(false);
+        setShowNewPassword(false);
+        setShowConfirmPassword(false);
+
+        setSuccess(
+          "Password changed successfully."
+        );
+      } catch (error) {
+        console.log(error);
+
+        const message =
+          error.response?.data?.message;
+
+        setError(
+          Array.isArray(message)
+            ? message.join(", ")
+            : message ||
+            "Unable to change password."
+        );
+      } finally {
+        setChangingPassword(false);
+      }
+    };
+
+  // =====================================================
   // LOGOUT
-  // =========================
+  // =====================================================
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+    handleCloseCamera();
+
+    localStorage.removeItem(
+      "access_token"
+    );
+
+    localStorage.removeItem(
+      "refresh_token"
+    );
+
     localStorage.removeItem("user");
 
     setUser(null);
@@ -729,9 +1345,9 @@ function Profile() {
     navigate("/login");
   };
 
-  // =========================
+  // =====================================================
   // LOADING
-  // =========================
+  // =====================================================
 
   if (loading) {
     return (
@@ -741,7 +1357,8 @@ function Profile() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "background.default",
+          backgroundColor:
+            "background.default",
         }}
       >
         <CircularProgress />
@@ -749,15 +1366,17 @@ function Profile() {
     );
   }
 
-  // =========================
+  // =====================================================
   // ERROR WITHOUT USER
-  // =========================
+  // =====================================================
 
   if (error && !user) {
     return (
       <Container
         maxWidth="md"
-        sx={{ mt: 5 }}
+        sx={{
+          mt: 5,
+        }}
       >
         <Alert severity="error">
           {error}
@@ -766,15 +1385,17 @@ function Profile() {
     );
   }
 
-  // =========================
+  // =====================================================
   // NO USER
-  // =========================
+  // =====================================================
 
   if (!user) {
     return (
       <Container
         maxWidth="md"
-        sx={{ mt: 5 }}
+        sx={{
+          mt: 5,
+        }}
       >
         <Alert severity="warning">
           Profile information not available.
@@ -783,20 +1404,26 @@ function Profile() {
     );
   }
 
-  // =========================
+  // =====================================================
   // USER INITIAL
-  // =========================
+  // =====================================================
 
   const firstLetter = user.name
-    ? user.name.charAt(0).toUpperCase()
+    ? user.name
+      .charAt(0)
+      .toUpperCase()
     : "U";
+
+  const avatarBusy =
+    uploadingImage ||
+    removingImage;
 
   return (
     <Box
       sx={{
         minHeight: "80vh",
-        backgroundColor: "background.default",
-
+        backgroundColor:
+          "background.default",
         py: {
           xs: 4,
           md: 7,
@@ -805,9 +1432,9 @@ function Profile() {
     >
       <Container maxWidth="md">
 
-        {/* =========================
+        {/* =====================================================
             PAGE TITLE
-        ========================= */}
+        ===================================================== */}
 
         <Box sx={{ mb: 3 }}>
           <Typography
@@ -815,12 +1442,12 @@ function Profile() {
             sx={{
               fontWeight: 700,
               color: "text.primary",
-
               fontSize: {
                 xs: "1.8rem",
                 sm: "2.125rem",
-              }
-            }}>
+              },
+            }}
+          >
             My Profile
           </Typography>
 
@@ -828,15 +1455,16 @@ function Profile() {
             variant="body1"
             sx={{
               color: "text.secondary",
-              mt: 0.5
-            }}>
+              mt: 0.5,
+            }}
+          >
             Manage your LearnHub account and security settings
           </Typography>
         </Box>
 
-        {/* =========================
-            SUCCESS MESSAGE
-        ========================= */}
+        {/* =====================================================
+            SUCCESS
+        ===================================================== */}
 
         {success && (
           <Alert
@@ -850,9 +1478,9 @@ function Profile() {
           </Alert>
         )}
 
-        {/* =========================
-            ERROR MESSAGE
-        ========================= */}
+        {/* =====================================================
+            ERROR
+        ===================================================== */}
 
         {error && user && (
           <Alert
@@ -868,9 +1496,9 @@ function Profile() {
           </Alert>
         )}
 
-        {/* =========================
+        {/* =====================================================
             PROFILE HEADER
-        ========================= */}
+        ===================================================== */}
 
         <Paper
           elevation={0}
@@ -883,7 +1511,6 @@ function Profile() {
               "background.paper",
           }}
         >
-
           {/* COVER */}
 
           <Box
@@ -892,7 +1519,6 @@ function Profile() {
                 xs: 100,
                 sm: 120,
               },
-
               background:
                 "linear-gradient(135deg, #1976d2, #42a5f5)",
             }}
@@ -903,17 +1529,14 @@ function Profile() {
           <Box
             sx={{
               position: "relative",
-
               px: {
                 xs: 3,
                 sm: 4,
                 md: 5,
               },
-
               pb: 4,
             }}
           >
-
             {/* EDIT BUTTON */}
 
             {!editing && (
@@ -922,25 +1545,18 @@ function Profile() {
                 aria-label="Edit profile"
                 sx={{
                   position: "absolute",
-
                   top: 20,
-
                   right: {
                     xs: 16,
                     sm: 24,
                     md: 32,
                   },
-
                   backgroundColor:
                     "background.paper",
-
                   color: "text.primary",
-
                   border: "1px solid",
                   borderColor: "divider",
-
                   boxShadow: 1,
-
                   "&:hover": {
                     backgroundColor:
                       "action.hover",
@@ -951,83 +1567,112 @@ function Profile() {
               </IconButton>
             )}
 
-            {/* =========================
+            {/* =====================================================
                 PROFILE AVATAR
-            ========================= */}
+            ===================================================== */}
 
             <Box
               sx={{
                 position: "relative",
-
                 width: {
                   xs: 82,
                   sm: 100,
                 },
-
                 height: {
                   xs: 82,
                   sm: 100,
                 },
-
                 mt: {
                   xs: -5,
                   sm: -6,
                 },
-
                 mb: 2,
               }}
             >
               <Tooltip
                 title={
                   currentAvatarSrc
-                    ? "View photo"
-                    : ""
+                    ? "Photo options"
+                    : "Add profile photo"
                 }
               >
                 <Avatar
-                  src={currentAvatarSrc || undefined}
-                  alt={
-                    user.name || "Profile"
+                  src={
+                    currentAvatarSrc ||
+                    undefined
                   }
-                  onClick={handleAvatarClick}
+                  alt={
+                    user.name ||
+                    "Profile"
+                  }
+                  aria-label="Profile avatar"
+                  onClick={
+                    currentAvatarSrc
+                      ? handleAvatarClick
+                      : undefined
+                  }
                   sx={{
                     width: "100%",
                     height: "100%",
-
                     border: "5px solid",
                     borderColor:
                       "background.paper",
-
                     backgroundColor:
                       "primary.main",
-
                     fontSize: {
                       xs: "2rem",
                       sm: "2.5rem",
                     },
-
                     fontWeight: 700,
+                    cursor:
+                      currentAvatarSrc &&
+                        !avatarBusy
+                        ? "pointer"
+                        : "default",
+                    opacity:
+                      profileImagePreview
+                        ? 0.85
+                        : 1,
+                    transition:
+                      "opacity 0.15s ease",
 
-                    // subtle visual cue that this is an unsaved preview
-                    opacity: profileImagePreview ? 0.85 : 1,
-
-                    // only show pointer/hover affordance when there's
-                    // actually an image to preview
-                    cursor: currentAvatarSrc
-                      ? "pointer"
-                      : "default",
-
-                    transition: "opacity 0.15s ease",
-
-                    "&:hover": currentAvatarSrc
-                      ? { opacity: 0.75 }
-                      : undefined,
+                    "&:hover": {
+                      opacity:
+                        currentAvatarSrc &&
+                          !avatarBusy
+                          ? 0.75
+                          : 1,
+                    },
                   }}
                 >
                   {!currentAvatarSrc &&
                     firstLetter}
                 </Avatar>
               </Tooltip>
+
+              {/* BUSY INDICATOR */}
+
+              {avatarBusy && (
+                <CircularProgress
+                  size="100%"
+                  thickness={2.5}
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    color:
+                      "primary.main",
+                    pointerEvents:
+                      "none",
+
+                    "& .MuiCircularProgress-circle":
+                    {
+                      strokeLinecap:
+                        "round",
+                    },
+                  }}
+                />
+              )}
 
               {/* HIDDEN FILE INPUT */}
 
@@ -1041,34 +1686,29 @@ function Profile() {
                 }
               />
 
-              {/* CAMERA BUTTON */}
+              {/* CAMERA / PHOTO OPTIONS BUTTON */}
 
-              <Tooltip title="Change profile picture">
+              <Tooltip title="Photo options">
                 <span>
                   <IconButton
                     onClick={
-                      handleProfilePictureClick
+                      handleAvatarClick
                     }
-                    disabled={
-                      uploadingImage
-                    }
+                    disabled={avatarBusy}
                     aria-label="Change profile picture"
                     sx={{
-                      position: "absolute",
-
+                      position:
+                        "absolute",
                       right: -4,
                       bottom: -4,
-
                       width: 34,
                       height: 34,
-
                       backgroundColor:
                         "primary.main",
-
                       color:
                         "primary.contrastText",
-
-                      border: "3px solid",
+                      border:
+                        "3px solid",
                       borderColor:
                         "background.paper",
 
@@ -1078,7 +1718,7 @@ function Profile() {
                       },
                     }}
                   >
-                    {uploadingImage ? (
+                    {avatarBusy ? (
                       <CircularProgress
                         size={17}
                         color="inherit"
@@ -1095,75 +1735,7 @@ function Profile() {
               </Tooltip>
             </Box>
 
-            {/* CHANGE PHOTO BUTTON */}
-
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<PhotoCamera />}
-              onClick={
-                handleProfilePictureClick
-              }
-              disabled={uploadingImage}
-              sx={{
-                mb: profileImagePreview ? 1.5 : 2,
-                textTransform: "none",
-                borderRadius: 2,
-              }}
-            >
-              {uploadingImage
-                ? "Uploading..."
-                : "Change Photo"}
-            </Button>
-
-            {/* =========================
-                CONFIRM / CANCEL NEW PHOTO
-            ========================= */}
-
-            {profileImagePreview && (
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 1,
-                  mb: 2,
-                  flexWrap: "wrap",
-                }}
-              >
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<Check />}
-                  onClick={handleProfilePictureUpload}
-                  disabled={uploadingImage}
-                  sx={{
-                    textTransform: "none",
-                    borderRadius: 2,
-                  }}
-                >
-                  {uploadingImage
-                    ? "Uploading..."
-                    : "Confirm Photo"}
-                </Button>
-
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<Close />}
-                  onClick={handleProfilePictureCancel}
-                  disabled={uploadingImage}
-                  sx={{
-                    textTransform: "none",
-                    borderRadius: 2,
-                  }}
-                >
-                  Cancel
-                </Button>
-              </Box>
-            )}
-
-            {/* =========================
-                NAME
-            ========================= */}
+            {/* NAME */}
 
             {editing ? (
               <Box
@@ -1196,7 +1768,9 @@ function Profile() {
                   <Button
                     variant="contained"
                     size="small"
-                    startIcon={<Check />}
+                    startIcon={
+                      <Check />
+                    }
                     onClick={handleSave}
                     disabled={saving}
                   >
@@ -1208,8 +1782,12 @@ function Profile() {
                   <Button
                     variant="outlined"
                     size="small"
-                    startIcon={<Close />}
-                    onClick={handleCancel}
+                    startIcon={
+                      <Close />
+                    }
+                    onClick={
+                      handleCancel
+                    }
                     disabled={saving}
                   >
                     Cancel
@@ -1222,17 +1800,16 @@ function Profile() {
                 sx={{
                   fontWeight: 700,
                   color: "text.primary",
-
                   fontSize: {
                     xs: "1.3rem",
                     sm: "1.5rem",
                   },
-
                   pr: {
                     xs: 5,
                     sm: 0,
-                  }
-                }}>
+                  },
+                }}
+              >
                 {user.name}
               </Typography>
             )}
@@ -1243,8 +1820,9 @@ function Profile() {
               sx={{
                 color: "text.secondary",
                 mt: 0.8,
-                wordBreak: "break-word"
-              }}>
+                wordBreak: "break-word",
+              }}
+            >
               {user.email}
             </Typography>
 
@@ -1269,23 +1847,19 @@ function Profile() {
           </Box>
         </Paper>
 
-        {/* =========================
+        {/* =====================================================
             ACCOUNT INFORMATION
-        ========================= */}
+        ===================================================== */}
 
         <Paper
           elevation={0}
           sx={{
             mt: 3,
-
             borderRadius: 3,
-
             border: "1px solid",
             borderColor: "divider",
-
             backgroundColor:
               "background.paper",
-
             p: {
               xs: 3,
               sm: 4,
@@ -1307,8 +1881,9 @@ function Profile() {
               variant="h6"
               sx={{
                 fontWeight: 700,
-                color: "text.primary"
-              }}>
+                color: "text.primary",
+              }}
+            >
               Account Information
             </Typography>
           </Box>
@@ -1319,7 +1894,12 @@ function Profile() {
 
             {/* NAME */}
 
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+              }}
+            >
               <Box
                 sx={{
                   display: "flex",
@@ -1333,7 +1913,8 @@ function Profile() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: "text.secondary"
+                      color:
+                        "text.secondary",
                     }}
                   >
                     Full Name
@@ -1342,9 +1923,11 @@ function Profile() {
                   <Typography
                     sx={{
                       fontWeight: 600,
-                      color: "text.primary",
-                      mt: 0.3
-                    }}>
+                      color:
+                        "text.primary",
+                      mt: 0.3,
+                    }}
+                  >
                     {user.name}
                   </Typography>
                 </Box>
@@ -1353,7 +1936,12 @@ function Profile() {
 
             {/* EMAIL */}
 
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+              }}
+            >
               <Box
                 sx={{
                   display: "flex",
@@ -1367,7 +1955,8 @@ function Profile() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: "text.secondary"
+                      color:
+                        "text.secondary",
                     }}
                   >
                     Email Address
@@ -1376,12 +1965,13 @@ function Profile() {
                   <Typography
                     sx={{
                       fontWeight: 600,
-                      color: "text.primary",
+                      color:
+                        "text.primary",
                       mt: 0.3,
-
                       wordBreak:
-                        "break-word"
-                    }}>
+                        "break-word",
+                    }}
+                  >
                     {user.email}
                   </Typography>
                 </Box>
@@ -1390,7 +1980,12 @@ function Profile() {
 
             {/* ROLE */}
 
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+              }}
+            >
               <Box
                 sx={{
                   display: "flex",
@@ -1404,7 +1999,8 @@ function Profile() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: "text.secondary"
+                      color:
+                        "text.secondary",
                     }}
                   >
                     Account Role
@@ -1413,12 +2009,13 @@ function Profile() {
                   <Typography
                     sx={{
                       fontWeight: 600,
-                      color: "text.primary",
+                      color:
+                        "text.primary",
                       mt: 0.3,
-
                       textTransform:
-                        "capitalize"
-                    }}>
+                        "capitalize",
+                    }}
+                  >
                     {user.role}
                   </Typography>
                 </Box>
@@ -1427,13 +2024,11 @@ function Profile() {
           </Grid>
         </Paper>
 
-
-        {/* =========================
-    TEACHER SIGNATURE
-========================= */}
+        {/* =====================================================
+            TEACHER SIGNATURE
+        ===================================================== */}
 
         {user.role === "teacher" && (
-
           <Paper
             elevation={0}
             sx={{
@@ -1445,151 +2040,107 @@ function Profile() {
               borderRadius: 3,
               border: "1px solid",
               borderColor: "divider",
-              backgroundColor: "background.paper",
+              backgroundColor:
+                "background.paper",
             }}
           >
-
-
             <Typography
               variant="h6"
               sx={{
-                fontWeight: 700
+                fontWeight: 700,
               }}
             >
               Teacher Signature
             </Typography>
 
-
             <Typography
               variant="body2"
               sx={{
-                color: "text.secondary",
-                mt: 1
-              }}>
+                color:
+                  "text.secondary",
+                mt: 1,
+              }}
+            >
               Upload your signature for course certificates.
             </Typography>
 
-
-
-            <Box sx={{
-              mt: 3
-            }}>
-
+            <Box sx={{ mt: 3 }}>
               <input
-
                 type="file"
-
                 accept="image/jpeg,image/png,image/webp"
-
-                onChange={handleSignatureChange}
-
+                onChange={
+                  handleSignatureChange
+                }
               />
-
             </Box>
 
-
-
-
-
             {signaturePreview && (
-
-              <Box
-                sx={{
-                  mt: 3
-                }}
-              >
-
+              <Box sx={{ mt: 3 }}>
                 <Typography
                   variant="body2"
                   sx={{
-                    color: "text.secondary"
+                    color:
+                      "text.secondary",
                   }}
                 >
                   Preview
                 </Typography>
-
 
                 <Box
                   sx={{
                     mt: 1,
                     p: 2,
                     border: "1px dashed",
-                    borderColor: "divider",
+                    borderColor:
+                      "divider",
                     width: "fit-content",
-                    borderRadius: 2
-                  }}>
-
+                    borderRadius: 2,
+                  }}
+                >
                   <img
-
                     src={signaturePreview}
-
                     alt="signature"
-
                     width="220"
-
                   />
-
                 </Box>
-
-
               </Box>
-
             )}
 
-
-
-
-
             <Button
-
               variant="contained"
-
               onClick={
                 handleSignatureUpload
               }
-
               disabled={
                 uploadingSignature
               }
-
               sx={{
-
                 mt: 3,
-
-                textTransform: "none",
-
+                textTransform:
+                  "none",
                 borderRadius: 2,
               }}
             >
-              {
-                uploadingSignature
-
-                  ?
-                  "Uploading..."
-
-                  :
-                  "Upload Signature"
-              }
+              {uploadingSignature
+                ? "Uploading..."
+                : "Upload Signature"}
             </Button>
           </Paper>
         )}
-        {/* =========================
+
+        {/* =====================================================
             SECURITY
-        ========================= */}
+        ===================================================== */}
 
         <Paper
           elevation={0}
           sx={{
             mt: 3,
-
             borderRadius: 3,
-
             border: "1px solid",
             borderColor: "divider",
-
             backgroundColor:
               "background.paper",
-
             p: {
               xs: 3,
               sm: 4,
@@ -1597,9 +2148,6 @@ function Profile() {
             },
           }}
         >
-
-          {/* SECURITY HEADER */}
-
           <Box
             sx={{
               display: "flex",
@@ -1614,8 +2162,9 @@ function Profile() {
               variant="h6"
               sx={{
                 fontWeight: 700,
-                color: "text.primary"
-              }}>
+                color: "text.primary",
+              }}
+            >
               Security
             </Typography>
           </Box>
@@ -1623,37 +2172,30 @@ function Profile() {
           <Typography
             variant="body2"
             sx={{
-              color: "text.secondary",
-              mb: 3
-            }}>
-            Keep your account secure by using a
-            strong password.
+              color:
+                "text.secondary",
+              mb: 3,
+            }}
+          >
+            Keep your account secure by using a strong password.
           </Typography>
 
           <Divider sx={{ mb: 3 }} />
-
-          {/* =========================
-              CHANGE PASSWORD BUTTON
-          ========================= */}
 
           {!showChangePassword && (
             <Box
               sx={{
                 display: "flex",
-
                 flexDirection: {
                   xs: "column",
                   sm: "row",
                 },
-
                 alignItems: {
                   xs: "stretch",
                   sm: "center",
                 },
-
                 justifyContent:
                   "space-between",
-
                 gap: 2,
               }}
             >
@@ -1662,19 +2204,21 @@ function Profile() {
                   variant="subtitle1"
                   sx={{
                     fontWeight: 700,
-                    color: "text.primary"
-                  }}>
+                    color:
+                      "text.primary",
+                  }}
+                >
                   Password
                 </Typography>
 
                 <Typography
                   variant="body2"
                   sx={{
-                    color: "text.secondary"
+                    color:
+                      "text.secondary",
                   }}
                 >
-                  Update your password to keep
-                  your account secure.
+                  Update your password to keep your account secure.
                 </Typography>
               </Box>
 
@@ -1689,7 +2233,6 @@ function Profile() {
                     xs: "stretch",
                     sm: "auto",
                   },
-
                   minWidth: {
                     sm: 170,
                   },
@@ -1700,37 +2243,35 @@ function Profile() {
             </Box>
           )}
 
-          {/* =========================
-              CHANGE PASSWORD FORM
-          ========================= */}
-
           {showChangePassword && (
             <Box>
               <Typography
                 variant="subtitle1"
                 sx={{
                   fontWeight: 700,
-                  color: "text.primary",
-                  mb: 0.5
-                }}>
+                  color:
+                    "text.primary",
+                  mb: 0.5,
+                }}
+              >
                 Change Password
               </Typography>
 
               <Typography
                 variant="body2"
                 sx={{
-                  color: "text.secondary",
-                  mb: 3
-                }}>
-                Enter your current password and
-                choose a new password.
+                  color:
+                    "text.secondary",
+                  mb: 3,
+                }}
+              >
+                Enter your current password and choose a new password.
               </Typography>
 
               <Grid
                 container
                 spacing={2.5}
               >
-
                 {/* CURRENT PASSWORD */}
 
                 <Grid size={{ xs: 12 }}>
@@ -1757,7 +2298,6 @@ function Profile() {
                             <Lock fontSize="small" />
                           </InputAdornment>
                         ),
-
                         endAdornment: (
                           <InputAdornment position="end">
                             <IconButton
@@ -1819,7 +2359,6 @@ function Profile() {
                             <Lock fontSize="small" />
                           </InputAdornment>
                         ),
-
                         endAdornment: (
                           <InputAdornment position="end">
                             <IconButton
@@ -1880,7 +2419,6 @@ function Profile() {
                             <Lock fontSize="small" />
                           </InputAdornment>
                         ),
-
                         endAdornment: (
                           <InputAdornment position="end">
                             <IconButton
@@ -1916,19 +2454,15 @@ function Profile() {
               <Box
                 sx={{
                   display: "flex",
-
                   justifyContent: {
                     xs: "stretch",
                     sm: "flex-end",
                   },
-
                   flexDirection: {
                     xs: "column-reverse",
                     sm: "row",
                   },
-
                   gap: 1.5,
-
                   mt: 3,
                 }}
               >
@@ -1976,23 +2510,19 @@ function Profile() {
           )}
         </Paper>
 
-        {/* =========================
+        {/* =====================================================
             ACCOUNT ACTIONS
-        ========================= */}
+        ===================================================== */}
 
         <Paper
           elevation={0}
           sx={{
             mt: 3,
-
             borderRadius: 3,
-
             border: "1px solid",
             borderColor: "divider",
-
             backgroundColor:
               "background.paper",
-
             p: {
               xs: 3,
               sm: 4,
@@ -2000,8 +2530,6 @@ function Profile() {
             },
           }}
         >
-          {/* HEADER */}
-
           <Box
             sx={{
               display: "flex",
@@ -2016,8 +2544,10 @@ function Profile() {
               variant="h6"
               sx={{
                 fontWeight: 700,
-                color: "text.primary"
-              }}>
+                color:
+                  "text.primary",
+              }}
+            >
               Account Actions
             </Typography>
           </Box>
@@ -2025,33 +2555,29 @@ function Profile() {
           <Typography
             variant="body2"
             sx={{
-              color: "text.secondary",
-              mb: 3
-            }}>
+              color:
+                "text.secondary",
+              mb: 3,
+            }}
+          >
             Manage your account session.
           </Typography>
 
           <Divider sx={{ mb: 3 }} />
 
-          {/* LOGOUT */}
-
           <Box
             sx={{
               display: "flex",
-
               flexDirection: {
                 xs: "column",
                 sm: "row",
               },
-
               alignItems: {
                 xs: "stretch",
                 sm: "center",
               },
-
               justifyContent:
                 "space-between",
-
               gap: 2,
             }}
           >
@@ -2060,38 +2586,41 @@ function Profile() {
                 variant="subtitle1"
                 sx={{
                   fontWeight: 700,
-                  color: "text.primary"
-                }}>
+                  color:
+                    "text.primary",
+                }}
+              >
                 Logout
               </Typography>
 
               <Typography
                 variant="body2"
                 sx={{
-                  color: "text.secondary"
+                  color:
+                    "text.secondary",
                 }}
               >
-                Sign out of your LearnHub account
-                on this device.
+                Sign out of your LearnHub account on this device.
               </Typography>
             </Box>
 
             <Button
               variant="outlined"
               color="error"
-              startIcon={<LogoutIcon />}
+              startIcon={
+                <LogoutIcon />
+              }
               onClick={handleLogout}
               sx={{
                 alignSelf: {
                   xs: "stretch",
                   sm: "auto",
                 },
-
                 minWidth: {
                   sm: 150,
                 },
-
-                textTransform: "none",
+                textTransform:
+                  "none",
                 fontWeight: 600,
               }}
             >
@@ -2099,41 +2628,1014 @@ function Profile() {
             </Button>
           </Box>
         </Paper>
-
       </Container>
 
-      {/* =========================
-          FULL-SIZE PHOTO PREVIEW DIALOG
-      ========================= */}
+      {/* =====================================================
+          AVATAR PHOTO OPTIONS MENU
+          WHATSAPP-STYLE COMPACT MENU
+      ===================================================== */}
+
+      <Menu
+        anchorEl={avatarMenuAnchor}
+        open={Boolean(
+          avatarMenuAnchor
+        )}
+        onClose={
+          handleAvatarMenuClose
+        }
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "center",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "center",
+        }}
+        PaperProps={{
+          sx: {
+            mt: 1,
+            minWidth: 210,
+            p: 0.5,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow:
+              "0 8px 30px rgba(0,0,0,0.14)",
+          },
+        }}
+      >
+        {/* =====================================================
+            VIEW PHOTO
+        ===================================================== */}
+
+        <MenuItem
+          onClick={handleViewPhoto}
+          disabled={!currentAvatarSrc}
+          sx={{
+            borderRadius: 2,
+            px: 1.5,
+            py: 1,
+            minHeight: 44,
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 38,
+            }}
+          >
+            <Visibility
+              fontSize="small"
+            />
+          </ListItemIcon>
+
+          <ListItemText
+            primary="View photo"
+            primaryTypographyProps={{
+              fontSize: "0.95rem",
+              fontWeight: 500,
+            }}
+          />
+        </MenuItem>
+
+        {/* =====================================================
+            TAKE PHOTO
+        ===================================================== */}
+
+        <MenuItem
+          onClick={
+            handleTakePhotoClick
+          }
+          disabled={avatarBusy}
+          sx={{
+            borderRadius: 2,
+            px: 1.5,
+            py: 1,
+            minHeight: 44,
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 38,
+            }}
+          >
+            <CameraAlt
+              fontSize="small"
+            />
+          </ListItemIcon>
+
+          <ListItemText
+            primary="Take photo"
+            primaryTypographyProps={{
+              fontSize: "0.95rem",
+              fontWeight: 500,
+            }}
+          />
+        </MenuItem>
+
+        {/* =====================================================
+            UPLOAD PHOTO
+        ===================================================== */}
+
+        <MenuItem
+          onClick={
+            handleUploadPhotoClick
+          }
+          disabled={avatarBusy}
+          sx={{
+            borderRadius: 2,
+            px: 1.5,
+            py: 1,
+            minHeight: 44,
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 38,
+            }}
+          >
+            <PhotoLibrary
+              fontSize="small"
+            />
+          </ListItemIcon>
+
+          <ListItemText
+            primary="Upload photo"
+            primaryTypographyProps={{
+              fontSize: "0.95rem",
+              fontWeight: 500,
+            }}
+          />
+        </MenuItem>
+
+        <Divider
+          sx={{
+            my: 0.5,
+          }}
+        />
+
+        {/* =====================================================
+            REMOVE PHOTO
+        ===================================================== */}
+
+        <MenuItem
+          onClick={
+            handleRemovePhoto
+          }
+          disabled={
+            !user?.profileImageUrl ||
+            removingImage ||
+            uploadingImage
+          }
+          sx={{
+            borderRadius: 2,
+            px: 1.5,
+            py: 1,
+            minHeight: 44,
+            color: "text.primary",
+
+            "&:hover": {
+              color: "error.main",
+
+              backgroundColor:
+                (theme) =>
+                  theme.palette
+                    .mode === "dark"
+                    ? "rgba(244,67,54,0.15)"
+                    : "rgba(244,67,54,0.08)",
+            },
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 38,
+            }}
+          >
+            {removingImage ? (
+              <CircularProgress
+                size={17}
+                sx={{
+                  color: "inherit",
+                }}
+              />
+            ) : (
+              <Delete
+                fontSize="small"
+                sx={{
+                  color: "inherit",
+                }}
+              />
+            )}
+          </ListItemIcon>
+
+          <ListItemText
+            primary={
+              removingImage
+                ? "Removing..."
+                : "Remove photo"
+            }
+            primaryTypographyProps={{
+              fontSize: "0.95rem",
+              fontWeight: 500,
+            }}
+          />
+        </MenuItem>
+      </Menu>
+
+      {/* =====================================================
+          WHATSAPP-STYLE CAMERA DIALOG
+      ===================================================== */}
+
+      <Dialog
+        open={cameraOpen}
+        onClose={handleCloseCamera}
+        maxWidth="sm"
+        fullWidth
+        aria-labelledby="camera-dialog-title"
+        PaperProps={{
+          sx: {
+            width: {
+              xs: "92vw",
+              sm: 430,
+            },
+            maxWidth: 430,
+            m: 2,
+            borderRadius: {
+              xs: 3,
+              sm: 4,
+            },
+            overflow: "hidden",
+            bgcolor: "#000",
+            boxShadow:
+              "0 24px 80px rgba(0,0,0,0.55)",
+          },
+        }}
+        slotProps={{
+          backdrop: {
+            sx: {
+              backgroundColor:
+                "rgba(0,0,0,0.72)",
+              backdropFilter:
+                "blur(5px)",
+            },
+          },
+        }}
+      >
+        {/* CAMERA HEADER */}
+
+        <Box
+          sx={{
+            height: 58,
+            px: 1.5,
+            display: "flex",
+            alignItems: "center",
+            justifyContent:
+              "space-between",
+            bgcolor: "#111",
+            color: "#fff",
+            borderBottom:
+              "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          <IconButton
+            onClick={
+              handleCloseCamera
+            }
+            aria-label="Close camera"
+            sx={{
+              width: 42,
+              height: 42,
+              color: "#fff",
+
+              "&:hover": {
+                bgcolor:
+                  "rgba(255,255,255,0.1)",
+              },
+            }}
+          >
+            <Close />
+          </IconButton>
+
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <CameraAlt
+              sx={{
+                fontSize: 21,
+                color: "#fff",
+              }}
+            />
+
+            <Typography
+              id="camera-dialog-title"
+              sx={{
+                fontSize: "1rem",
+                fontWeight: 600,
+                color: "#fff",
+              }}
+            >
+              Take Photo
+            </Typography>
+          </Box>
+
+          <Box
+            sx={{
+              width: 42,
+              height: 42,
+            }}
+          />
+        </Box>
+
+        {/* CAMERA PREVIEW */}
+
+        <Box
+          sx={{
+            position: "relative",
+            width: "100%",
+            aspectRatio: "1 / 1",
+            bgcolor: "#000",
+            overflow: "hidden",
+          }}
+        >
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transform: "scaleX(-1)",
+              display: "block",
+            }}
+          />
+
+          {/* TOP GRADIENT */}
+
+          <Box
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "30%",
+              pointerEvents: "none",
+              background:
+                "linear-gradient(to bottom, rgba(0,0,0,0.45), transparent)",
+            }}
+          />
+
+          {/* BOTTOM GRADIENT */}
+
+          <Box
+            sx={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: "38%",
+              pointerEvents: "none",
+              background:
+                "linear-gradient(to top, rgba(0,0,0,0.65), transparent)",
+            }}
+          />
+
+          {/* FACE GUIDE */}
+
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform:
+                "translate(-50%, -50%)",
+              width: {
+                xs: 245,
+                sm: 280,
+              },
+              height: {
+                xs: 245,
+                sm: 280,
+              },
+              borderRadius: "50%",
+              border:
+                "2px solid rgba(255,255,255,0.9)",
+              boxShadow:
+                "0 0 0 9999px rgba(0,0,0,0.32)",
+              pointerEvents: "none",
+            }}
+          />
+
+          {/* INSTRUCTION */}
+
+          <Box
+            sx={{
+              position: "absolute",
+              top: 18,
+              left: "50%",
+              transform:
+                "translateX(-50%)",
+              px: 2,
+              py: 0.7,
+              borderRadius: 5,
+              bgcolor:
+                "rgba(0,0,0,0.45)",
+              backdropFilter:
+                "blur(6px)",
+              whiteSpace: "nowrap",
+              pointerEvents: "none",
+              maxWidth: "90%",
+            }}
+          >
+            <Typography
+              sx={{
+                color: "#fff",
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                textAlign: "center",
+              }}
+            >
+              Position your face inside the circle
+            </Typography>
+          </Box>
+
+          {/* CAMERA LOADING */}
+
+          {!cameraReady && (
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent:
+                  "center",
+                flexDirection:
+                  "column",
+                gap: 1.5,
+                bgcolor:
+                  "rgba(0,0,0,0.25)",
+                pointerEvents: "none",
+              }}
+            >
+              <CircularProgress
+                size={32}
+                thickness={3}
+                sx={{
+                  color: "#fff",
+                }}
+              />
+
+              <Typography
+                sx={{
+                  color:
+                    "rgba(255,255,255,0.9)",
+                  fontSize: "0.8rem",
+                  fontWeight: 500,
+                }}
+              >
+                Starting camera...
+              </Typography>
+            </Box>
+          )}
+
+          {/* CAPTURE BUTTON */}
+
+          <Box
+            sx={{
+              position: "absolute",
+              left: "50%",
+              bottom: 18,
+              transform:
+                "translateX(-50%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent:
+                "center",
+            }}
+          >
+            <IconButton
+              onClick={
+                handleCapturePhoto
+              }
+              disabled={!cameraReady}
+              aria-label="Capture photo"
+              sx={{
+                width: 72,
+                height: 72,
+                p: 0,
+                bgcolor: "#fff",
+                border:
+                  "4px solid rgba(255,255,255,0.55)",
+                boxShadow:
+                  "0 5px 24px rgba(0,0,0,0.5)",
+
+                transition:
+                  "transform 0.15s ease, background-color 0.15s ease",
+
+                "&:hover": {
+                  bgcolor: "#fff",
+                  transform:
+                    "scale(1.04)",
+                },
+
+                "&:active": {
+                  transform:
+                    "scale(0.92)",
+                },
+
+                "&.Mui-disabled": {
+                  bgcolor:
+                    "rgba(255,255,255,0.45)",
+                  borderColor:
+                    "rgba(255,255,255,0.25)",
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: "50%",
+                  border:
+                    "3px solid #222",
+                  bgcolor: "#fff",
+                }}
+              />
+            </IconButton>
+          </Box>
+
+          {/* HIDDEN CANVAS */}
+
+          <canvas
+            ref={canvasRef}
+            style={{
+              display: "none",
+            }}
+          />
+        </Box>
+
+        {/* CAMERA FOOTER */}
+
+        <Box
+          sx={{
+            minHeight: 50,
+            px: 2,
+            py: 1.2,
+            bgcolor: "#111",
+            display: "flex",
+            alignItems: "center",
+            justifyContent:
+              "center",
+            borderTop:
+              "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          <Typography
+            variant="caption"
+            sx={{
+              color:
+                "rgba(255,255,255,0.65)",
+              textAlign: "center",
+            }}
+          >
+            Make sure your face and hair are clearly visible
+          </Typography>
+        </Box>
+      </Dialog>
+
+      {/* =====================================================
+          WHATSAPP-STYLE CROP DIALOG
+      ===================================================== */}
+
+      <Dialog
+        open={cropOpen}
+        onClose={() => {
+          if (!uploadingImage) {
+            handleProfilePictureCancel();
+          }
+        }}
+        maxWidth={false}
+        fullWidth={false}
+        aria-labelledby="crop-dialog-title"
+        PaperProps={{
+          sx: {
+            width: {
+              xs: "calc(100vw - 24px)",
+              sm: "720px", 
+            },
+            maxWidth: {
+              xs: "calc(100vw - 24px)", 
+              sm: "720px", 
+            },
+            minWidth: 0,
+            m: {
+              xs: 1,
+              sm: 2,
+            },
+            borderRadius: {
+              xs: 2,
+              sm: 3,
+            },
+            overflow: "hidden",
+            bgcolor: "#fff",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
+          },
+        }}
+        slotProps={{
+          backdrop: {
+            sx: {
+              backgroundColor: "rgba(0,0,0,0.45)",
+            },
+          },
+        }}
+      >  
+        {/* =====================================================
+            CROP HEADER
+        ===================================================== */}
+
+        <Box
+          sx={{
+            height: 54,
+            px: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent:
+              "space-between",
+            bgcolor: "#fff",
+            borderBottom: "1px solid",
+            borderColor: "#eeeeee",
+          }}
+        >
+          {/* CLOSE */}
+
+          <IconButton
+            onClick={
+              handleProfilePictureCancel
+            }
+            disabled={uploadingImage}
+            aria-label="Close crop dialog"
+            sx={{
+              width: 42,
+              height: 42,
+              color: "#444",
+
+              "&:hover": {
+                bgcolor: "#f5f5f5",
+              },
+            }}
+          >
+            <Close />
+          </IconButton>
+
+          {/* TITLE */}
+
+          <Typography
+            sx={{
+              flex: 1,
+              px: 1,
+              fontSize: {
+                xs: "0.95rem",
+                sm: "1rem",
+              },
+              fontWeight: 500,
+              color: "#222",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            Drag the image to adjust
+          </Typography>
+
+          {/* UPLOAD */}
+
+          <Button
+            onClick={
+              handleCropAndUpload
+            }
+            disabled={
+              uploadingImage ||
+              !croppedAreaPixels
+            }
+            sx={{
+              minWidth: "auto",
+              px: 1.5,
+              height: 42,
+              color: "#222",
+              fontSize: {
+                xs: "0.9rem",
+                sm: "0.95rem",
+              },
+              fontWeight: 500,
+              textTransform: "none",
+
+              "&:hover": {
+                bgcolor: "#f5f5f5",
+              },
+            }}
+          >
+            {uploadingImage
+              ? "Uploading..."
+              : "Upload"}
+          </Button>
+        </Box>
+
+        {/* =====================================================
+            CROP AREA
+        ===================================================== */}
+
+        <Box
+          sx={{
+            position: "relative",
+            width: "100%",
+            height: {
+              xs: "calc(100vw - 24px)",
+              sm: "380px",
+            },
+            // maxHeight: {
+            //   xs: "calc(100vw - 24px)",
+            //   sm: "380px",
+            // },
+            bgcolor: "#858585",
+            overflow: "hidden",
+          }}
+        >
+          {/* CROP IMAGE */}
+
+          {profileImagePreview && (
+            <Cropper
+              image={
+                profileImagePreview
+              }
+              crop={crop}
+              zoom={zoom}
+              aspect={1}
+              cropShape="round"
+              showGrid={false}
+              restrictPosition
+              minZoom={1}
+              maxZoom={3}
+              onCropChange={
+                setCrop
+              }
+              onZoomChange={
+                setZoom
+              }
+              onCropComplete={
+                handleCropComplete
+              }
+              style={{
+                containerStyle: {
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor:
+                    "#858585",
+                },
+
+                // mediaStyle: {
+                //   maxWidth: "none",
+                // },
+
+                cropAreaStyle: {
+                  border:
+                    "2px solid rgba(255,255,255,0.95)",
+                  boxShadow:
+                    "0 0 0 9999px rgba(0,0,0,0.28)",
+                },
+              }}
+            />
+          )}
+
+          {/* =====================================================
+              ZOOM CONTROLS
+          ===================================================== */}
+
+          <Box
+            sx={{
+              position: "absolute",
+              right: {   xs: 12, sm: 16,  },
+              top: "50%",
+              transform:
+                "translateY(-50%)",
+              display: "flex",
+              flexDirection:
+                "column",
+              bgcolor: "#fff",
+              borderRadius: 2,
+              overflow: "hidden",
+              boxShadow:
+                "0 3px 12px rgba(0,0,0,0.25)",
+              zIndex: 10,
+            }}
+          >
+            {/* ZOOM IN */}
+
+            <IconButton
+              onClick={() =>
+                setZoom(
+                  (previous) =>
+                    Math.min(
+                      3,
+                      Number(
+                        (
+                          previous +
+                          0.1
+                        ).toFixed(1)
+                      )
+                    )
+                )
+              }
+              disabled={
+                uploadingImage ||
+                zoom >= 3
+              }
+              aria-label="Zoom in"
+              sx={{
+                width: 42,
+                height: 42,
+                borderRadius: 0,
+                color: "#555",
+
+                "&:hover": {
+                  bgcolor:
+                    "#f5f5f5",
+                },
+              }}
+            >
+              <ZoomIn />
+            </IconButton>
+
+            <Divider />
+
+            {/* ZOOM OUT */}
+
+            <IconButton
+              onClick={() =>
+                setZoom(
+                  (previous) =>
+                    Math.max(
+                      1,
+                      Number(
+                        (
+                          previous -
+                          0.1
+                        ).toFixed(1)
+                      )
+                    )
+                )
+              }
+              disabled={
+                uploadingImage ||
+                zoom <= 1
+              }
+              aria-label="Zoom out"
+              sx={{
+                width: 42,
+                height: 42,
+                borderRadius: 0,
+                color: "#555",
+
+                "&:hover": {
+                  bgcolor:
+                    "#f5f5f5",
+                },
+              }}
+            >
+              <ZoomOut />
+            </IconButton>
+          </Box>
+
+          {/* =====================================================
+              GREEN CHECK BUTTON
+          ===================================================== */}
+
+          <Box
+            sx={{
+              position: "absolute",
+              right: {
+                xs: 14,
+                sm: 18,
+              },
+              bottom: {
+                xs: 14,
+                sm: 18,
+              },
+              zIndex: 20,
+            }}
+          >
+            <IconButton
+              onClick={
+                handleCropAndUpload
+              }
+              disabled={
+                uploadingImage ||
+                !croppedAreaPixels
+              }
+              aria-label="Upload cropped photo"
+              sx={{
+                width: {
+                  xs: 58,
+                  sm: 68,
+                },
+                height: {
+                  xs: 58,
+                  sm: 68,
+                },
+                bgcolor: "#20b968",
+                color: "#fff",
+                boxShadow:
+                  "0 4px 15px rgba(0,0,0,0.3)",
+
+                "&:hover": {
+                  bgcolor: "#18a85d",
+                },
+
+                "&:active": {
+                  transform:
+                    "scale(0.94)",
+                },
+
+                "&.Mui-disabled": {
+                  bgcolor:
+                    "#9e9e9e",
+                  color: "#fff",
+                },
+
+                transition:
+                  "transform 0.15s ease, background-color 0.15s ease",
+              }}
+            >
+              {uploadingImage ? (
+                <CircularProgress
+                  size={28}
+                  thickness={3}
+                  sx={{
+                    color: "#fff",
+                  }}
+                />
+              ) : (
+                <Check
+                  sx={{
+                    fontSize: {
+                      xs: 30,
+                      sm: 34,
+                    },
+                    fontWeight: 700,
+                  }}
+                />
+              )}
+            </IconButton>
+          </Box>
+        </Box>
+      </Dialog>
+
+      {/* =====================================================
+          FULL-SIZE PHOTO PREVIEW
+      ===================================================== */}
 
       <Dialog
         open={imagePreviewOpen}
-        onClose={handleClosePreview}
-        maxWidth="sm"
+        onClose={
+          handleClosePreview
+        }
+        maxWidth="xs"
         fullWidth
       >
         <DialogContent
           sx={{
             display: "flex",
-            justifyContent: "center",
+            justifyContent:
+              "center",
             alignItems: "center",
             position: "relative",
             p: 0,
-            backgroundColor: "#000",
+            backgroundColor:
+              "#000",
           }}
         >
           <IconButton
-            onClick={handleClosePreview}
+            onClick={
+              handleClosePreview
+            }
             aria-label="Close preview"
             sx={{
-              position: "absolute",
+              position:
+                "absolute",
               top: 8,
               right: 8,
-              backgroundColor: "rgba(0,0,0,0.5)",
+              zIndex: 2,
+              backgroundColor:
+                "rgba(0,0,0,0.5)",
               color: "#fff",
 
               "&:hover": {
-                backgroundColor: "rgba(0,0,0,0.7)",
+                backgroundColor:
+                  "rgba(0,0,0,0.7)",
               },
             }}
           >
@@ -2144,11 +3646,15 @@ function Profile() {
             <Box
               component="img"
               src={currentAvatarSrc}
-              alt={user.name || "Profile"}
+              alt={
+                user.name ||
+                "Profile"
+              }
               sx={{
                 width: "100%",
                 maxHeight: "80vh",
-                objectFit: "contain",
+                objectFit:
+                  "contain",
                 display: "block",
               }}
             />

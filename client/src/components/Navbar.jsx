@@ -1206,8 +1206,6 @@ const Navbar = ({
 
             {/* LIVE CLASSES */}
 
-            {/* LIVE CLASSES */}
-
             {user?.role !== "admin" && (
               <Button
                 color="inherit"
@@ -1332,8 +1330,8 @@ const Navbar = ({
                   handleOpenProfile
                 }
                 sx={{
-                  // ml: 0.5,
-                  p: 0.4,
+                  // ml: 0.5, 
+                  p: 0, 
                   borderRadius: "50%",
                 }}
               >
@@ -1458,13 +1456,13 @@ const Navbar = ({
           paper: {
             sx: {
               width: {
-                xs: 280,
-                sm: 280,
+                xs: 230,
+                sm: 250,
               },
 
               maxWidth: "calc(100vw - 12px)",
 
-              mt: 1,
+              mt: 1, 
               borderRadius: "14px",
 
               // MOBILE: right side se 0/very close
@@ -1492,12 +1490,12 @@ const Navbar = ({
 
         <Box
           sx={{
-            px: 1.8,
+            px: 1.8, 
             py: 1,
 
             display: "flex",
 
-            alignItems: "center",
+            alignItems: "center", 
 
             justifyContent:
               "space-between",
@@ -1565,14 +1563,9 @@ const Navbar = ({
                   unreadCount === 0
                 }
                 sx={{
-                  textTransform:
-                    "none",
-
-                  fontSize:
-                    "0.78rem",
-
+                  textTransform:"none",
+                  fontSize:  "0.78rem",
                   fontWeight: 600,
-
                   minWidth: "auto",
 
                   px: 1,
@@ -1728,7 +1721,7 @@ const Navbar = ({
           isMobile && (
             <Box
               sx={{
-                px: 1.5,
+                px: 1.5,  
                 py: 0.5,
 
                 textAlign: "center",
@@ -1768,7 +1761,7 @@ const Navbar = ({
           paper: {
             sx: {
               width: {
-                xs: 290,
+                xs: 250, 
                 sm: 320,
               },
 

@@ -54,6 +54,11 @@ export const updateProfile = (data) => {
   return api.put("/auth/profile", data);
 };
 
+// Remove profile picture
+export const removeProfilePicture = () => {
+  return api.delete("/users/profile-picture");
+};
+
 // =========================
 // CHANGE PASSWORD
 // =========================
@@ -75,7 +80,7 @@ export const uploadProfilePicture = (file) => {
     "/users/profile-picture",
     formData
   );
-};
+};  
 
 // =========================
 // REFRESH ACCESS TOKEN
