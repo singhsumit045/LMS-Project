@@ -1567,7 +1567,6 @@ const Navbar = ({
                   fontSize:  "0.78rem",
                   fontWeight: 600,
                   minWidth: "auto",
-
                   px: 1,
                 }}
               >
@@ -1589,11 +1588,8 @@ const Navbar = ({
 
                   fontSize:
                     "0.78rem",
-
                   fontWeight: 600,
-
                   minWidth: "auto",
-
                   px: 1,
                 }}
               >

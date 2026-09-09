@@ -23,13 +23,13 @@ export class LiveClass {
   @Column()
   teacherId!: number;
 
-  @Column({ type: 'datetime' })
+  @Column({ type: 'timestamp' })
   scheduledAt!: Date;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   startedAt!: Date | null;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   endedAt!: Date | null;
 
   @Column({ default: false })

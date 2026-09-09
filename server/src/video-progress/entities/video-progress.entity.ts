@@ -29,7 +29,7 @@ export class VideoProgress {
   completed!: boolean;
 
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
     nullable: true,
   })
   completedAt!: Date | null;

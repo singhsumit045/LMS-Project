@@ -17,7 +17,7 @@ export class Enrollment {
   id!: number;
 
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
   })
   enrolledAt!: Date;

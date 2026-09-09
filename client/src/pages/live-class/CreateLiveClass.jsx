@@ -555,7 +555,7 @@ const CreateLiveClass = () => {
 
                 <TextField
                   fullWidth
-                  type="datetime-local"
+                  type="timestamp-local"
                   label="Scheduled Date & Time"
                   name="scheduledAt"
                   value={form.scheduledAt}

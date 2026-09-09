@@ -108,7 +108,7 @@ export class User {
   // =====================================================
 
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
     nullable: true,
   })
   lastSeen!: Date | null;
@@ -152,7 +152,7 @@ export class User {
 resetPasswordToken!: string | null;
 
 @Column({
-  type: 'datetime',
+  type: 'timestamp',
   nullable: true,
 })
 resetPasswordExpires!: Date | null;
@@ -165,7 +165,7 @@ resetPasswordExpires!: Date | null;
 resetPasswordOtp!: string | null;
 
 @Column({
-  type: 'datetime',
+  type: 'timestamp',
   nullable: true,
 })
 resetPasswordOtpExpires!: Date | null;
@@ -178,7 +178,7 @@ resetPasswordOtpExpires!: Date | null;
 emailVerificationOtp!: string | null;
 
 @Column({
-  type: 'datetime',
+  type: 'timestamp',
   nullable: true,
 })
 emailVerificationOtpExpires!: Date | null;
