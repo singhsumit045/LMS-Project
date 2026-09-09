@@ -5,13 +5,13 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe()); 
 
-  const allowedOrigins = Array.from(
+  const allowedOrigins = Array.from( 
     new Set(
       [
         'http://localhost:5173',
-        // 'http://192.168.5.78:5173',   
+        // 'http://192.168.5.78:5173',  
         'https://lms-project-fawn-omega.vercel.app',   
         process.env.FRONTEND_URL,  
       ].filter(Boolean),
@@ -23,9 +23,9 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const port = Number(process.env.PORT) || 8080;
+  const port = Number(process.env.PORT) || 8080;  
 
-  await app.listen(port, '0.0.0.0'); 
+  await app.listen(port, '0.0.0.0');  
 
   console.log(`Backend running on port ${port}`);  
 }
