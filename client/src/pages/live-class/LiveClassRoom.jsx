@@ -43,7 +43,11 @@ import SettingsIcon from "@mui/icons-material/Settings";
 // ============================================================
 
 const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL || "http://localhost:8080";
+  (
+    import.meta.env.VITE_SOCKET_URL ||
+    import.meta.env.VITE_API_BASE_URL ||
+    "http://localhost:8080"
+  ).replace(/\/+$/, "");
 
 // ============================================================
 // HELPERS
@@ -256,6 +260,10 @@ const LiveClassRoom = () => {
   // ==========================================================
 
   const socketRef = useRef(null);
+
+  const socketAuthenticatedRef = useRef(false);
+
+  const pendingJoinRef = useRef(false);
 
   const localStreamRef = useRef(null);
 
@@ -1555,9 +1563,18 @@ const LiveClassRoom = () => {
 
       try {
         setConnecting(true);
+        pendingJoinRef.current = true;
 
         if (!localStreamRef.current) {
           await getUserMedia();
+        }
+
+        if (!socketAuthenticatedRef.current) {
+          console.log(
+            "⏳ Waiting for socket authentication before joining."
+          );
+
+          return;
         }
 
         console.log(
@@ -1571,6 +1588,8 @@ const LiveClassRoom = () => {
             liveClassId,
           }
         );
+
+        pendingJoinRef.current = false;
       } catch (error) {
         console.error(
           "Join live class error:",
@@ -1582,6 +1601,7 @@ const LiveClassRoom = () => {
             "Unable to join live class."
         );
 
+        pendingJoinRef.current = false;
         setConnecting(false);
       }
     }, [
@@ -1670,10 +1690,22 @@ const LiveClassRoom = () => {
             }
 
             /*
-             * IMPORTANT:
-             * Join only after socket authentication.
+             * Students join immediately after authentication.
+             * Teachers join from the preview dialog, so their
+             * local media and explicit intent are ready first.
              */
-            joinLiveClass();
+            socketAuthenticatedRef.current = true;
+
+            const authenticatedRole = String(
+              data?.role || ""
+            ).toLowerCase();
+
+            if (
+              authenticatedRole !== "teacher" ||
+              pendingJoinRef.current
+            ) {
+              joinLiveClass();
+            }
           }
         );
 
@@ -2046,6 +2078,8 @@ const LiveClassRoom = () => {
 
       setSocketConnected(false);
       setJoined(false);
+      socketAuthenticatedRef.current = false;
+      pendingJoinRef.current = false;
       /*
        * FIX: cleanupConnections used to depend on
        * [previewStream, screenShareStream] state. Every time

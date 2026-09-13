@@ -6,8 +6,8 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { CoursesModule } from './courses/courses.module';
-import { EnrollmentsModule } from './enrollments/enrollments.module';
-import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { EnrollmentsModule } from './enrollments/enrollments.module';    
+import { CloudinaryModule } from './cloudinary/cloudinary.module';       
 import { VideosModule } from './videos/videos.module';
 import { AdminModule } from './admin/admin.module';
 import { PresenceModule } from './presence/presence.module';
@@ -17,9 +17,9 @@ import { AnnouncementsModule } from './announcements/announcements.module';
 import { ExamsModule } from './exams/exams.module';
 import { CertificatesModule } from './certificates/certificates.module';
 import { RatingsModule } from './ratings/ratings.module';
-import { NotificationsModule } from './notifications/notifications.module';
+import { NotificationsModule } from './notifications/notifications.module'; 
 import { MailModule } from './mail/mail.module';
-import { LiveClassModule } from './live-class/live-class.module';
+import { LiveClassModule } from './live-class/live-class.module';  
 import { AiModule } from './ai/ai.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
@@ -34,7 +34,7 @@ import { ScheduleModule } from '@nestjs/schedule';
   type: 'postgres',
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
-  username: process.env.DB_USERNAME,
+  username: process.env.DB_USERNAME, 
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
   autoLoadEntities: true,

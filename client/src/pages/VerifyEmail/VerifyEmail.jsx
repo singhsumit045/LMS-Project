@@ -245,7 +245,7 @@ const VerifyEmail = () => {
                             disabled={loading}
                             autoComplete="email"
                             sx={{ mb: 2.5 }}
-                            InputProps={{
+                            slotProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
                                         <EmailOutlined color="action" />
@@ -261,9 +261,18 @@ const VerifyEmail = () => {
                             value={otp}
                             onChange={handleOtpChange}
                             disabled={loading}
-                            inputProps={{
-                                maxLength: 6,
-                                inputMode: "numeric",
+                            slotProps={{
+                                input: {
+                                    inputProps: {
+                                        maxLength: 6,
+                                        inputMode: "numeric",
+                                    },
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <LockOutlined color="action" />
+                                        </InputAdornment>
+                                    ),
+                                },
                             }}
                             sx={{
                                 mb: 2.5,
@@ -273,13 +282,6 @@ const VerifyEmail = () => {
                                     textAlign: "center",
                                     fontSize: "1.2rem",
                                 },
-                            }}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <LockOutlined color="action" />
-                                    </InputAdornment>
-                                ),
                             }}
                         />
 

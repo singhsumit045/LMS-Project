@@ -553,30 +553,28 @@ const CreateLiveClass = () => {
 
                 {/* SCHEDULE */}
 
-                <TextField
-                  fullWidth
-                  type="timestamp-local"
-                  label="Scheduled Date & Time"
-                  name="scheduledAt"
-                  value={form.scheduledAt}
-                  onChange={handleChange}
-                  slotProps={{
-                    inputLabel: {
-                      shrink: true,
-                    },
-                  }}
-                  sx={{
-                    "& input::-webkit-calendar-picker-indicator": {
-                      filter: (theme) =>
-                        theme.palette.mode === "dark"
-                          ? "invert(1)"
-                          : "none",
-                      cursor: "pointer",
-                    },
-                  }}
-                  required
-                  disabled={loading}
-                />
+              <TextField
+  fullWidth
+  type="datetime-local"
+  label="Scheduled Date & Time"
+  name="scheduledAt"
+  value={form.scheduledAt}
+  onChange={handleChange}
+  slotProps={{
+    inputLabel: {
+      shrink: true,
+    },
+  }}
+  sx={{
+    "& input::-webkit-calendar-picker-indicator": {
+      filter: (theme) =>
+        theme.palette.mode === "dark" ? "invert(1)" : "none",
+      cursor: "pointer",
+    },
+  }}
+  required
+  disabled={loading}
+/>
 
                 {/* BUTTONS */}
 

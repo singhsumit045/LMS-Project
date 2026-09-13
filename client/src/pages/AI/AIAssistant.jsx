@@ -68,7 +68,7 @@ const AIAssistant = () => {
         content: question,
       },
     ]);
-
+   
     // Clear input
     setMessage("");
 
@@ -79,7 +79,7 @@ const AIAssistant = () => {
     try {
       const response = await aiService.chat(question);
 
-      console.log("AI RESPONSE:", response);
+      // console.log("AI RESPONSE:", response);  
 
       let aiMessage = "";
 
@@ -430,8 +430,7 @@ const AIAssistant = () => {
               {error}
             </Alert>
           </Box>
-        )}
-
+        )}  
         <Divider />
 
         {/* =========================

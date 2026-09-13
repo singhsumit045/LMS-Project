@@ -26,8 +26,11 @@ export class Video {
   @Column()
   courseId!: number;
 
-  @Column({ nullable: true })
-  duration!: number;
+  @Column({
+    type: 'double precision',
+    nullable: true,
+  })
+  duration!: number | null;
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -204,13 +204,13 @@ const LiveClasses = () => {
   // ==========================================================
 
   const handleJoin = (liveClass) => {
-    navigate(`/live-classes/${liveClass.id}`);
+    navigate(`/live-class/${liveClass.id}`);
   };
 
   const handleStart = async (liveClass) => {
     try {
       await startLiveClass(liveClass.id);
-      navigate(`/live-classes/${liveClass.id}`);
+      navigate(`/live-class/${liveClass.id}`);
     } catch (err) {
       console.error("Start live class error:", err);
       setError(err?.message || "Unable to start live class.");

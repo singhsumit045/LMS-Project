@@ -45,7 +45,7 @@ async uploadVideo(
     videoUrl: result.secure_url,
     publicId: result.public_id,
     courseId,
-    duration: result.duration,
+    duration: Number(result.duration) || null,
   });
 
   const savedVideo =

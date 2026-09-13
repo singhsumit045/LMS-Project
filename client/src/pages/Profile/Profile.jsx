@@ -747,108 +747,108 @@ function Profile() {
   // CROP + UPLOAD
   // =====================================================
 
-  const handleCropAndUpload = async () => {
-    if (uploadingImage) {
+ const handleCropAndUpload = async () => {
+  if (uploadingImage) {
+    return;
+  }
+
+  try {
+    setUploadingImage(true);
+
+    setError("");
+    setSuccess("");
+
+    // Close crop dialog immediately
+    setCropOpen(false);
+
+    const croppedFile =
+      await createCroppedImage();
+
+    if (!croppedFile) {
+      setError(
+        "Unable to crop image."
+      );
+
       return;
     }
 
-    try {
-      setUploadingImage(true);
-
-      setError("");
-      setSuccess("");
-
-      const croppedFile =
-        await createCroppedImage();
-
-      if (!croppedFile) {
-        setError(
-          "Unable to crop image."
-        );
-
-        return;
-      }
-
-      const response =
-        await uploadProfilePicture(
-          croppedFile
-        );
-
-      const profileImageUrl =
-        response.data.profileImageUrl;
-
-      const profileImagePublicId =
-        response.data.profileImagePublicId;
-
-      setUser((previous) => {
-        const updatedUser = {
-          ...previous,
-          profileImageUrl,
-          ...(profileImagePublicId && {
-            profileImagePublicId,
-          }),
-        };
-
-        localStorage.setItem(
-          "user",
-          JSON.stringify(updatedUser)
-        );
-
-        window.dispatchEvent(
-          new CustomEvent(
-            "profileUpdated",
-            {
-              detail: updatedUser,
-            }
-          )
-        );
-
-        return updatedUser;
-      });
-
-      setSuccess(
-        "Profile picture updated successfully."
+    const response =
+      await uploadProfilePicture(
+        croppedFile
       );
 
-      // Close crop dialog
-      setCropOpen(false);
+    const profileImageUrl =
+      response.data.profileImageUrl;
 
-      // Cleanup object URL
-      if (profileImagePreview) {
-        URL.revokeObjectURL(
-          profileImagePreview
-        );
-      }
+    const profileImagePublicId =
+      response.data.profileImagePublicId;
 
-      // Reset temporary states
-      setProfileImageFile(null);
-      setProfileImagePreview("");
+    setUser((previous) => {
+      const updatedUser = {
+        ...previous,
+        profileImageUrl,
+        ...(profileImagePublicId && {
+          profileImagePublicId,
+        }),
+      };
 
-      setCroppedAreaPixels(null);
-
-      setCrop({
-        x: 0,
-        y: 0,
-      });
-
-      setZoom(1);
-    } catch (error) {
-      console.log(error);
-
-      const message =
-        error.response?.data?.message;
-
-      setError(
-        Array.isArray(message)
-          ? message.join(", ")
-          : message ||
-          "Unable to upload profile picture."
+      localStorage.setItem(
+        "user",
+        JSON.stringify(updatedUser)
       );
-    } finally {
-      setUploadingImage(false);
+
+      window.dispatchEvent(
+        new CustomEvent(
+          "profileUpdated",
+          {
+            detail: updatedUser,
+          }
+        )
+      );
+
+      return updatedUser;
+    });
+
+    setSuccess(
+      "Profile picture updated successfully."
+    );
+
+    // Cleanup object URL
+    if (profileImagePreview) {
+      URL.revokeObjectURL(
+        profileImagePreview
+      );
     }
-  };
 
+    // Reset temporary states
+    setProfileImageFile(null);
+    setProfileImagePreview("");
+
+    setCroppedAreaPixels(null);
+
+    setCrop({
+      x: 0,
+      y: 0,
+    });
+
+    setZoom(1);
+
+  } catch (error) {
+    console.log(error);
+
+    const message =
+      error.response?.data?.message;
+
+    setError(
+      Array.isArray(message)
+        ? message.join(", ")
+        : message ||
+          "Unable to upload profile picture."
+    );
+  } finally {
+    setUploadingImage(false);
+  }
+};
   // =====================================================
   // CANCEL CROP
   // =====================================================
@@ -1652,27 +1652,22 @@ function Profile() {
 
               {/* BUSY INDICATOR */}
 
-              {avatarBusy && (
-                <CircularProgress
-                  size="100%"
-                  thickness={2.5}
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    color:
-                      "primary.main",
-                    pointerEvents:
-                      "none",
-
-                    "& .MuiCircularProgress-circle":
-                    {
-                      strokeLinecap:
-                        "round",
-                    },
-                  }}
-                />
-              )}
+ {avatarBusy && (
+  <CircularProgress
+    variant="indeterminate"
+    thickness={2.8}
+    size={30}
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      color: "#fff",
+      pointerEvents: "none",
+      zIndex: 2,
+    }}
+  />
+)}
 
               {/* HIDDEN FILE INPUT */}
 
@@ -1813,7 +1808,6 @@ function Profile() {
                 {user.name}
               </Typography>
             )}
-
             {/* EMAIL */}
 
             <Typography
@@ -1875,7 +1869,7 @@ function Profile() {
               mb: 3,
             }}
           >
-            <AccountCircle color="primary" />
+            <AccountCircle color="primary" /> 
 
             <Typography
               variant="h6"
@@ -3212,387 +3206,350 @@ function Profile() {
           WHATSAPP-STYLE CROP DIALOG
       ===================================================== */}
 
-      <Dialog
-        open={cropOpen}
-        onClose={() => {
-          if (!uploadingImage) {
-            handleProfilePictureCancel();
-          }
-        }}
-        maxWidth={false}
-        fullWidth={false}
-        aria-labelledby="crop-dialog-title"
-        PaperProps={{
-          sx: {
-            width: {
-              xs: "calc(100vw - 24px)",
-              sm: "720px", 
-            },
-            maxWidth: {
-              xs: "calc(100vw - 24px)", 
-              sm: "720px", 
-            },
-            minWidth: 0,
-            m: {
-              xs: 1,
-              sm: 2,
-            },
-            borderRadius: {
-              xs: 2,
-              sm: 3,
-            },
-            overflow: "hidden",
-            bgcolor: "#fff",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
-          },
-        }}
-        slotProps={{
-          backdrop: {
-            sx: {
-              backgroundColor: "rgba(0,0,0,0.45)",
-            },
-          },
-        }}
-      >  
-        {/* =====================================================
-            CROP HEADER
-        ===================================================== */}
+ <Dialog
+  open={cropOpen}
+  onClose={() => {
+    if (!uploadingImage) {
+      handleProfilePictureCancel();
+    }
+  }}
+  maxWidth={false}
+  fullWidth={false}
+  aria-labelledby="crop-dialog-title"
+  PaperProps={{
+    sx: {
+      width: {
+        xs: "calc(100vw - 24px)",
+        sm: "720px",
+      },
+      maxWidth: {
+        xs: "calc(100vw - 24px)",
+        sm: "720px",
+      },
+      minWidth: 0,
+      m: {
+        xs: 1,
+        sm: 2,
+      },
+      borderRadius: {
+        xs: 2,
+        sm: 3,
+      },
+      overflow: "hidden",
+      bgcolor: "#fff",
+      boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
+    },
+  }}
+  slotProps={{
+    backdrop: {
+      sx: {
+        backgroundColor: "rgba(0,0,0,0.45)",
+      },
+    },
+  }}
+>
+  {/* =====================================================
+      CROP HEADER
+  ===================================================== */}
 
-        <Box
-          sx={{
-            height: 54,
-            px: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent:
-              "space-between",
-            bgcolor: "#fff",
-            borderBottom: "1px solid",
-            borderColor: "#eeeeee",
-          }}
-        >
-          {/* CLOSE */}
+  <Box
+    sx={{
+      height: 54,
+      px: 1,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      bgcolor: "#fff",
+      borderBottom: "1px solid",
+      borderColor: "#eeeeee",
+    }}
+  >
+    {/* CLOSE */}
 
-          <IconButton
-            onClick={
-              handleProfilePictureCancel
-            }
-            disabled={uploadingImage}
-            aria-label="Close crop dialog"
-            sx={{
-              width: 42,
-              height: 42,
-              color: "#444",
+    <IconButton
+      onClick={handleProfilePictureCancel}
+      disabled={uploadingImage}
+      aria-label="Close crop dialog"
+      sx={{
+        width: 42,
+        height: 42,
+        color: "#444",
 
-              "&:hover": {
-                bgcolor: "#f5f5f5",
-              },
-            }}
-          >
-            <Close />
-          </IconButton>
+        "&:hover": {
+          bgcolor: "#f5f5f5",
+        },
+      }}
+    >
+      <Close />
+    </IconButton>
 
-          {/* TITLE */}
+    {/* TITLE */}
 
-          <Typography
-            sx={{
-              flex: 1,
-              px: 1,
-              fontSize: {
-                xs: "0.95rem",
-                sm: "1rem",
-              },
-              fontWeight: 500,
-              color: "#222",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            Drag the image to adjust
-          </Typography>
+    <Typography
+      id="crop-dialog-title"
+      sx={{
+        flex: 1,
+        px: 1,
+        fontSize: {
+          xs: "0.95rem",
+          sm: "1rem",
+        },
+        fontWeight: 500,
+        color: "#222",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+      }}
+    >
+      Drag the image to adjust
+    </Typography>
 
-          {/* UPLOAD */}
+    {/* UPLOAD */}
 
-          <Button
-            onClick={
-              handleCropAndUpload
-            }
-            disabled={
-              uploadingImage ||
-              !croppedAreaPixels
-            }
-            sx={{
-              minWidth: "auto",
-              px: 1.5,
-              height: 42,
-              color: "#222",
-              fontSize: {
-                xs: "0.9rem",
-                sm: "0.95rem",
-              },
-              fontWeight: 500,
-              textTransform: "none",
+    <Button
+      onClick={handleCropAndUpload}
+      disabled={
+        uploadingImage ||
+        !croppedAreaPixels
+      }
+      sx={{
+        minWidth: "auto",
+        px: 1.5,
+        height: 42,
+        color: "#222",
+        fontSize: {
+          xs: "0.9rem",
+          sm: "0.95rem",
+        },
+        fontWeight: 500,
+        textTransform: "none",
 
-              "&:hover": {
-                bgcolor: "#f5f5f5",
-              },
-            }}
-          >
-            {uploadingImage
-              ? "Uploading..."
-              : "Upload"}
-          </Button>
-        </Box>
+        "&:hover": {
+          bgcolor: "#f5f5f5",
+        },
+      }}
+    >
+      {uploadingImage
+        ? "Uploading..."
+        : "Upload"}
+    </Button>
+  </Box>
 
-        {/* =====================================================
-            CROP AREA
-        ===================================================== */}
+  {/* =====================================================
+      CROP AREA
+  ===================================================== */}
 
-        <Box
-          sx={{
-            position: "relative",
+  <Box
+    sx={{
+      position: "relative",
+      width: "100%",
+      height: {
+        xs: "calc(100vw - 24px)",
+        sm: "380px",
+      },
+      bgcolor: "#858585",
+      overflow: "hidden",
+    }}
+  >
+    {/* CROP IMAGE */}
+
+    {profileImagePreview && (
+      <Cropper
+        image={profileImagePreview}
+        crop={crop}
+        zoom={zoom}
+        aspect={1}
+        cropShape="round"
+        showGrid={false}
+        restrictPosition
+        minZoom={1}
+        maxZoom={3}
+        onCropChange={setCrop}
+        onZoomChange={setZoom}
+        onCropComplete={handleCropComplete}
+        style={{
+          containerStyle: {
             width: "100%",
-            height: {
-              xs: "calc(100vw - 24px)",
-              sm: "380px",
+            height: "100%",
+            backgroundColor: "#858585",
+          },
+
+          cropAreaStyle: {
+            border:
+              "2px solid rgba(255,255,255,0.95)",
+
+            boxShadow:
+              "0 0 0 9999px rgba(0,0,0,0.28)",
+          },
+        }}
+      />
+    )}
+
+    {/* =====================================================
+        ZOOM CONTROLS
+    ===================================================== */}
+
+    <Box
+      sx={{
+        position: "absolute",
+        right: {
+          xs: 12,
+          sm: 16,
+        },
+        top: "50%",
+        transform: "translateY(-50%)",
+        display: "flex",
+        flexDirection: "column",
+        bgcolor: "#fff",
+        borderRadius: 2,
+        overflow: "hidden",
+        boxShadow:
+          "0 3px 12px rgba(0,0,0,0.25)",
+        zIndex: 10,
+      }}
+    >
+      {/* ZOOM IN */}
+
+      <IconButton
+        onClick={() =>
+          setZoom((previous) =>
+            Math.min(
+              3,
+              Number(
+                (
+                  previous + 0.1
+                ).toFixed(1)
+              )
+            )
+          )
+        }
+        disabled={
+          uploadingImage ||
+          zoom >= 3
+        }
+        aria-label="Zoom in"
+        sx={{
+          width: 42,
+          height: 42,
+          borderRadius: 0,
+          color: "#555",
+
+          "&:hover": {
+            bgcolor: "#f5f5f5",
+          },
+        }}
+      >
+        <ZoomIn />
+      </IconButton>
+
+      <Divider />
+
+      {/* ZOOM OUT */}
+
+      <IconButton
+        onClick={() =>
+          setZoom((previous) =>
+            Math.max(
+              1,
+              Number(
+                (
+                  previous - 0.1
+                ).toFixed(1)
+              )
+            )
+          )
+        }
+        disabled={
+          uploadingImage ||
+          zoom <= 1
+        }
+        aria-label="Zoom out"
+        sx={{
+          width: 42,
+          height: 42,
+          borderRadius: 0,
+          color: "#555",
+
+          "&:hover": {
+            bgcolor: "#f5f5f5",
+          },
+        }}
+      >
+        <ZoomOut />
+      </IconButton>
+    </Box>
+
+    {/* =====================================================
+        GREEN CHECK BUTTON
+    ===================================================== */}
+
+    <Box
+      sx={{
+        position: "absolute",
+        right: {
+          xs: 14,
+          sm: 18,
+        },
+        bottom: {
+          xs: 14,
+          sm: 18,
+        },
+        zIndex: 20,
+      }}
+    >
+      <IconButton
+        onClick={handleCropAndUpload}
+        disabled={
+          uploadingImage ||
+          !croppedAreaPixels
+        }
+        aria-label="Upload cropped photo"
+        sx={{
+          width: {
+            xs: 58,
+            sm: 68,
+          },
+          height: {
+            xs: 58,
+            sm: 68,
+          },
+
+          bgcolor: "#20b968",
+          color: "#fff",
+
+          boxShadow:
+            "0 4px 15px rgba(0,0,0,0.3)",
+
+          "&:hover": {
+            bgcolor: "#18a85d",
+          },
+
+          "&:active": {
+            transform: "scale(0.94)",
+          },
+
+          "&.Mui-disabled": {
+            bgcolor: "#9e9e9e",
+            color: "#fff",
+          },
+
+          transition:
+            "transform 0.15s ease, background-color 0.15s ease",
+        }}
+      >
+        <Check
+          sx={{
+            fontSize: {
+              xs: 30,
+              sm: 34,
             },
-            // maxHeight: {
-            //   xs: "calc(100vw - 24px)",
-            //   sm: "380px",
-            // },
-            bgcolor: "#858585",
-            overflow: "hidden",
+            fontWeight: 700,
           }}
-        >
-          {/* CROP IMAGE */}
-
-          {profileImagePreview && (
-            <Cropper
-              image={
-                profileImagePreview
-              }
-              crop={crop}
-              zoom={zoom}
-              aspect={1}
-              cropShape="round"
-              showGrid={false}
-              restrictPosition
-              minZoom={1}
-              maxZoom={3}
-              onCropChange={
-                setCrop
-              }
-              onZoomChange={
-                setZoom
-              }
-              onCropComplete={
-                handleCropComplete
-              }
-              style={{
-                containerStyle: {
-                  width: "100%",
-                  height: "100%",
-                  backgroundColor:
-                    "#858585",
-                },
-
-                // mediaStyle: {
-                //   maxWidth: "none",
-                // },
-
-                cropAreaStyle: {
-                  border:
-                    "2px solid rgba(255,255,255,0.95)",
-                  boxShadow:
-                    "0 0 0 9999px rgba(0,0,0,0.28)",
-                },
-              }}
-            />
-          )}
-
-          {/* =====================================================
-              ZOOM CONTROLS
-          ===================================================== */}
-
-          <Box
-            sx={{
-              position: "absolute",
-              right: {   xs: 12, sm: 16,  },
-              top: "50%",
-              transform:
-                "translateY(-50%)",
-              display: "flex",
-              flexDirection:
-                "column",
-              bgcolor: "#fff",
-              borderRadius: 2,
-              overflow: "hidden",
-              boxShadow:
-                "0 3px 12px rgba(0,0,0,0.25)",
-              zIndex: 10,
-            }}
-          >
-            {/* ZOOM IN */}
-
-            <IconButton
-              onClick={() =>
-                setZoom(
-                  (previous) =>
-                    Math.min(
-                      3,
-                      Number(
-                        (
-                          previous +
-                          0.1
-                        ).toFixed(1)
-                      )
-                    )
-                )
-              }
-              disabled={
-                uploadingImage ||
-                zoom >= 3
-              }
-              aria-label="Zoom in"
-              sx={{
-                width: 42,
-                height: 42,
-                borderRadius: 0,
-                color: "#555",
-
-                "&:hover": {
-                  bgcolor:
-                    "#f5f5f5",
-                },
-              }}
-            >
-              <ZoomIn />
-            </IconButton>
-
-            <Divider />
-
-            {/* ZOOM OUT */}
-
-            <IconButton
-              onClick={() =>
-                setZoom(
-                  (previous) =>
-                    Math.max(
-                      1,
-                      Number(
-                        (
-                          previous -
-                          0.1
-                        ).toFixed(1)
-                      )
-                    )
-                )
-              }
-              disabled={
-                uploadingImage ||
-                zoom <= 1
-              }
-              aria-label="Zoom out"
-              sx={{
-                width: 42,
-                height: 42,
-                borderRadius: 0,
-                color: "#555",
-
-                "&:hover": {
-                  bgcolor:
-                    "#f5f5f5",
-                },
-              }}
-            >
-              <ZoomOut />
-            </IconButton>
-          </Box>
-
-          {/* =====================================================
-              GREEN CHECK BUTTON
-          ===================================================== */}
-
-          <Box
-            sx={{
-              position: "absolute",
-              right: {
-                xs: 14,
-                sm: 18,
-              },
-              bottom: {
-                xs: 14,
-                sm: 18,
-              },
-              zIndex: 20,
-            }}
-          >
-            <IconButton
-              onClick={
-                handleCropAndUpload
-              }
-              disabled={
-                uploadingImage ||
-                !croppedAreaPixels
-              }
-              aria-label="Upload cropped photo"
-              sx={{
-                width: {
-                  xs: 58,
-                  sm: 68,
-                },
-                height: {
-                  xs: 58,
-                  sm: 68,
-                },
-                bgcolor: "#20b968",
-                color: "#fff",
-                boxShadow:
-                  "0 4px 15px rgba(0,0,0,0.3)",
-
-                "&:hover": {
-                  bgcolor: "#18a85d",
-                },
-
-                "&:active": {
-                  transform:
-                    "scale(0.94)",
-                },
-
-                "&.Mui-disabled": {
-                  bgcolor:
-                    "#9e9e9e",
-                  color: "#fff",
-                },
-
-                transition:
-                  "transform 0.15s ease, background-color 0.15s ease",
-              }}
-            >
-              {uploadingImage ? (
-                <CircularProgress
-                  size={28}
-                  thickness={3}
-                  sx={{
-                    color: "#fff",
-                  }}
-                />
-              ) : (
-                <Check
-                  sx={{
-                    fontSize: {
-                      xs: 30,
-                      sm: 34,
-                    },
-                    fontWeight: 700,
-                  }}
-                />
-              )}
-            </IconButton>
-          </Box>
-        </Box>
-      </Dialog>
+        />
+      </IconButton>
+    </Box>
+  </Box>
+</Dialog>
 
       {/* =====================================================
           FULL-SIZE PHOTO PREVIEW
