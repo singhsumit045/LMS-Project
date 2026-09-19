@@ -169,12 +169,14 @@ const Login = () => {
                 sx={{
                     width: "100%",
                     minHeight: "100dvh",
+                    height: "100dvh",
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    p: { xs: 0, sm: 2.5, md: 3 },
+                    alignItems: "stretch",
+                    justifyContent: "stretch",
+                    p: 0,
                     boxSizing: "border-box",
                     backgroundColor: isDark ? "#121212" : "#f5f6f8",
+                    overflow: "hidden",
                 }}
             >
                 <Fade in timeout={500}>
@@ -182,17 +184,18 @@ const Login = () => {
                         elevation={0}
                         sx={{
                             width: "100%",
-                            // Tuned for phones / iPad portrait (sm) / iPad landscape (md-lg) / laptop+ (xl)
-                            maxWidth: { xs: "100%", sm: 680, md: 860, lg: 1000, xl: 1100 },
-                            minHeight: { xs: "100dvh", sm: "auto" },
+                            height: "100%",
+                            minHeight: "100dvh",
+                            maxWidth: "none",
+
                             display: "flex",
                             flexDirection: { xs: "column", sm: "row" },
-                            borderRadius: { xs: 0, sm: 3 },
+
+                            borderRadius: 0,
                             overflow: "hidden",
-                            border: "1px solid",
-                            borderColor: isDark
-                                ? "rgba(255,255,255,0.08)"
-                                : "rgba(15,23,42,0.08)",
+
+                            border: "none",
+
                             backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
                         }}
                     >
@@ -509,7 +512,7 @@ const Login = () => {
                                                             aria-label={showPassword ? "Hide password" : "Show password"}
                                                             sx={{ color: isDark ? "#ffffff" : "#4b5563" }}
                                                         >
-                                                            {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                                                            {showPassword ? "🙈" : "👁️"}
                                                         </IconButton>
                                                     </InputAdornment>
                                                 ),

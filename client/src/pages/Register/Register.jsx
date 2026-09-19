@@ -16,7 +16,7 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 
 import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import VisibilityOff from "@mui/icons-material/VisibilityOff"; 
 import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
 import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
@@ -1015,11 +1015,7 @@ function Register() {
                                                                 "text.secondary",
                                                         }}
                                                     >
-                                                        {showPassword ? (
-                                                            <VisibilityOff fontSize="small" />
-                                                        ) : (
-                                                            <Visibility fontSize="small" />
-                                                        )}
+                                                       {showPassword ? "🙈" : "👁️"}
                                                     </IconButton>
                                                 </InputAdornment>
                                             ),
@@ -1156,34 +1152,27 @@ function Register() {
                                                 </InputAdornment>
                                             ),
 
-                                            endAdornment: (
-                                                <InputAdornment position="end">
-                                                    <IconButton
-                                                        onClick={() =>
-                                                            setShowConfirmPassword(
-                                                                !showConfirmPassword
-                                                            )
-                                                        }
-                                                        edge="end"
-                                                        size="small"
-                                                        aria-label={
-                                                            showConfirmPassword
-                                                                ? "Hide password"
-                                                                : "Show password"
-                                                        }
-                                                        sx={{
-                                                            color:
-                                                                "text.secondary",
-                                                        }}
-                                                    >
-                                                        {showConfirmPassword ? (
-                                                            <VisibilityOff fontSize="small" />
-                                                        ) : (
-                                                            <Visibility fontSize="small" />
-                                                        )}
-                                                    </IconButton>
-                                                </InputAdornment>
-                                            ),
+                                          endAdornment: (
+    <InputAdornment position="end">
+        <IconButton
+            onClick={() =>
+                setShowConfirmPassword(!showConfirmPassword)
+            }
+            edge="end"
+            size="small"
+            aria-label={
+                showConfirmPassword
+                    ? "Hide password"
+                    : "Show password"
+            }
+            sx={{
+                fontSize: "18px",
+            }}
+        >
+            {showConfirmPassword ? "🙈" : "👁️"}
+        </IconButton>
+    </InputAdornment>
+),
                                         },
                                     }}
                                     sx={fieldSx}
