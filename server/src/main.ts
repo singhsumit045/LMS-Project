@@ -10,7 +10,7 @@ async function bootstrap() {
   const allowedOrigins = Array.from( 
     new Set(
       [
-         'http://localhost:5173',  
+        //  'http://localhost:5173',   
         // 'http://localhost:5174', 
         // 'http://192.168.5.78:5173',  
         'https://lms-project-fawn-omega.vercel.app',   
