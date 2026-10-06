@@ -106,7 +106,7 @@ const ManageCourses = lazy(() =>
 // Live Classes (lazy)
 // =========================
 const LiveClassRoom = lazy(() =>
-  import("../pages/live-class/LiveClassRoom")
+  import("../pages/live-class/ZoomLiveClassRoom")
 );
 
 const LiveClasses = lazy(() => 

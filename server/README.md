@@ -31,6 +31,18 @@
 $ npm install
 ```
 
+## Zoom live classes
+
+Live-class creation uses a Zoom Server-to-Server OAuth app to create a scheduled Zoom meeting. Configure these variables in the server environment (never in the client):
+
+```env
+ZOOM_ACCOUNT_ID=your_zoom_account_id
+ZOOM_CLIENT_ID=your_zoom_client_id
+ZOOM_CLIENT_SECRET=your_zoom_client_secret
+```
+
+The Zoom app must have permission to create meetings for the account. The created meeting's participant `join_url` is saved with the live class and shown to the teacher to copy and share with students. Meetings are scheduled for 60 minutes by default.
+
 ## Compile and run the project
 
 ```bash

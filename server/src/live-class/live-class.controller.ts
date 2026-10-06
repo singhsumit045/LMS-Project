@@ -3,6 +3,7 @@ import {
     Controller,
     Get,
     Param,
+    Patch,
     Post,
     Req,
     UseGuards,
@@ -10,6 +11,7 @@ import {
 
 import { LiveClassService } from './live-class.service';
 import { CreateLiveClassDto } from './dto/create-live-class.dto';
+import { SetZoomMeetingUrlDto } from './dto/set-zoom-meeting-url.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -100,6 +102,20 @@ export class LiveClassController {
         return this.liveClassService.start(
             Number(id),
             teacherId,
+        );
+    }
+
+    @Patch(':id/zoom-meeting')
+    @Roles('teacher')
+    async setZoomMeetingUrl(
+        @Param('id') id: string,
+        @Body() dto: SetZoomMeetingUrlDto,
+        @Req() req: any,
+    ) {
+        return this.liveClassService.setZoomMeetingUrl(
+            Number(id),
+            req.user.id,
+            dto.zoomMeetingUrl,
         );
     }
 

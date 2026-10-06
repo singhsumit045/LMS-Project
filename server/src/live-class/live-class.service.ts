@@ -9,12 +9,14 @@ import { Repository } from 'typeorm';
 
 import { LiveClass } from './entities/live-class.entity';
 import { CreateLiveClassDto } from './dto/create-live-class.dto';
+import { ZoomMeetingService } from './zoom-meeting.service';
 
 @Injectable()
 export class LiveClassService {
     constructor(
         @InjectRepository(LiveClass)
         private readonly liveClassRepository: Repository<LiveClass>,
+        private readonly zoomMeetingService: ZoomMeetingService,
     ) {}
 
     // =====================================================
@@ -24,10 +26,19 @@ export class LiveClassService {
         dto: CreateLiveClassDto,
         teacherId: number,
     ): Promise<LiveClass> {
+        const zoomMeeting = dto.zoomMeetingUrl
+            ? { joinUrl: dto.zoomMeetingUrl }
+            : await this.zoomMeetingService.createMeeting(
+                dto.title,
+                dto.description ?? null,
+                dto.scheduledAt,
+            );
+
         const liveClass =
             this.liveClassRepository.create({
                 title: dto.title,
                 description: dto.description ?? null,
+                zoomMeetingUrl: zoomMeeting.joinUrl,
                 courseId: dto.courseId,
                 teacherId: Number(teacherId),
                 scheduledAt: dto.scheduledAt,
@@ -43,6 +54,29 @@ export class LiveClassService {
         return await this.liveClassRepository.save(
             liveClass,
         );
+    }
+
+    async setZoomMeetingUrl(
+        id: number,
+        teacherId: number,
+        zoomMeetingUrl: string,
+    ): Promise<LiveClass> {
+        const liveClass = await this.findById(id);
+
+        if (Number(liveClass.teacherId) !== Number(teacherId)) {
+            throw new ForbiddenException(
+                'You are not allowed to update this live class',
+            );
+        }
+
+        if (liveClass.isCompleted || liveClass.isCancelled) {
+            throw new ForbiddenException(
+                'The Zoom link cannot be changed for this class',
+            );
+        }
+
+        liveClass.zoomMeetingUrl = zoomMeetingUrl;
+        return await this.liveClassRepository.save(liveClass);
     }
 
     // =====================================================

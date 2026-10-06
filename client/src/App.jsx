@@ -26,9 +26,6 @@ function App({ darkMode, toggleTheme }) {
     
     // ==========================================
     // SOCKET AUTH
-    // IMPORTANT:
-    // Backend LiveClassGateway expects:
-    // socket.handshake.auth.token
     // ==========================================
 
     socket.auth = {

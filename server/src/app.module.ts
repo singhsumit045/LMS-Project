@@ -52,7 +52,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     EnrollmentsModule,
     VideosModule,
     AdminModule,
-    PresenceModule,
+    PresenceModule,  
     NotesModule,
     VideoProgressModule,
     AnnouncementsModule,

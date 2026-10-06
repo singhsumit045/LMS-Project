@@ -17,6 +17,9 @@ export class LiveClass {
   @Column({ type: 'text', nullable: true })
   description!: string | null;
 
+  @Column({ name: 'zoom_meeting_url', type: 'varchar', length: 2048, nullable: true })
+  zoomMeetingUrl!: string | null;
+
   @Column()
   courseId!: number;
 

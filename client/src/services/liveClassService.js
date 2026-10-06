@@ -7,6 +7,20 @@ export const createLiveClass = (data) => {
     return api.post("/live-classes", data);
 };
 
+export const isZoomMeetingUrl = (value) => {
+    try {
+        const url = new URL(value);
+        const host = url.hostname.toLowerCase();
+        const isZoomHost = ["zoom.us", "zoom.com", "zoomgov.com"].some(
+            (domain) => host === domain || host.endsWith(`.${domain}`)
+        );
+
+        return url.protocol === "https:" && isZoomHost;
+    } catch {
+        return false;
+    }
+};
+
 
 
 // =====================================================
@@ -64,4 +78,14 @@ export const endLiveClass = (id) => {
     return api.post(
         `/live-classes/${Number(id)}/end`
     );
+};
+
+export const setZoomMeetingUrl = (id, zoomMeetingUrl) => {
+    if (!id || !Number.isInteger(Number(id))) {
+        return Promise.reject(new Error("Invalid live class ID"));
+    }
+
+    return api.patch(`/live-classes/${Number(id)}/zoom-meeting`, {
+        zoomMeetingUrl,
+    });
 };

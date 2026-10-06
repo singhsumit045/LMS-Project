@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import {
   getMyLiveClasses,
   getStudentLiveClasses,
-  startLiveClass,
 } from "../../services/liveClassService";
 
 import {
@@ -207,14 +206,8 @@ const LiveClasses = () => {
     navigate(`/live-class/${liveClass.id}`);
   };
 
-  const handleStart = async (liveClass) => {
-    try {
-      await startLiveClass(liveClass.id);
-      navigate(`/live-class/${liveClass.id}`);
-    } catch (err) {
-      console.error("Start live class error:", err);
-      setError(err?.message || "Unable to start live class.");
-    }
+  const handleStart = (liveClass) => {
+    navigate(`/live-class/${liveClass.id}`);
   };
 
   // ==========================================================

@@ -1,5 +1,7 @@
 # Live Class Architecture & Flow Diagram
 
+> **Historical reference:** The WebRTC flow below has been retired. The active classroom uses teacher-provided Zoom meeting links stored on each live class; teachers start the class from the lobby and open Zoom, while students join the same Zoom link when the class is live.
+
 ## 🏗️ System Architecture
 
 ```

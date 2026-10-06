@@ -553,6 +553,10 @@ const CreateLiveClass = () => {
 
                 {/* SCHEDULE */}
 
+                <Alert severity="info">
+                  A Zoom meeting and shareable join link will be created automatically.
+                </Alert>
+
               <TextField
   fullWidth
   type="datetime-local"
