@@ -14,9 +14,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
       ignoreExpiration: false,
 
-      secretOrKey:
-        configService.get<string>('JWT_ACCESS_SECRET') ||
-        'lms-access-secret',
+   secretOrKey: configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
     });
   }
 

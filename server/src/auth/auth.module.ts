@@ -37,22 +37,12 @@ import { RolesGuard } from './guards/roles.guard';
 
       inject: [ConfigService],
 
-      useFactory: (
-        configService: ConfigService,
-      ) => ({
-        secret:
-          configService.get<string>(
-            'JWT_ACCESS_SECRET',
-          ) || 'lms-access-secret',
-
-        signOptions: {
-          expiresIn: (
-            configService.get<string>(
-              'JWT_ACCESS_EXPIRES',
-            ) || '15m'
-          ) as StringValue,
-        },
-      }),
+     useFactory: (configService: ConfigService) => ({
+  secret: configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
+  signOptions: {
+    expiresIn: (configService.get<string>('JWT_ACCESS_EXPIRES') || '15m') as StringValue,
+  },
+}),
     }),
   ],
 
