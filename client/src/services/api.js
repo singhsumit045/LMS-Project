@@ -34,6 +34,13 @@ function onRefreshFailed(error) {
   refreshSubscribers = [];
 }
 
+// Auth routes jinke 401 ko refresh logic se handle nahi karna
+const AUTH_ROUTES = ["/auth/login", "/auth/register", "/auth/refresh"];
+
+function isAuthRoute(url = "") {
+  return AUTH_ROUTES.some((route) => url.includes(route));
+}
+
 // Add access token to every request
 api.interceptors.request.use(
   (config) => {
@@ -58,6 +65,17 @@ api.interceptors.response.use(
 
   async (error) => {
     const originalRequest = error.config;
+
+    // Network error / config missing: seedha reject
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
+
+    // Login/register/refresh ke 401 ko seedha component tak jane do
+    // (isse wrong email/password par page reload nahi hoga)
+    if (isAuthRoute(originalRequest.url)) {
+      return Promise.reject(error);
+    }
 
     // If access token expired
     if (
@@ -114,16 +132,10 @@ api.interceptors.response.use(
         const newRefreshToken = response.data.refresh_token;
 
         // Save new tokens
-        localStorage.setItem(
-          "access_token",
-          newAccessToken
-        );
+        localStorage.setItem("access_token", newAccessToken);
 
         if (newRefreshToken) {
-          localStorage.setItem(
-            "refresh_token",
-            newRefreshToken
-          );
+          localStorage.setItem("refresh_token", newRefreshToken);
         }
 
         isRefreshing = false;
